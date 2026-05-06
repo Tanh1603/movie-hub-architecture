@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
 import { Clock, Film, Building2, DoorOpen, Ticket } from 'lucide-react';
@@ -473,3 +472,4 @@ export default function ShowtimeSeatsPage() {
     </div>
   );
 }
+

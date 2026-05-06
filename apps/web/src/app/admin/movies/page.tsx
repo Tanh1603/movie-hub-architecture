@@ -1,7 +1,6 @@
 // src/app/(admin)/movies/page.tsx
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@clerk/nextjs';
@@ -1424,3 +1423,4 @@ export default function MoviesPage() {
     </div>
   );
 }
+

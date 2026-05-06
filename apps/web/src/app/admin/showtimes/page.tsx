@@ -1,7 +1,6 @@
 // src/app/(admin)/showtimes/page.tsx
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import { Plus, Calendar as CalendarIcon, Clock, Trash2, Pencil } from 'lucide-react';
@@ -416,3 +415,4 @@ export default function ShowtimesPage() {
     </div>
   );
 }
+

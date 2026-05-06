@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState, useMemo } from 'react';
 import { Eye, Filter, Trash2, Star } from 'lucide-react';
@@ -563,3 +562,4 @@ export default function ReviewsPage() {
     </div>
   );
 }
+

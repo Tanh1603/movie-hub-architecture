@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { Badge } from '@movie-hub/shacdn-ui/badge';
 import {

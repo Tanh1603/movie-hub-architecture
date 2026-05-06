@@ -189,13 +189,7 @@ export const showtimesApi = {
     if (hallId) params.hallId = hallId;
 
     try {
-      console.log('[ShowtimesAPI] Fetching showtimes with filters:', {
-        filters,
-        params,
-      });
-      // Call BE GET /api/v1/showtimes with filters
       const result = await api.get<Showtime[]>('/api/v1/showtimes', { params });
-      console.log('[ShowtimesAPI] Got showtimes:', result);
       return result || [];
     } catch (error) {
       console.error('[ShowtimesAPI] Error fetching showtimes:', error);
@@ -248,7 +242,6 @@ export const movieReleasesApi = {
     try {
       movies = await moviesApi.getAll();
     } catch (error) {
-      console.warn('[MovieReleasesAPI] Failed to fetch movies list:', error);
       // Continue anyway - we can still fetch releases by iterating through them individually
       // This fallback won't work for the full list, but is better than complete failure
       return [];
@@ -272,9 +265,7 @@ export const movieReleasesApi = {
         allReleases.push(...enrichedReleases);
       } catch {
         // Skip if error fetching for this movie
-        console.warn(
-          `[MovieReleasesAPI] Failed to fetch releases for movie ${movie.id}`
-        );
+        // ignore per-movie release fetch failures
       }
     }
 
@@ -296,9 +287,7 @@ export const movieReleasesApi = {
           }
         } catch {
           // If movie fetch fails, return release without movie data
-          console.warn(
-            `[MovieReleasesAPI] Failed to fetch movie details for release ${id}`
-          );
+          // ignore movie enrichment failures
         }
       }
 

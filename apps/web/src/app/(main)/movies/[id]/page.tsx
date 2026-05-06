@@ -1,5 +1,4 @@
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
-export const dynamic = 'force-dynamic';
 import { getMovieDetail } from '@/libs/actions/movies/movie-action';
 import { DateSelect } from './_components/date-select';
 import { MovieCast } from './_components/movie-cast';
@@ -65,3 +64,4 @@ export default async function MovieDetailsPage({
     </HydrationBoundary>
   );
 }
+

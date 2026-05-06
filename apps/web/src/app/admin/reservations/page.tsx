@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState, useMemo, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
@@ -1013,3 +1012,4 @@ export default function ReservationsPage() {
     </div>
   );
 }
+

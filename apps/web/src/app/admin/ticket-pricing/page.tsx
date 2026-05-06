@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import { Building2, DoorOpen, DollarSign, Calendar, Sparkles, Edit2, Check, X, AlertCircle } from 'lucide-react';
@@ -488,3 +487,4 @@ export default function TicketPricingPage() {
     </div>
   );
 }
+

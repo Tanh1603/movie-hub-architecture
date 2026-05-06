@@ -1,5 +1,4 @@
 import MovieSlider from './_components/MovieSlider';
-export const dynamic = 'force-dynamic';
 import PromotionsSection from './_components/PromotionsSection';
 import MovieGrid from './_components/MovieGrid';
 import OtherServices from './_components/OtherServices';
@@ -83,3 +82,4 @@ export default async function MainPage() {
     </HydrationBoundary>
   );
 }
+

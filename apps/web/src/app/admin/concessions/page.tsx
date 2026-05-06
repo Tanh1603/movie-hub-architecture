@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, ShoppingBag, Package, AlertCircle } from 'lucide-react';
@@ -859,3 +858,4 @@ export default function ConcessionsPage() {
     </div>
   );
 }
+
