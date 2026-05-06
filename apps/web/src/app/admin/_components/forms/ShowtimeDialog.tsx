@@ -20,7 +20,7 @@ import {
 } from '@movie-hub/shacdn-ui/select';
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { useToast } from '../../_libs/use-toast';
-import { useMovieReleases } from '@/libs/api';
+import { useAdminMovieReleases } from '@/features/admin/movie-releases';
 import {
   useAdminCreateShowtime,
   useAdminShowtime,
@@ -70,7 +70,7 @@ export default function ShowtimeDialog({
   });
   // Fetch releases for the selected movie (or pre-selected movie)
   // Triggers whenever movieId in form changes OR when editingShowtime's movieId is loaded
-  const { data: movieReleasesData = [] } = useMovieReleases(
+  const { data: movieReleasesData = [] } = useAdminMovieReleases(
     (formData?.movieId || preSelectedMovieId) ? { movieId: formData?.movieId || preSelectedMovieId } : undefined
   );
   const movieReleases = useMemo(() => movieReleasesData || [], [movieReleasesData]);

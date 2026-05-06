@@ -31,8 +31,10 @@ import {
 } from '@movie-hub/shacdn-ui/select';
 import { Badge } from '@movie-hub/shacdn-ui/badge';
 import { useToast } from '../_libs/use-toast';
-import { useMovieReleases, useDeleteMovieRelease, useMovies, useCinemas, useHallsGroupedByCinema } from '@/libs/api';
-import type { MovieRelease } from '@/libs/api';
+import { useAdminCinemas, useAdminHallsGroupedByCinema } from '@/features/admin/cinemas';
+import { useAdminMovieReleases, useAdminDeleteMovieRelease } from '@/features/admin/movie-releases';
+import { useAdminMovies } from '@/features/admin/movies';
+import type { MovieRelease } from '@/libs/api/types';
 import type { Hall } from '@/libs/api/types';
 import { format } from 'date-fns';
 import MovieReleaseDialog from '../_components/forms/MovieReleaseDialog';
@@ -67,16 +69,16 @@ export default function MovieReleasesPage() {
   const { toast } = useToast();
 
   // API hooks
-  const { data: releasesData = [], isLoading: loading, refetch: refetchReleases } = useMovieReleases();
+  const { data: releasesData = [], isLoading: loading, refetch: refetchReleases } = useAdminMovieReleases();
   const releases = releasesData || [];
-  const { data: moviesData = [] } = useMovies();
+  const { data: moviesData = [] } = useAdminMovies();
   const movies = moviesData || [];
-  const { data: cinemasData = [] } = useCinemas();
+  const { data: cinemasData = [] } = useAdminCinemas();
   const cinemas = cinemasData || [];
-  const deleteRelease = useDeleteMovieRelease();
+  const deleteRelease = useAdminDeleteMovieRelease();
 
   // Halls: derive a flat halls list from grouped halls by cinema
-  const { data: hallsByCinema = {} } = useHallsGroupedByCinema();
+  const { data: hallsByCinema = {} } = useAdminHallsGroupedByCinema();
   const halls: Hall[] = Object.values(hallsByCinema).flatMap((g: unknown) => (g as { halls?: Hall[] }).halls || []);
 
   const handleEdit = (release: MovieRelease) => {

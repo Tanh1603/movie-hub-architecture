@@ -21,7 +21,11 @@ import {
 } from '@movie-hub/shacdn-ui/select';
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { useToast } from '../../_libs/use-toast';
-import { useCreateMovieRelease, useUpdateMovieRelease, useMovieRelease } from '@/libs/api';
+import {
+  useAdminCreateMovieRelease,
+  useAdminMovieRelease,
+  useAdminUpdateMovieRelease,
+} from '@/features/admin/movie-releases';
 import { moviesApi } from '@/libs/api/services';
 import type { Movie, MovieRelease, CreateMovieReleaseRequest, UpdateMovieReleaseRequest } from '@/libs/api/types';
 
@@ -48,9 +52,9 @@ export default function MovieReleaseDialog({
   preSelectedMovieId,
   onSuccess,
 }: MovieReleaseDialogProps) {
-  const createMovieRelease = useCreateMovieRelease();
-  const updateMovieRelease = useUpdateMovieRelease();
-  const { data: fetchedReleaseDetail } = useMovieRelease(editingRelease?.id || null);
+  const createMovieRelease = useAdminCreateMovieRelease();
+  const updateMovieRelease = useAdminUpdateMovieRelease();
+  const { data: fetchedReleaseDetail } = useAdminMovieRelease(editingRelease?.id || null);
   const fullReleaseDetail = fetchedReleaseDetail || editingRelease;
   const [formData, setFormData] = useState({
     movieId: '',

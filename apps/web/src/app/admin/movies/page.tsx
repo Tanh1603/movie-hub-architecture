@@ -13,7 +13,6 @@ import {
   Trash2,
   Film as FilmIcon,
   Calendar,
-  X,
 } from 'lucide-react';
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { Input } from '@movie-hub/shacdn-ui/input';
@@ -46,7 +45,7 @@ import {
   moviesApi,
   movieReleasesApi,
 } from '@/libs/api';
-import { useGenres } from '@/libs/api';
+import { useAdminGenres } from '@/features/admin/genres';
 import {
   useAdminCreateMovie,
   useAdminDeleteMovie,
@@ -55,11 +54,18 @@ import {
 } from '@/features/admin/movies';
 import type {
   Movie,
+  Genre,
   CreateMovieRequest,
   AgeRating,
   LanguageType,
-  MovieCast,
 } from '@/libs/api/types';
+import {
+  createDefaultMovieForm,
+  mapMovieToForm,
+  toCreateMovieRequest,
+  toUpdateMovieRequest,
+  type MovieFormValues,
+} from '@/features/admin/forms/movie-form';
 import {
   AgeRatingEnum,
   LanguageOptionEnum,
@@ -95,34 +101,17 @@ export default function MoviesPage() {
   const [enrichedMovies, setEnrichedMovies] = useState<
     Map<string, EnrichedMovie>
   >(new Map());
-  const [formData, setFormData] = useState<Partial<CreateMovieRequest>>({
-    title: '',
-    overview: '',
-    originalTitle: '',
-    posterUrl: '',
-    trailerUrl: '',
-    backdropUrl: '',
-    runtime: 0,
-    releaseDate: '',
-    ageRating: AgeRatingEnum.P as AgeRating,
-    originalLanguage: 'en',
-    spokenLanguages: ['en'],
-    languageType: LanguageOptionEnum.SUBTITLE as LanguageType,
-    productionCountry: 'US',
-    director: '',
-    cast: [] as MovieCast[],
-    genreIds: [] as string[],
-  });
+  const [formData, setFormData] = useState<MovieFormValues>(createDefaultMovieForm());
 
   // API hooks
   const { data: moviesData = [] } = useAdminMovies();
   const movies = useMemo(() => moviesData || [], [moviesData]);
-  const { data: genresData = [] } = useGenres();
+  const { data: genresData = [] } = useAdminGenres();
   const genres = useMemo(() => genresData || [], [genresData]);
   const filteredGenres = useMemo(() => {
     const q = genreSearch.trim().toLowerCase();
     if (!q) return genres;
-    return genres.filter((g: any) =>
+    return genres.filter((g: Genre) =>
       String(g.name || '')
         .toLowerCase()
         .includes(q)
@@ -343,10 +332,9 @@ export default function MoviesPage() {
     }
 
     try {
-      const apiData = {
-        ...formData,
-        cast: formData.cast || [],
-      };
+      const apiData = selectedMovie
+        ? toUpdateMovieRequest(formData)
+        : toCreateMovieRequest(formData);
       if (selectedMovie) {
         await updateMovie.mutateAsync({ id: selectedMovie.id, data: apiData });
       } else {
@@ -370,25 +358,28 @@ export default function MoviesPage() {
   };
 
   const resetForm = () => {
-    setFormData({
-      title: '',
-      overview: '',
-      originalTitle: '',
-      posterUrl: '',
-      trailerUrl: '',
-      backdropUrl: '',
-      runtime: 0,
-      releaseDate: '',
-      ageRating: AgeRatingEnum.P,
-      originalLanguage: 'en',
-      spokenLanguages: ['en'],
-      languageType: LanguageOptionEnum.SUBTITLE,
-      productionCountry: 'US',
-      director: '',
-      cast: [],
-      genreIds: [],
-    });
+    setFormData(createDefaultMovieForm());
     setSelectedMovie(null);
+  };
+
+  const normalizeGenreIds = (value: unknown): string[] => {
+    if (!value) return [];
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => {
+          if (item && typeof item === 'object' && 'id' in item) {
+            const maybe = item as { id?: unknown };
+            return maybe.id ? String(maybe.id) : '';
+          }
+          return String(item ?? '');
+        })
+        .filter(Boolean);
+    }
+    if (value && typeof value === 'object' && 'id' in value) {
+      const maybe = value as { id?: unknown };
+      return maybe.id ? [String(maybe.id)] : [];
+    }
+    return [String(value)];
   };
 
   const openEditDialog = async (movie: Movie) => {
@@ -422,75 +413,22 @@ export default function MoviesPage() {
         }
       }
 
-      setFormData({
-        title: fullMovieDetail.title,
-        overview: fullMovieDetail.overview,
-        originalTitle: fullMovieDetail.originalTitle || '',
-        posterUrl: fullMovieDetail.posterUrl,
-        trailerUrl: fullMovieDetail.trailerUrl || '',
-        backdropUrl: fullMovieDetail.backdropUrl || '',
-        runtime: fullMovieDetail.runtime,
-        releaseDate: releaseDateStr,
-        ageRating: fullMovieDetail.ageRating,
-        originalLanguage: fullMovieDetail.originalLanguage,
-        spokenLanguages: fullMovieDetail.spokenLanguages || [],
-        languageType: fullMovieDetail.languageType,
-        productionCountry: fullMovieDetail.productionCountry,
-        director: fullMovieDetail.director || '',
-        cast: fullMovieDetail.cast || [],
-        genreIds: (() => {
-          const raw =
-            (fullMovieDetail as any).genre ??
-            (fullMovieDetail as any).genres ??
-            (fullMovieDetail as any).genreIds ??
-            [];
-          if (Array.isArray(raw)) {
-            if (raw.length > 0 && typeof raw[0] === 'object')
-              return raw.map((g: any) => String(g.id));
-            return raw.map((v: any) => String(v));
-          }
-          if (raw && typeof raw === 'object' && 'id' in raw)
-            return [String(raw.id)];
-          if (raw != null) return [String(raw)];
-          return [];
-        })(),
-      });
+      const mapped = mapMovieToForm(fullMovieDetail);
+      const detailAny = fullMovieDetail as Movie & {
+        genres?: unknown;
+      };
+      const raw = detailAny.genre ?? detailAny.genres ?? detailAny.genreIds ?? [];
+      setFormData({ ...mapped, releaseDate: releaseDateStr, genreIds: normalizeGenreIds(raw) });
       setDialogOpen(true);
     } catch (error) {
       console.error('Failed to fetch movie detail:', error);
       // Fallback to summary data if detail fetch fails
+      const movieAny = movie as Movie & { genres?: unknown };
+      const raw = movieAny.genre ?? movieAny.genres ?? movieAny.genreIds ?? [];
       setFormData({
-        title: movie.title,
-        overview: movie.overview || '',
-        originalTitle: movie.originalTitle || '',
-        posterUrl: movie.posterUrl,
-        trailerUrl: movie.trailerUrl || '',
-        backdropUrl: movie.backdropUrl || '',
-        runtime: movie.runtime,
+        ...mapMovieToForm(movie),
         releaseDate: '',
-        ageRating: movie.ageRating,
-        originalLanguage: movie.originalLanguage,
-        spokenLanguages: movie.spokenLanguages || [],
-        languageType: movie.languageType,
-        productionCountry: movie.productionCountry,
-        director: movie.director || '',
-        cast: movie.cast || [],
-        genreIds: (() => {
-          const raw =
-            (movie as any).genre ??
-            (movie as any).genres ??
-            (movie as any).genreIds ??
-            [];
-          if (Array.isArray(raw)) {
-            if (raw.length > 0 && typeof raw[0] === 'object')
-              return raw.map((g: any) => String(g.id));
-            return raw.map((v: any) => String(v));
-          }
-          if (raw && typeof raw === 'object' && 'id' in raw)
-            return [String(raw.id)];
-          if (raw != null) return [String(raw)];
-          return [];
-        })(),
+        genreIds: normalizeGenreIds(raw),
       });
       setDialogOpen(true);
     }
@@ -505,25 +443,30 @@ export default function MoviesPage() {
   // Normalize movie -> genre ids (handles `genre`, `genres`, `genreIds`, singular/object shapes)
   function getMovieGenreIds(movie: Movie): string[] {
     const ids: string[] = [];
+    const movieAny = movie as Movie & { genres?: unknown };
 
     // movie.genre may be array, single object, or single id/string
-    const rawGenre = (movie as any).genre ?? (movie as any).genres ?? null;
+    const rawGenre = movieAny.genre ?? movieAny.genres ?? null;
     if (rawGenre) {
       if (Array.isArray(rawGenre)) {
-        rawGenre.forEach((g: any) => {
-          if (g && typeof g === 'object' && 'id' in g) ids.push(String(g.id));
+        rawGenre.forEach((g: unknown) => {
+          if (g && typeof g === 'object' && 'id' in g) {
+            const genreObj = g as { id?: unknown };
+            if (genreObj.id) ids.push(String(genreObj.id));
+          }
           else ids.push(String(g));
         });
       } else if (rawGenre && typeof rawGenre === 'object' && 'id' in rawGenre) {
-        ids.push(String(rawGenre.id));
+        const genreObj = rawGenre as { id?: unknown };
+        if (genreObj.id) ids.push(String(genreObj.id));
       } else if (rawGenre != null) {
         ids.push(String(rawGenre));
       }
     }
 
     // movie.genreIds explicit array
-    if (Array.isArray((movie as any).genreIds)) {
-      ((movie as any).genreIds as any[]).forEach((gid) =>
+    if (Array.isArray(movie.genreIds)) {
+      (movie.genreIds as string[]).forEach((gid) =>
         ids.push(String(gid))
       );
     }
@@ -535,13 +478,16 @@ export default function MoviesPage() {
   // Get display names for a movie's genres; prefer included objects, fallback to lookup by id
   function getMovieGenreNames(movie: Movie): string[] {
     const names: string[] = [];
-    const rawGenre = (movie as any).genre ?? (movie as any).genres ?? null;
+    const movieAny = movie as Movie & { genres?: unknown };
+    const rawGenre = movieAny.genre ?? movieAny.genres ?? null;
 
     if (rawGenre) {
       if (Array.isArray(rawGenre)) {
-        rawGenre.forEach((g: any) => {
-          if (g && typeof g === 'object' && 'name' in g)
-            names.push(String(g.name));
+        rawGenre.forEach((g: unknown) => {
+          if (g && typeof g === 'object' && 'name' in g) {
+            const genreObj = g as { name?: unknown };
+            if (genreObj.name) names.push(String(genreObj.name));
+          }
           else if (g != null) names.push(String(g));
         });
       } else if (
@@ -549,16 +495,17 @@ export default function MoviesPage() {
         typeof rawGenre === 'object' &&
         'name' in rawGenre
       ) {
-        names.push(String(rawGenre.name));
+        const genreObj = rawGenre as { name?: unknown };
+        if (genreObj.name) names.push(String(genreObj.name));
       } else if (rawGenre != null) {
         names.push(String(rawGenre));
       }
     }
 
-    if (Array.isArray((movie as any).genreIds)) {
-      ((movie as any).genreIds as string[]).forEach((gid) => {
+    if (Array.isArray(movie.genreIds)) {
+      (movie.genreIds as string[]).forEach((gid) => {
         // try to resolve name from loaded genres list
-        const g = genres.find((x: any) => String(x.id) === String(gid));
+        const g = genres.find((x: Genre) => String(x.id) === String(gid));
         if (g && g.name) names.push(g.name);
         else names.push(String(gid));
       });
@@ -598,7 +545,7 @@ export default function MoviesPage() {
       // Release year filter removed — filtering now relies on genres, status and rating only
 
       // Rating filter - prefer enriched then fallback
-      const ratingToCheck = (source as any).ageRating ?? movie.ageRating;
+      const ratingToCheck = source.ageRating ?? movie.ageRating;
       if (selectedRating !== 'all' && ratingToCheck !== selectedRating) {
         return false;
       }
@@ -607,7 +554,7 @@ export default function MoviesPage() {
       if (selectedStatus !== 'all') {
         const statusToCheck =
           (enriched && enriched.calculatedStatus) ||
-          (movie as any).status ||
+          movie.status ||
           undefined;
         if (statusToCheck !== selectedStatus) return false;
       }
@@ -619,12 +566,12 @@ export default function MoviesPage() {
   const displayedMovies = useMemo(() => filteredSources, [filteredSources]);
 
   const releaseDateValue = (() => {
-    const rd = (formData as any).releaseDate;
+    const rd = formData.releaseDate;
     if (!rd) return '';
     if (typeof rd === 'string') return rd.includes('T') ? rd.split('T')[0] : rd;
     if (rd instanceof Date) return rd.toISOString().split('T')[0];
     try {
-      const d = new Date(rd as any);
+      const d = new Date(rd as string);
       if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
     } catch (e) {
       /* ignore */
@@ -735,8 +682,7 @@ export default function MoviesPage() {
                     </p>
                   ) : (
                     <div className="space-y-1">
-                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                      {filteredGenres.map((genre: any) => {
+                      {filteredGenres.map((genre: Genre) => {
                         const checked = selectedGenreIds.includes(genre.id);
                         return (
                           <label
