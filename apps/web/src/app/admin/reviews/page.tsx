@@ -2,7 +2,7 @@
 
 
 import { useState, useMemo } from 'react';
-import { Eye, Filter, Trash2, Star } from 'lucide-react';
+import { Eye, Trash2, Star } from 'lucide-react';
 import { Button } from '@movie-hub/shacdn-ui/button';
 import {
   Card,
@@ -562,4 +562,5 @@ export default function ReviewsPage() {
     </div>
   );
 }
+
 

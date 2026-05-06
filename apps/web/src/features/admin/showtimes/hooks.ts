@@ -1,7 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { showtimesApi } from '@/libs/api';
-import type { CreateShowtimeRequest, Showtime, ShowtimeFiltersParams, UpdateShowtimeRequest } from '@/libs/api/types';
+import type {
+  BatchCreateShowtimesRequest,
+  CreateShowtimeRequest,
+  Showtime,
+  ShowtimeFiltersParams,
+  ShowtimeSeatResponse,
+  UpdateShowtimeRequest,
+} from '@/libs/api/types';
 import { adminInvalidation } from '../shared/invalidation';
 import { adminQueryKeys } from '../shared/query-keys';
 
@@ -70,3 +77,27 @@ export const useAdminDeleteShowtime = () => {
   });
 };
 
+export const useAdminBatchCreateShowtimes = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: BatchCreateShowtimesRequest) =>
+      showtimesApi.batchCreate(data),
+    onSuccess: () => {
+      adminInvalidation.showtimes(queryClient);
+      toast.success('Batch showtimes created successfully');
+    },
+    onError: () => {
+      toast.error('Failed to create batch showtimes');
+    },
+  });
+};
+
+export const useAdminShowtimeSeats = (showtimeId: string | null) =>
+  useQuery<ShowtimeSeatResponse>({
+    queryKey: [...adminQueryKeys.showtimes.all, 'seats', showtimeId],
+    queryFn: () => {
+      if (!showtimeId) throw new Error('showtimeId is required');
+      return showtimesApi.getSeats(showtimeId);
+    },
+    enabled: !!showtimeId,
+  });

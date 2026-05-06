@@ -34,6 +34,7 @@ import { Checkbox } from '@movie-hub/shacdn-ui/checkbox';
 import { useToast } from '../_libs/use-toast';
 import type {
   BatchCreateShowtimesRequest as ApiBatchCreateRequest,
+  MovieRelease,
   Showtime as ApiShowtime,
   Hall as ApiHall,
   ShowtimeFormat as ApiShowtimeFormat,
@@ -67,13 +68,10 @@ interface BatchCreateResponse {
     reason: string;
   }>;
 }
-import {
-  useMovies,
-  useCinemas,
-  useHallsGroupedByCinema,
-  useMovieReleases,
-  useBatchCreateShowtimes,
-} from '@/libs/api';
+import { useAdminCinemas, useAdminHallsGroupedByCinema } from '@/features/admin/cinemas';
+import { useAdminMovieReleases } from '@/features/admin/movie-releases';
+import { useAdminMovies } from '@/features/admin/movies';
+import { useAdminBatchCreateShowtimes } from '@/features/admin/showtimes';
 
 const WEEKDAYS = [
   { value: 1, label: 'Thứ Hai' },
@@ -117,17 +115,17 @@ function BatchShowtimesContent() {
   const preSelectedReleaseId = searchParams.get('releaseId');
 
   // API hooks
-  const { data: moviesData = [] } = useMovies();
+  const { data: moviesData = [] } = useAdminMovies();
   const movies = moviesData || [];
-  const { data: cinemasData = [] } = useCinemas();
+  const { data: cinemasData = [] } = useAdminCinemas();
   const cinemas = cinemasData || [];
-  const { data: hallsByCinema = {} } = useHallsGroupedByCinema();
+  const { data: hallsByCinema = {} } = useAdminHallsGroupedByCinema();
   const halls: ApiHall[] = Object.values(hallsByCinema).flatMap(
     (g: { halls?: ApiHall[] }) => g.halls || []
   );
-  const { data: movieReleasesData = [] } = useMovieReleases();
+  const { data: movieReleasesData = [] } = useAdminMovieReleases();
   const movieReleases = movieReleasesData || [];
-  const batchCreateMutation = useBatchCreateShowtimes();
+  const batchCreateMutation = useAdminBatchCreateShowtimes();
 
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<BatchCreateResponse | null>(null);
@@ -338,7 +336,11 @@ function BatchShowtimesContent() {
       if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === 'object' && error !== null) {
-        const err = error as any;
+        const err = error as {
+          message?: string;
+          code?: string;
+          response?: { status?: number; data?: { message?: string } };
+        };
 
         // Check for API response error
         if (err.response?.data?.message) {
@@ -440,7 +442,7 @@ function BatchShowtimesContent() {
                   <Input
                     value={(() => {
                       const release = movieReleases.find(
-                        (r: any) => r.id === formData.movieReleaseId
+                        (r: MovieRelease) => r.id === formData.movieReleaseId
                       );
                       if (!release || !release.startDate || !release.endDate)
                         return 'Đang tải...';

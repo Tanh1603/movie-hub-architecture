@@ -207,9 +207,9 @@ export default function SettingsPage() {
       try {
         const configs = await configApi.getAll();
         // Handle potential response wrapper or direct array
-        const dataList = (configs as any).data || configs;
+        const dataList = (configs as { data?: unknown } | unknown[]).data ?? configs;
         const appConfig = Array.isArray(dataList)
-          ? dataList.find((c: any) => c.key === 'appearance')
+          ? dataList.find((c: { key?: string }) => c.key === 'appearance')
           : null;
 
         if (appConfig?.value) {
@@ -1393,4 +1393,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
 

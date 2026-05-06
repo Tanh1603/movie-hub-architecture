@@ -573,7 +573,7 @@ export default function MoviesPage() {
     try {
       const d = new Date(rd as string);
       if (!isNaN(d.getTime())) return d.toISOString().split('T')[0];
-    } catch (e) {
+    } catch {
       /* ignore */
     }
     return '';
@@ -1371,4 +1371,5 @@ export default function MoviesPage() {
     </div>
   );
 }
+
 

@@ -60,6 +60,9 @@ const PRESET_AMENITIES = [
   { name: 'Restroom', defaultValue: 'Sạch sẽ' },
   { name: 'Concession', defaultValue: 'Bán đầy đủ' },
 ] as const;
+type FormOperatingHours = { open?: string; close?: string; [key: string]: unknown };
+type FormSocialMedia = { facebook?: string; instagram?: string; twitter?: string; [key: string]: unknown };
+type FacilityValue = string | number | boolean;
 
 export default function CinemasPage() {
   const { user } = useUser();
@@ -86,8 +89,8 @@ export default function CinemasPage() {
     facilities: {},
     images: [],
     virtualTour360Url: '',
-    operatingHours: { open: '', close: '' } as any,
-    socialMedia: { facebook: '', instagram: '', twitter: '' } as any,
+    operatingHours: { open: '', close: '' } as FormOperatingHours,
+    socialMedia: { facebook: '', instagram: '', twitter: '' } as FormSocialMedia,
     timezone: 'Asia/Ho_Chi_Minh',
   });
   // toast not used in this page
@@ -141,10 +144,10 @@ export default function CinemasPage() {
   };
 
   // Normalize operating hours from DB format to form format (open/close time inputs)
-  const normalizeOperatingHours = (hours: any) => {
+  const normalizeOperatingHours = (hours: unknown) => {
     if (!hours) return { open: '', close: '' };
 
-    const h = hours as Record<string, any>;
+    const h = hours as Record<string, unknown>;
 
     // Already in open/close format
     if (h.open && h.close) {
@@ -767,7 +770,7 @@ export default function CinemasPage() {
                         onClick={() => {
                           const fac = {
                             ...(formData.facilities || {}),
-                          } as Record<string, any>;
+                          } as Record<string, FacilityValue>;
                           // Only add if not already exists
                           if (!fac[amenity.name]) {
                             fac[amenity.name] = amenity.defaultValue;
@@ -783,7 +786,7 @@ export default function CinemasPage() {
               </div>
               <div className="space-y-2 flex-1">
                 {(
-                  Object.entries(formData.facilities || {}) as [string, any][]
+                  Object.entries(formData.facilities || {}) as [string, FacilityValue][]
                 ).map(([key, value], idx) => (
                   <div
                     key={key || idx}
@@ -796,7 +799,7 @@ export default function CinemasPage() {
                         const newKey = e.target.value;
                         const fac = {
                           ...(formData.facilities || {}),
-                        } as Record<string, any>;
+                        } as Record<string, FacilityValue>;
                         // rename key
                         const val = fac[key];
                         delete fac[key];
@@ -814,7 +817,7 @@ export default function CinemasPage() {
                       onChange={(e) => {
                         const fac = {
                           ...(formData.facilities || {}),
-                        } as Record<string, any>;
+                        } as Record<string, FacilityValue>;
                         const parsed = (() => {
                           const v = e.target.value.trim();
                           if (v === 'true') return true;
@@ -832,7 +835,7 @@ export default function CinemasPage() {
                       onClick={() => {
                         const fac = {
                           ...(formData.facilities || {}),
-                        } as Record<string, any>;
+                        } as Record<string, FacilityValue>;
                         delete fac[key];
                         setFormData({ ...formData, facilities: fac });
                       }}
@@ -846,7 +849,7 @@ export default function CinemasPage() {
                 onClick={() => {
                   const fac = { ...(formData.facilities || {}) } as Record<
                     string,
-                    any
+                    FacilityValue
                   >;
                   // Start with empty key so user can type meaningful names like "WiFi", "Parking", etc.
                   fac[''] = '';
@@ -992,4 +995,5 @@ export default function CinemasPage() {
     </div>
   );
 }
+
 

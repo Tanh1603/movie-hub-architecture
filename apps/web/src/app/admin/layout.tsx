@@ -32,7 +32,9 @@ import { useClerk, useUser } from '@clerk/nextjs';
 import { RequireAdminClerkAuth } from '@/components/require-admin-clerk-auth';
 import PageWrapper from '@/components/providers/page-wrapper';
 
-const menuSections = [
+type AdminMenuItem = { icon: React.ComponentType<{ className?: string }>; label: string; href: string; disabled: boolean; adminOnly?: boolean };
+
+const menuSections: Array<{ label: string; items: AdminMenuItem[] }> = [
   {
     label: 'Chính',
     items: [
@@ -224,7 +226,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       ...section,
       items: section.items.filter((item) => {
         // Hide admin-only items from managers
-        if (isManager && (item as any).adminOnly) {
+        if (isManager && item.adminOnly) {
           return false;
         }
         return true;
@@ -412,4 +414,5 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
 

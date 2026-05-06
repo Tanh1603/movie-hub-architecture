@@ -12,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@movie-hub/shacdn-ui/card';
-import { Label } from '@movie-hub/shacdn-ui/label';
 import {
   Select,
   SelectContent,
@@ -23,12 +22,12 @@ import {
 import { Badge } from '@movie-hub/shacdn-ui/badge';
 import { Calendar } from '@movie-hub/shacdn-ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@movie-hub/shacdn-ui/popover';
-import { useMovies, useCinemas } from '@/libs/api';
+import { useAdminMovies } from '@/features/admin/movies';
+import { useAdminCinemas, useAdminHallsGroupedByCinema } from '@/features/admin/cinemas';
 import {
   useAdminDeleteShowtime,
   useAdminShowtimes,
 } from '@/features/admin/showtimes';
-import { useAdminHallsGroupedByCinema } from '@/features/admin/cinemas';
 import type { Showtime, Hall } from '@/libs/api/types';
 import { format } from 'date-fns';
 import ShowtimeDialog from '../_components/forms/ShowtimeDialog';
@@ -56,10 +55,10 @@ export default function ShowtimesPage() {
     date: formatDateForQuery(selectedDate),
   });
   const showtimes = showtimesData || [];
-  const { data: moviesData = [] } = useMovies();
+  const { data: moviesData = [] } = useAdminMovies();
   const movies = moviesData || [];
   const moviesAdmin = movies;
-  const { data: cinemasData = [] } = useCinemas();
+  const { data: cinemasData = [] } = useAdminCinemas();
   const cinemas = cinemasData || [];
   const cinemasAdmin = cinemas;
   const deleteShowtime = useAdminDeleteShowtime();
@@ -420,4 +419,5 @@ export default function ShowtimesPage() {
     </div>
   );
 }
+
 
