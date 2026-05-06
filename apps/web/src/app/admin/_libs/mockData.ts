@@ -18,7 +18,7 @@ import {
   LanguageType,
   SeatType,
   SeatStatus,
-} from '@/libs/api/types';
+} from '@/types';
 
 import {
   CinemaStatus,
@@ -837,22 +837,30 @@ export const mockStaff: Staff[] = [
 ];
 
 // ========== SEATS ==========
-const generateSeats = (hallId: string, rows: number, seatsPerRow: number): Seat[] => {
+const generateSeats = (
+  hallId: string,
+  rows: number,
+  seatsPerRow: number
+): Seat[] => {
   const seats: Seat[] = [];
   const rowLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-  
+
   for (let r = 0; r < rows && r < rowLabels.length; r++) {
     for (let s = 1; s <= seatsPerRow; s++) {
-      const seatType: SeatType = 
-        r >= rows - 2 ? SeatTypeEnum.VIP : 
-        r >= rows - 4 ? SeatTypeEnum.PREMIUM : 
-        SeatTypeEnum.STANDARD;
-      
-      const status: SeatStatus = 
-        Math.random() > 0.95 ? SeatStatusEnum.BROKEN : 
-        Math.random() > 0.9 ? SeatStatusEnum.MAINTENANCE : 
-        SeatStatusEnum.ACTIVE;
-      
+      const seatType: SeatType =
+        r >= rows - 2
+          ? SeatTypeEnum.VIP
+          : r >= rows - 4
+          ? SeatTypeEnum.PREMIUM
+          : SeatTypeEnum.STANDARD;
+
+      const status: SeatStatus =
+        Math.random() > 0.95
+          ? SeatStatusEnum.BROKEN
+          : Math.random() > 0.9
+          ? SeatStatusEnum.MAINTENANCE
+          : SeatStatusEnum.ACTIVE;
+
       seats.push({
         id: `seat_${hallId}_${rowLabels[r]}${s}`,
         rowLetter: rowLabels[r],
@@ -875,21 +883,25 @@ export const mockSeats: Seat[] = [
 
 // Map seats by hall for easy lookup
 const seatsByHall: Record<string, Seat[]> = {
-  'h_lm81_imax': mockSeats.slice(0, 375),
-  'h_lm81_4dx': mockSeats.slice(375, 495),
-  'h_lm81_premium': mockSeats.slice(495, 575),
-  'h_caugiau_comfort': mockSeats.slice(575, 655),
-  'h_bitexco_gold': mockSeats.slice(655, 703),
+  h_lm81_imax: mockSeats.slice(0, 375),
+  h_lm81_4dx: mockSeats.slice(375, 495),
+  h_lm81_premium: mockSeats.slice(495, 575),
+  h_caugiau_comfort: mockSeats.slice(575, 655),
+  h_bitexco_gold: mockSeats.slice(655, 703),
 };
 
 // ========== SHOWTIME SEATS ==========
-const generateShowtimeSeats = (showtimeId: string, hallId: string): ShowtimeSeat[] => {
+const generateShowtimeSeats = (
+  showtimeId: string,
+  hallId: string
+): ShowtimeSeat[] => {
   const hallSeats = seatsByHall[hallId] || [];
   return hallSeats.map((seat, index) => {
     const isBooked = index % 5 === 0;
     const isReserved = index % 7 === 0 && !isBooked;
-    const basePrice = seat.type === 'VIP' ? 150000 : seat.type === 'PREMIUM' ? 120000 : 90000;
-    
+    const basePrice =
+      seat.type === 'VIP' ? 150000 : seat.type === 'PREMIUM' ? 120000 : 90000;
+
     return {
       ...seat,
       showtimeId,
@@ -909,24 +921,152 @@ export const mockShowtimeSeats: ShowtimeSeat[] = [
 // ========== TICKET PRICING ==========
 export const mockTicketPricing: TicketPricing[] = [
   // IMAX Hall pricing
-  { id: 'tp_001', hallId: 'h_lm81_imax', seatType: SeatTypeEnum.STANDARD, dayType: DayTypeEnum.WEEKDAY, price: 120000, createdAt: '2025-01-01T10:00:00Z', updatedAt: '2025-01-01T10:00:00Z' },
-  { id: 'tp_002', hallId: 'h_lm81_imax', seatType: SeatTypeEnum.STANDARD, dayType: DayTypeEnum.WEEKEND, price: 140000, createdAt: '2025-01-01T10:00:00Z', updatedAt: '2025-01-01T10:00:00Z' },
-  { id: 'tp_003', hallId: 'h_lm81_imax', seatType: SeatTypeEnum.STANDARD, dayType: DayTypeEnum.HOLIDAY, price: 160000, createdAt: '2025-01-01T10:00:00Z', updatedAt: '2025-01-01T10:00:00Z' },
-  { id: 'tp_004', hallId: 'h_lm81_imax', seatType: SeatTypeEnum.VIP, dayType: DayTypeEnum.WEEKDAY, price: 180000, createdAt: '2025-01-01T10:00:00Z', updatedAt: '2025-01-01T10:00:00Z' },
-  { id: 'tp_005', hallId: 'h_lm81_imax', seatType: SeatTypeEnum.VIP, dayType: DayTypeEnum.WEEKEND, price: 200000, createdAt: '2025-01-01T10:00:00Z', updatedAt: '2025-01-01T10:00:00Z' },
-  { id: 'tp_006', hallId: 'h_lm81_imax', seatType: SeatTypeEnum.VIP, dayType: DayTypeEnum.HOLIDAY, price: 220000, createdAt: '2025-01-01T10:00:00Z', updatedAt: '2025-01-01T10:00:00Z' },
-  { id: 'tp_007', hallId: 'h_lm81_imax', seatType: SeatTypeEnum.PREMIUM, dayType: DayTypeEnum.WEEKDAY, price: 150000, createdAt: '2025-01-01T10:00:00Z', updatedAt: '2025-01-01T10:00:00Z' },
-  { id: 'tp_008', hallId: 'h_lm81_imax', seatType: SeatTypeEnum.PREMIUM, dayType: DayTypeEnum.WEEKEND, price: 170000, createdAt: '2025-01-01T10:00:00Z', updatedAt: '2025-01-01T10:00:00Z' },
+  {
+    id: 'tp_001',
+    hallId: 'h_lm81_imax',
+    seatType: SeatTypeEnum.STANDARD,
+    dayType: DayTypeEnum.WEEKDAY,
+    price: 120000,
+    createdAt: '2025-01-01T10:00:00Z',
+    updatedAt: '2025-01-01T10:00:00Z',
+  },
+  {
+    id: 'tp_002',
+    hallId: 'h_lm81_imax',
+    seatType: SeatTypeEnum.STANDARD,
+    dayType: DayTypeEnum.WEEKEND,
+    price: 140000,
+    createdAt: '2025-01-01T10:00:00Z',
+    updatedAt: '2025-01-01T10:00:00Z',
+  },
+  {
+    id: 'tp_003',
+    hallId: 'h_lm81_imax',
+    seatType: SeatTypeEnum.STANDARD,
+    dayType: DayTypeEnum.HOLIDAY,
+    price: 160000,
+    createdAt: '2025-01-01T10:00:00Z',
+    updatedAt: '2025-01-01T10:00:00Z',
+  },
+  {
+    id: 'tp_004',
+    hallId: 'h_lm81_imax',
+    seatType: SeatTypeEnum.VIP,
+    dayType: DayTypeEnum.WEEKDAY,
+    price: 180000,
+    createdAt: '2025-01-01T10:00:00Z',
+    updatedAt: '2025-01-01T10:00:00Z',
+  },
+  {
+    id: 'tp_005',
+    hallId: 'h_lm81_imax',
+    seatType: SeatTypeEnum.VIP,
+    dayType: DayTypeEnum.WEEKEND,
+    price: 200000,
+    createdAt: '2025-01-01T10:00:00Z',
+    updatedAt: '2025-01-01T10:00:00Z',
+  },
+  {
+    id: 'tp_006',
+    hallId: 'h_lm81_imax',
+    seatType: SeatTypeEnum.VIP,
+    dayType: DayTypeEnum.HOLIDAY,
+    price: 220000,
+    createdAt: '2025-01-01T10:00:00Z',
+    updatedAt: '2025-01-01T10:00:00Z',
+  },
+  {
+    id: 'tp_007',
+    hallId: 'h_lm81_imax',
+    seatType: SeatTypeEnum.PREMIUM,
+    dayType: DayTypeEnum.WEEKDAY,
+    price: 150000,
+    createdAt: '2025-01-01T10:00:00Z',
+    updatedAt: '2025-01-01T10:00:00Z',
+  },
+  {
+    id: 'tp_008',
+    hallId: 'h_lm81_imax',
+    seatType: SeatTypeEnum.PREMIUM,
+    dayType: DayTypeEnum.WEEKEND,
+    price: 170000,
+    createdAt: '2025-01-01T10:00:00Z',
+    updatedAt: '2025-01-01T10:00:00Z',
+  },
   // 4DX Hall pricing
-  { id: 'tp_009', hallId: 'h_lm81_4dx', seatType: SeatTypeEnum.STANDARD, dayType: DayTypeEnum.WEEKDAY, price: 150000, createdAt: '2025-01-01T10:00:00Z', updatedAt: '2025-01-01T10:00:00Z' },
-  { id: 'tp_010', hallId: 'h_lm81_4dx', seatType: SeatTypeEnum.STANDARD, dayType: DayTypeEnum.WEEKEND, price: 180000, createdAt: '2025-01-01T10:00:00Z', updatedAt: '2025-01-01T10:00:00Z' },
-  { id: 'tp_011', hallId: 'h_lm81_4dx', seatType: SeatTypeEnum.VIP, dayType: DayTypeEnum.WEEKDAY, price: 200000, createdAt: '2025-01-01T10:00:00Z', updatedAt: '2025-01-01T10:00:00Z' },
-  { id: 'tp_012', hallId: 'h_lm81_4dx', seatType: SeatTypeEnum.VIP, dayType: DayTypeEnum.WEEKEND, price: 230000, createdAt: '2025-01-01T10:00:00Z', updatedAt: '2025-01-01T10:00:00Z' },
+  {
+    id: 'tp_009',
+    hallId: 'h_lm81_4dx',
+    seatType: SeatTypeEnum.STANDARD,
+    dayType: DayTypeEnum.WEEKDAY,
+    price: 150000,
+    createdAt: '2025-01-01T10:00:00Z',
+    updatedAt: '2025-01-01T10:00:00Z',
+  },
+  {
+    id: 'tp_010',
+    hallId: 'h_lm81_4dx',
+    seatType: SeatTypeEnum.STANDARD,
+    dayType: DayTypeEnum.WEEKEND,
+    price: 180000,
+    createdAt: '2025-01-01T10:00:00Z',
+    updatedAt: '2025-01-01T10:00:00Z',
+  },
+  {
+    id: 'tp_011',
+    hallId: 'h_lm81_4dx',
+    seatType: SeatTypeEnum.VIP,
+    dayType: DayTypeEnum.WEEKDAY,
+    price: 200000,
+    createdAt: '2025-01-01T10:00:00Z',
+    updatedAt: '2025-01-01T10:00:00Z',
+  },
+  {
+    id: 'tp_012',
+    hallId: 'h_lm81_4dx',
+    seatType: SeatTypeEnum.VIP,
+    dayType: DayTypeEnum.WEEKEND,
+    price: 230000,
+    createdAt: '2025-01-01T10:00:00Z',
+    updatedAt: '2025-01-01T10:00:00Z',
+  },
   // Premium Hall pricing
-  { id: 'tp_013', hallId: 'h_lm81_premium', seatType: SeatTypeEnum.STANDARD, dayType: DayTypeEnum.WEEKDAY, price: 100000, createdAt: '2025-01-01T10:00:00Z', updatedAt: '2025-01-01T10:00:00Z' },
-  { id: 'tp_014', hallId: 'h_lm81_premium', seatType: SeatTypeEnum.STANDARD, dayType: DayTypeEnum.WEEKEND, price: 120000, createdAt: '2025-01-01T10:00:00Z', updatedAt: '2025-01-01T10:00:00Z' },
-  { id: 'tp_015', hallId: 'h_lm81_premium', seatType: SeatTypeEnum.VIP, dayType: DayTypeEnum.WEEKDAY, price: 150000, createdAt: '2025-01-01T10:00:00Z', updatedAt: '2025-01-01T10:00:00Z' },
-  { id: 'tp_016', hallId: 'h_lm81_premium', seatType: SeatTypeEnum.VIP, dayType: DayTypeEnum.WEEKEND, price: 180000, createdAt: '2025-01-01T10:00:00Z', updatedAt: '2025-01-01T10:00:00Z' },
+  {
+    id: 'tp_013',
+    hallId: 'h_lm81_premium',
+    seatType: SeatTypeEnum.STANDARD,
+    dayType: DayTypeEnum.WEEKDAY,
+    price: 100000,
+    createdAt: '2025-01-01T10:00:00Z',
+    updatedAt: '2025-01-01T10:00:00Z',
+  },
+  {
+    id: 'tp_014',
+    hallId: 'h_lm81_premium',
+    seatType: SeatTypeEnum.STANDARD,
+    dayType: DayTypeEnum.WEEKEND,
+    price: 120000,
+    createdAt: '2025-01-01T10:00:00Z',
+    updatedAt: '2025-01-01T10:00:00Z',
+  },
+  {
+    id: 'tp_015',
+    hallId: 'h_lm81_premium',
+    seatType: SeatTypeEnum.VIP,
+    dayType: DayTypeEnum.WEEKDAY,
+    price: 150000,
+    createdAt: '2025-01-01T10:00:00Z',
+    updatedAt: '2025-01-01T10:00:00Z',
+  },
+  {
+    id: 'tp_016',
+    hallId: 'h_lm81_premium',
+    seatType: SeatTypeEnum.VIP,
+    dayType: DayTypeEnum.WEEKEND,
+    price: 180000,
+    createdAt: '2025-01-01T10:00:00Z',
+    updatedAt: '2025-01-01T10:00:00Z',
+  },
 ];
 
 // ========== HELPER FUNCTIONS ==========
@@ -945,7 +1085,9 @@ export const getHallsByCinemaId = (cinemaId: string): Hall[] =>
 export const getSeatsByHallId = (hallId: string): Seat[] =>
   seatsByHall[hallId] || [];
 
-export const getShowtimeSeatsByShowtimeId = (showtimeId: string): ShowtimeSeat[] =>
+export const getShowtimeSeatsByShowtimeId = (
+  showtimeId: string
+): ShowtimeSeat[] =>
   mockShowtimeSeats.filter((s) => s.showtimeId === showtimeId);
 
 export const getTicketPricingByHallId = (hallId: string): TicketPricing[] =>

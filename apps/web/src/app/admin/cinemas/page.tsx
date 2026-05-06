@@ -46,8 +46,8 @@ import {
   useAdminHallsGroupedByCinema,
   useAdminUpdateCinema,
 } from '@/features/admin/cinemas';
-import type { CreateCinemaRequest as ApiCreateCinemaRequest } from '@/libs/api';
-import type { Cinema, CreateCinemaRequest } from '@/libs/api/types';
+import type { CreateCinemaRequest as ApiCreateCinemaRequest } from '@/types';
+import type { Cinema, CreateCinemaRequest } from '@/types';
 
 // Preset amenities for quick selection
 const PRESET_AMENITIES = [
@@ -58,7 +58,7 @@ const PRESET_AMENITIES = [
   { name: 'Wheelchair Access', defaultValue: 'Có' },
   { name: 'Baby Care Room', defaultValue: 'Có' },
   { name: 'Restroom', defaultValue: 'Sạch sẽ' },
-  { name: 'Concession', defaultValue: 'Bán đầy đủ' },
+  { name: 'Concession', defaultValue: 'Bán đồ ăn, đồ uống' },
 ] as const;
 type FormOperatingHours = { open?: string; close?: string; [key: string]: unknown };
 type FormSocialMedia = { facebook?: string; instagram?: string; twitter?: string; [key: string]: unknown };
@@ -395,7 +395,7 @@ export default function CinemasPage() {
                           onClick={() => openEditDialog(cinema)}
                         >
                           <Edit className="mr-2 h-4 w-4" />
-                          Chỉnh Sửa
+                          Chỉnh sửa
                         </DropdownMenuItem>
                         {!isManager && (
                           <DropdownMenuItem
@@ -556,7 +556,7 @@ export default function CinemasPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="address">Địa Chỉ *</Label>
+              <Label htmlFor="address">Địa chỉ *</Label>
               <Input
                 id="address"
                 value={formData.address}
@@ -569,7 +569,7 @@ export default function CinemasPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="city">Thành Phố *</Label>
+                <Label htmlFor="city">Thành phố *</Label>
                 <Input
                   id="city"
                   value={formData.city}
@@ -594,7 +594,7 @@ export default function CinemasPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="phone">Điện Thoại</Label>
+                <Label htmlFor="phone">Điện thoại</Label>
                 <Input
                   id="phone"
                   value={formData.phone}

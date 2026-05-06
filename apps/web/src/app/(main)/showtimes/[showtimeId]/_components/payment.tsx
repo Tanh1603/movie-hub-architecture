@@ -5,14 +5,14 @@ import { Input } from '@movie-hub/shacdn-ui/input';
 import { cn } from '@movie-hub/shacdn-utils';
 import { AlertTriangle } from 'lucide-react';
 import Loading from '@/components/loading';
-import { useUpdateBooking } from '@/hooks/booking-hooks';
-import { useCreatePayment } from '@/hooks/payment-hooks';
-import { useValidationPromotion } from '@/hooks/promotion-hook';
+import { useUpdateBooking } from '@/features/client/booking/hooks';
+import { useCreatePayment } from '@/features/client/payments/hooks';
+import { useValidationPromotion } from '@/features/client/promotions/hooks';
 import {
   PaymentMethod,
   paymentMethods,
   PaymentMethodUI,
-} from '@/libs/types/payment.type';
+} from '@/types/payment.type';
 import { useBookingStore } from '@/stores/booking-store';
 import Image from 'next/image';
 import { useState } from 'react';

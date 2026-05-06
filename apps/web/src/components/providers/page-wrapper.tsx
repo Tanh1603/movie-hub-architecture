@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
-import { setAuthTokenGetter } from '../../libs/api/api-client';
+import { setAuthTokenGetter } from '@/api/api-client';
 import Loading from '../loading';
 
 export default function PageWrapper({

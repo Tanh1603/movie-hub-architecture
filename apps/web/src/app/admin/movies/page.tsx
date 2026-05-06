@@ -44,7 +44,7 @@ import {
 import {
   moviesApi,
   movieReleasesApi,
-} from '@/libs/api';
+} from '@/features/admin/shared/api-hooks';
 import { useAdminGenres } from '@/features/admin/genres';
 import {
   useAdminCreateMovie,
@@ -58,7 +58,7 @@ import type {
   CreateMovieRequest,
   AgeRating,
   LanguageType,
-} from '@/libs/api/types';
+} from '@/types';
 import {
   createDefaultMovieForm,
   mapMovieToForm,

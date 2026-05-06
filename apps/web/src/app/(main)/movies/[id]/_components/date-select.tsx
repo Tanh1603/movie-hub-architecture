@@ -11,7 +11,7 @@ import { DateSelect7Days } from '@/components/date-select-7days';
 import {
   useGetCinemaDetail,
   useGetCinemasWithFilters,
-} from '@/hooks/cinema-hooks';
+} from '@/features/client/cinemas/hooks';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { useInView } from 'react-intersection-observer';

@@ -1,6 +1,6 @@
 'use client';
 
-import { MovieWithCinemaAndShowtimeResponse } from '@/libs/types/movie.type';
+import { MovieWithCinemaAndShowtimeResponse } from '@/types/movie.type';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CinemaShowtimeGroup } from './cinema-showtime-group';

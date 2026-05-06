@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { showtimesApi } from '@/libs/api';
+import { showtimesApi } from '@/api';
 import type {
   BatchCreateShowtimesRequest,
   CreateShowtimeRequest,
@@ -8,7 +8,7 @@ import type {
   ShowtimeFiltersParams,
   ShowtimeSeatResponse,
   UpdateShowtimeRequest,
-} from '@/libs/api/types';
+} from '@/types';
 import { adminInvalidation } from '../shared/invalidation';
 import { adminQueryKeys } from '../shared/query-keys';
 

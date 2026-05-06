@@ -53,8 +53,8 @@ import {
   TabsTrigger,
 } from '@movie-hub/shacdn-ui/tabs';
 import { Badge } from '@movie-hub/shacdn-ui/badge';
-import type { Cinema, Movie } from '@/libs/api/types';
-import { cinemasApi, moviesApi } from '@/libs/api/services';
+import type { Cinema, Movie } from '@/types';
+import { cinemasApi, moviesApi } from '@/api/services';
 import {
   getRevenueReport,
   getTopMovies,
@@ -62,7 +62,7 @@ import {
   type RevenueReportDto,
   type TopMovieDto,
   type TopCinemaDto,
-} from '@/libs/api/dashboard-api';
+} from '@/api/services';
 
 export default function ReportsPage() {
   const [cinemas, setCinemas] = useState<Cinema[]>([]);

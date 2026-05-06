@@ -28,7 +28,7 @@ import {
   useAdminGenres,
   useAdminUpdateGenre,
 } from '@/features/admin/genres';
-import type { Genre } from '@/libs/api/types';
+import type { Genre } from '@/types';
 
 export default function GenresPage() {
   const [dialogOpen, setDialogOpen] = useState(false);

@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from '@movie-hub/shacdn-ui/select';
 import Link from 'next/link';
-import { cinemasApi } from '@/libs/api/services';
+import { cinemasApi } from '@/api/services';
 import {
   BarChart,
   Bar,
@@ -59,7 +59,7 @@ import {
   type RecentBookingDto,
   type RecentReviewDto,
   type RevenueReportDto,
-} from '@/libs/api/dashboard-api';
+} from '@/api/services';
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);

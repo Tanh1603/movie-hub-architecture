@@ -38,7 +38,7 @@ import type {
   Showtime as ApiShowtime,
   Hall as ApiHall,
   ShowtimeFormat as ApiShowtimeFormat,
-} from '@/libs/api/types';
+} from '@/types';
 
 // Frontend-specific types for batch showtimes form
 interface BatchCreateShowtimesInput {

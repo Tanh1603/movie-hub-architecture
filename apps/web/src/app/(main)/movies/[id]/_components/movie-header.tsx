@@ -15,7 +15,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { BlurCircle } from '../../../../../components/blur-circle';
-import { useGetMovieDetail } from '@/hooks/movie-hooks';
+import { useGetMovieDetail } from '@/features/client/movies/hooks';
 import { ErrorFallback } from '@/components/error-fallback';
 import { useTrailerModal } from '@/stores/trailer-modal-store';
 

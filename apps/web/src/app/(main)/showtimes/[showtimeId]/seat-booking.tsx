@@ -3,11 +3,11 @@ import { RequireSignIn } from '@/components/require-sign-in';
 import {
   useCheckUserBookingAtShowtime,
   useCreateBooking
-} from '@/hooks/booking-hooks';
+} from '@/features/client/booking/hooks';
 import {
   useGetSessionTTL,
   useGetShowtimeSeats,
-} from '@/hooks/showtime-hooks';
+} from '@/features/client/showtimes/hooks';
 import { useAuth } from '@clerk/nextjs';
 import { Button } from '@movie-hub/shacdn-ui/button';
 

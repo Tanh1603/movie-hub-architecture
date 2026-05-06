@@ -7,8 +7,8 @@ import MembershipSection from './_components/MembershipSection';
 
 import { CinemaListNearby } from './_components/cinema-near-list';
 import QuickBooking from './_components/QuickBooking';
-import { getQueryClient } from '../../libs/get-query-client';
-import { getMovies } from '../../libs/actions/movies/movie-action';
+import { getQueryClient } from '@/shared/query/get-query-client';
+import { getMovies } from '@/api/services';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 
 export default async function MainPage() {

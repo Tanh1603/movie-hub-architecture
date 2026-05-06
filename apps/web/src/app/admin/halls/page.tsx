@@ -52,8 +52,8 @@ import {
   useDeleteHall,
   useCinemas,
   hallsApi,
-} from '@/libs/api';
-import type { Hall, HallType, CreateHallRequest } from '@/libs/api/types';
+} from '@/features/admin/shared/api-hooks';
+import type { Hall, HallType, CreateHallRequest } from '@/types';
 import {
   HallTypeEnum,
   LayoutTypeEnum,

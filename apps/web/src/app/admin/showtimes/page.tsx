@@ -28,7 +28,7 @@ import {
   useAdminDeleteShowtime,
   useAdminShowtimes,
 } from '@/features/admin/showtimes';
-import type { Showtime, Hall } from '@/libs/api/types';
+import type { Showtime, Hall } from '@/types';
 import { format } from 'date-fns';
 import ShowtimeDialog from '../_components/forms/ShowtimeDialog';
 

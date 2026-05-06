@@ -10,8 +10,8 @@ import {
 } from '@movie-hub/shacdn-ui/card';
 import { formatPrice } from '@/app/utils/format-price';
 import { ExpiredModal } from '@/components/modal/expire-modal';
-import { useGetSessionTTL } from '@/hooks/showtime-hooks';
-import { ShowtimeSeatResponse } from '@/libs/types/showtime.type';
+import { useGetSessionTTL } from '@/features/client/showtimes/hooks';
+import { ShowtimeSeatResponse } from '@/types/showtime.type';
 import { useBookingStore } from '@/stores/booking-store';
 import { CalendarDays } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -32,8 +32,8 @@ export default function TicketPreview({
   const { data: ttlResponse } = useGetSessionTTL(data?.showtime.id || '');
 
   useEffect(() => {
-    if (ttlResponse?.data) {
-      updateHoldTimeSeconds(ttlResponse.data);
+    if (ttlResponse?.ttl && ttlResponse.ttl > 0) {
+      updateHoldTimeSeconds(ttlResponse.ttl);
     }
   }, [ttlResponse, updateHoldTimeSeconds]);
 

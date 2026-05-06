@@ -1,8 +1,9 @@
+import { clientQueryKeys } from '@/features/client/shared/query-keys';
 import { CreatePaymentDto } from "@movie-hub/shared-types";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { createPayment } from "../libs/actions/payment/payment-action";
-import { useBookingStore } from "../stores/booking-store";
+import { createPayment } from "@/api/services";
+import { useBookingStore } from "@/stores/booking-store";
 
 export const useCreatePayment = () => {
   const { resetBooking} = useBookingStore();

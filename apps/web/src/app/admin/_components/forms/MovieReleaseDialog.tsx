@@ -26,8 +26,8 @@ import {
   useAdminMovieRelease,
   useAdminUpdateMovieRelease,
 } from '@/features/admin/movie-releases';
-import { moviesApi } from '@/libs/api/services';
-import type { Movie, MovieRelease, CreateMovieReleaseRequest, UpdateMovieReleaseRequest } from '@/libs/api/types';
+import { moviesApi } from '@/api/services';
+import type { Movie, MovieRelease, CreateMovieReleaseRequest, UpdateMovieReleaseRequest } from '@/types';
 
 // Helper to validate UUID format
 const isValidUUID = (id: string): boolean => {

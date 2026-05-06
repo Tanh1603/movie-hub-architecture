@@ -1,6 +1,6 @@
 'use client';
 
-import { CinemaShowtimeGroup as CinemaShowtimeGroupType } from '@/libs/types/movie.type';
+import { CinemaShowtimeGroup as CinemaShowtimeGroupType } from '@/types/movie.type';
 import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import { MapPin, Ticket } from 'lucide-react';

@@ -1,5 +1,6 @@
+import { clientQueryKeys } from '@/features/client/shared/query-keys';
 import { useQuery } from "@tanstack/react-query";
-import { findAllConcessions } from "../libs/actions/concession/concesstion-action";
+import { findAllConcessions } from "@/api/services";
 import { ConcessionCategory } from "@movie-hub/shared-types";
 
 export const useGetConcessions = (query: {
@@ -8,7 +9,7 @@ export const useGetConcessions = (query: {
   available?: boolean
 }) => {
   return useQuery({
-    queryKey: ['concessions', query.category],
+    queryKey: clientQueryKeys.concessions.list(query.category),
     queryFn: async () => {
       const response = await findAllConcessions(query);
       return response.data;

@@ -1,4 +1,4 @@
-import type { ShowtimeFiltersParams } from '@/libs/api/types';
+import type { ShowtimeFiltersParams } from '@/types';
 
 export const adminQueryKeys = {
   genres: {

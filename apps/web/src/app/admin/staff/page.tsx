@@ -45,7 +45,7 @@ import {
   useUpdateStaff,
   useDeleteStaff,
   useCinemas,
-} from '@/libs/api';
+} from '@/features/admin/shared/api-hooks';
 import type {
   Staff,
   Gender,
@@ -55,7 +55,7 @@ import type {
   StaffPosition,
   CreateStaffRequest,
   UpdateStaffRequest,
-} from '@/libs/api/types';
+} from '@/types';
 
 const POSITIONS: { value: string; label: string }[] = [
   { value: 'CINEMA_MANAGER', label: 'Quản lý rạp chiếu phim' },

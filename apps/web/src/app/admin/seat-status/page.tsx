@@ -31,8 +31,8 @@ import {
   useHallsByCinema,
   useUpdateSeatStatus,
   hallsApi,
-} from '@/libs/api';
-import type { SeatStatus, SeatType } from '@/libs/api/types';
+} from '@/features/admin/shared/api-hooks';
+import type { SeatStatus, SeatType } from '@/types';
 import {
   SeatStatusEnum,
   SeatTypeEnum,

@@ -26,7 +26,7 @@ import {
   useAdminShowtime,
   useAdminUpdateShowtime,
 } from '@/features/admin/showtimes';
-import type { Showtime, Movie, Cinema, Hall, CreateShowtimeRequest } from '@/libs/api/types';
+import type { Showtime, Movie, Cinema, Hall, CreateShowtimeRequest } from '@/types';
 import { FormatEnum } from '@movie-hub/shared-types/cinema/enum';
 
 interface ShowtimeDialogProps {
@@ -55,7 +55,9 @@ export default function ShowtimeDialog({
   const createShowtime = useAdminCreateShowtime();
   const updateShowtime = useAdminUpdateShowtime();
   // Fetch full showtime detail from API when editing (if showtime ID provided)
-  const { data: fetchedShowtimeDetail } = useAdminShowtime(editingShowtime?.id || null);
+  const { data: fetchedShowtimeDetail } = useAdminShowtime(
+    editingShowtime?.id || null
+  );
   // Use fetched detail if available, otherwise fall back to editingShowtime from props
   const fullShowtimeDetail = fetchedShowtimeDetail || editingShowtime;
   const [formData, setFormData] = useState<CreateShowtimeRequest>({
@@ -71,9 +73,14 @@ export default function ShowtimeDialog({
   // Fetch releases for the selected movie (or pre-selected movie)
   // Triggers whenever movieId in form changes OR when editingShowtime's movieId is loaded
   const { data: movieReleasesData = [] } = useAdminMovieReleases(
-    (formData?.movieId || preSelectedMovieId) ? { movieId: formData?.movieId || preSelectedMovieId } : undefined
+    formData?.movieId || preSelectedMovieId
+      ? { movieId: formData?.movieId || preSelectedMovieId }
+      : undefined
   );
-  const movieReleases = useMemo(() => movieReleasesData || [], [movieReleasesData]);
+  const movieReleases = useMemo(
+    () => movieReleasesData || [],
+    [movieReleasesData]
+  );
   const { toast } = useToast();
 
   // Debug: log when releases are fetched
@@ -82,28 +89,47 @@ export default function ShowtimeDialog({
       console.log('[ShowtimeDialog] Loaded releases for movie:', {
         movieId: formData.movieId,
         releaseCount: movieReleases.length,
-        releases: movieReleases.map(r => ({ id: r.id, startDate: r.startDate, status: r.status })),
+        releases: movieReleases.map((r) => ({
+          id: r.id,
+          startDate: r.startDate,
+          status: r.status,
+        })),
       });
     } else if (formData?.movieId && movieReleases.length === 0) {
-      console.warn('[ShowtimeDialog] No releases found for movie:', formData.movieId);
+      console.warn(
+        '[ShowtimeDialog] No releases found for movie:',
+        formData.movieId
+      );
     }
   }, [formData?.movieId, movieReleases]);
 
   // Auto-select movieReleaseId if editingShowtime has it but form doesn't yet
   useEffect(() => {
-    if (editingShowtime?.movieReleaseId && !formData.movieReleaseId && movieReleases.length > 0) {
-      console.log('[ShowtimeDialog] Auto-selecting movieReleaseId from editingShowtime:', {
-        movieReleaseId: editingShowtime.movieReleaseId,
-      });
+    if (
+      editingShowtime?.movieReleaseId &&
+      !formData.movieReleaseId &&
+      movieReleases.length > 0
+    ) {
+      console.log(
+        '[ShowtimeDialog] Auto-selecting movieReleaseId from editingShowtime:',
+        {
+          movieReleaseId: editingShowtime.movieReleaseId,
+        }
+      );
       // Check if the movieReleaseId exists in the releases list
-      const releaseExists = movieReleases.some(r => r.id === editingShowtime.movieReleaseId);
+      const releaseExists = movieReleases.some(
+        (r) => r.id === editingShowtime.movieReleaseId
+      );
       if (releaseExists) {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           movieReleaseId: editingShowtime.movieReleaseId || '',
         }));
       } else {
-        console.warn('[ShowtimeDialog] movieReleaseId not found in releases list:', editingShowtime.movieReleaseId);
+        console.warn(
+          '[ShowtimeDialog] movieReleaseId not found in releases list:',
+          editingShowtime.movieReleaseId
+        );
       }
     }
   }, [editingShowtime?.movieReleaseId, movieReleases, formData.movieReleaseId]);
@@ -111,7 +137,7 @@ export default function ShowtimeDialog({
   useEffect(() => {
     // Use fullShowtimeDetail if available (has complete data from API)
     const showtimeToUse = fullShowtimeDetail || editingShowtime;
-    
+
     if (showtimeToUse) {
       // CRITICAL TIMEZONE WORKAROUND:
       // BE has a complex timezone bug:
@@ -119,13 +145,15 @@ export default function ShowtimeDialog({
       // 2. BE adds +7 hours when returning data (see showtime.mapper.ts line 13, 37)
       // 3. This causes double timezone conversion issues
       // Solution: We need to subtract 7 hours when loading for edit
-      
+
       let formattedStartTime = '';
       try {
         const dateFromAPI = new Date(showtimeToUse.startTime);
         // Subtract 7 hours to compensate for BE's +7 hour addition
-        const correctedDate = new Date(dateFromAPI.getTime() - 7 * 60 * 60 * 1000);
-        
+        const correctedDate = new Date(
+          dateFromAPI.getTime() - 7 * 60 * 60 * 1000
+        );
+
         // Format as datetime-local: YYYY-MM-DDTHH:mm
         const year = correctedDate.getFullYear();
         const month = String(correctedDate.getMonth() + 1).padStart(2, '0');
@@ -133,7 +161,7 @@ export default function ShowtimeDialog({
         const hours = String(correctedDate.getHours()).padStart(2, '0');
         const minutes = String(correctedDate.getMinutes()).padStart(2, '0');
         formattedStartTime = `${year}-${month}-${day}T${hours}:${minutes}`;
-        
+
         console.log('[ShowtimeDialog] Timezone correction applied:', {
           rawFromAPI: showtimeToUse.startTime,
           dateFromAPI: dateFromAPI.toISOString(),
@@ -142,7 +170,11 @@ export default function ShowtimeDialog({
           note: 'Subtracted 7 hours to compensate for BE +7 offset',
         });
       } catch (e) {
-        console.warn('[ShowtimeDialog] Failed to parse startTime:', showtimeToUse.startTime, e);
+        console.warn(
+          '[ShowtimeDialog] Failed to parse startTime:',
+          showtimeToUse.startTime,
+          e
+        );
         formattedStartTime = '';
       }
 
@@ -192,11 +224,22 @@ export default function ShowtimeDialog({
         subtitles: [],
       });
     }
-  }, [fullShowtimeDetail, editingShowtime, preSelectedMovieId, preSelectedReleaseId, open]);
+  }, [
+    fullShowtimeDetail,
+    editingShowtime,
+    preSelectedMovieId,
+    preSelectedReleaseId,
+    open,
+  ]);
 
   const handleSubmit = async () => {
-    if (!formData.movieId || !formData.movieReleaseId || !formData.cinemaId || 
-        !formData.hallId || !formData.startTime) {
+    if (
+      !formData.movieId ||
+      !formData.movieReleaseId ||
+      !formData.cinemaId ||
+      !formData.hallId ||
+      !formData.startTime
+    ) {
       toast({
         title: 'Validation Error',
         description: 'Please fill in all required fields',
@@ -211,9 +254,9 @@ export default function ShowtimeDialog({
       // Input from datetime-local: "2026-01-02T19:30" (user's local time)
       // BE expects: "yyyy-MM-dd HH:mm:ss" but treats it as local browser time
       // Solution: Send UTC time in the expected format so BE's new Date() parses correctly
-      
+
       const localDateTime = new Date(formData.startTime); // Parse as local
-      
+
       // Format as "yyyy-MM-dd HH:mm:ss" using the localDateTime
       // This preserves the user's intended time
       const year = localDateTime.getFullYear();
@@ -221,9 +264,9 @@ export default function ShowtimeDialog({
       const day = String(localDateTime.getDate()).padStart(2, '0');
       const hours = String(localDateTime.getHours()).padStart(2, '0');
       const minutes = String(localDateTime.getMinutes()).padStart(2, '0');
-      
+
       const startTimeFormatted = `${year}-${month}-${day} ${hours}:${minutes}:00`;
-      
+
       console.log('[ShowtimeDialog] Timezone workaround:', {
         userInput: formData.startTime,
         localDateTime: localDateTime.toISOString(),
@@ -237,7 +280,10 @@ export default function ShowtimeDialog({
       };
 
       if (editingShowtime) {
-        await updateShowtime.mutateAsync({ id: editingShowtime.id, data: payload });
+        await updateShowtime.mutateAsync({
+          id: editingShowtime.id,
+          data: payload,
+        });
       } else {
         await createShowtime.mutateAsync(payload);
       }
@@ -249,8 +295,10 @@ export default function ShowtimeDialog({
     }
   };
 
-  const selectedMovie = movies.find(m => m.id === formData.movieId);
-  const selectedRelease = movieReleases.find(r => r.id === formData.movieReleaseId);
+  const selectedMovie = movies.find((m) => m.id === formData.movieId);
+  const selectedRelease = movieReleases.find(
+    (r) => r.id === formData.movieReleaseId
+  );
   const isMovieDisabled = !!preSelectedMovieId;
   const isReleaseDisabled = !!preSelectedReleaseId;
 
@@ -260,7 +308,7 @@ export default function ShowtimeDialog({
       console.warn('[ShowtimeDialog] Movie not found in passed movies array', {
         formDataMovieId: formData.movieId,
         editingShowtimeMovieId: editingShowtime.movieId,
-        availableMovies: movies.map(m => ({ id: m.id, title: m.title })),
+        availableMovies: movies.map((m) => ({ id: m.id, title: m.title })),
       });
     }
   }, [editingShowtime, selectedMovie, formData.movieId, movies]);
@@ -269,9 +317,13 @@ export default function ShowtimeDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{editingShowtime ? 'Chỉnh sửa suất chiếu' : 'Thêm suất chiếu mới'}</DialogTitle>
+          <DialogTitle>
+            {editingShowtime ? 'Chỉnh sửa suất chiếu' : 'Thêm suất chiếu mới'}
+          </DialogTitle>
           <DialogDescription>
-            {editingShowtime ? 'Cập nhật chi tiết suất chiếu' : 'Lịch chiếu phim mới'}
+            {editingShowtime
+              ? 'Cập nhật chi tiết suất chiếu'
+              : 'Lịch chiếu phim mới'}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -281,7 +333,11 @@ export default function ShowtimeDialog({
             {isMovieDisabled ? (
               <Input
                 id="movie"
-                value={selectedMovie ? `${selectedMovie.title} (${selectedMovie.runtime} phút)` : (formData.movieId || 'Chưa chọn phim')}
+                value={
+                  selectedMovie
+                    ? `${selectedMovie.title} (${selectedMovie.runtime} phút)`
+                    : formData.movieId || 'Chưa chọn phim'
+                }
                 disabled
                 className="bg-gray-50"
               />
@@ -289,8 +345,8 @@ export default function ShowtimeDialog({
               <Select
                 value={formData.movieId}
                 onValueChange={(value) => {
-                  setFormData({ 
-                    ...formData, 
+                  setFormData({
+                    ...formData,
                     movieId: value,
                     movieReleaseId: '', // Reset release when movie changes
                   });
@@ -298,7 +354,9 @@ export default function ShowtimeDialog({
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn phim">
-                    {selectedMovie ? `${selectedMovie.title} (${selectedMovie.runtime} phút)` : undefined}
+                    {selectedMovie
+                      ? `${selectedMovie.title} (${selectedMovie.runtime} phút)`
+                      : undefined}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -318,7 +376,15 @@ export default function ShowtimeDialog({
             {isReleaseDisabled ? (
               <Input
                 id="movieReleaseId"
-                value={selectedRelease ? `${new Date(selectedRelease.startDate).toLocaleDateString()} → ${new Date(selectedRelease.endDate).toLocaleDateString()}` : ''}
+                value={
+                  selectedRelease
+                    ? `${new Date(
+                        selectedRelease.startDate
+                      ).toLocaleDateString()} → ${new Date(
+                        selectedRelease.endDate
+                      ).toLocaleDateString()}`
+                    : ''
+                }
                 disabled
                 className="bg-gray-50"
               />
@@ -332,29 +398,45 @@ export default function ShowtimeDialog({
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn phát hành phim">
-                    {selectedRelease ? `${new Date(selectedRelease.startDate).toLocaleDateString()} → ${new Date(selectedRelease.endDate).toLocaleDateString()}` : undefined}
+                    {selectedRelease
+                      ? `${new Date(
+                          selectedRelease.startDate
+                        ).toLocaleDateString()} → ${new Date(
+                          selectedRelease.endDate
+                        ).toLocaleDateString()}`
+                      : undefined}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {formData.movieId && (() => {
-                    // movieReleases already contains only releases for formData.movieId
-                    // (fetched via useMovieReleases with { movieId: formData.movieId })
-                    // No need to filter - just use the data directly
-                    const releases = movieReleases;
-                    console.log('[ShowtimeDialog] Releases for movieId:', {
-                      movieId: formData.movieId,
-                      availableReleases: releases.length,
-                      releases: releases.map(r => ({ id: r.id, status: r.status })),
-                    });
-                    if (releases.length === 0) {
-                      return <div className="px-2 py-1.5 text-sm text-gray-500">Không có phát hành nào</div>;
-                    }
-                    return releases.map((release) => (
-                      <SelectItem key={release.id} value={release.id}>
-                        {new Date(release.startDate).toLocaleDateString()} → {new Date(release.endDate).toLocaleDateString()} ({release.status})
-                      </SelectItem>
-                    ));
-                  })()}
+                  {formData.movieId &&
+                    (() => {
+                      // movieReleases already contains only releases for formData.movieId
+                      // (fetched via useMovieReleases with { movieId: formData.movieId })
+                      // No need to filter - just use the data directly
+                      const releases = movieReleases;
+                      console.log('[ShowtimeDialog] Releases for movieId:', {
+                        movieId: formData.movieId,
+                        availableReleases: releases.length,
+                        releases: releases.map((r) => ({
+                          id: r.id,
+                          status: r.status,
+                        })),
+                      });
+                      if (releases.length === 0) {
+                        return (
+                          <div className="px-2 py-1.5 text-sm text-gray-500">
+                            Không có phát hành nào
+                          </div>
+                        );
+                      }
+                      return releases.map((release) => (
+                        <SelectItem key={release.id} value={release.id}>
+                          {new Date(release.startDate).toLocaleDateString()} →{' '}
+                          {new Date(release.endDate).toLocaleDateString()} (
+                          {release.status})
+                        </SelectItem>
+                      ));
+                    })()}
                 </SelectContent>
               </Select>
             )}
@@ -402,7 +484,7 @@ export default function ShowtimeDialog({
                 <SelectContent>
                   {halls && halls.length > 0 ? (
                     halls
-                      .filter(hall => hall.cinemaId === formData.cinemaId)
+                      .filter((hall) => hall.cinemaId === formData.cinemaId)
                       .map((hall) => (
                         <SelectItem key={hall.id} value={hall.id}>
                           {hall.name} ({hall.type}) - {hall.capacity} ghế
@@ -426,8 +508,8 @@ export default function ShowtimeDialog({
               type="datetime-local"
               value={formData.startTime}
               onChange={(e) => {
-                setFormData({ 
-                  ...formData, 
+                setFormData({
+                  ...formData,
                   startTime: e.target.value,
                 });
               }}
@@ -487,22 +569,20 @@ export default function ShowtimeDialog({
               onChange={(e) => {
                 const subtitlesArray = e.target.value
                   .split(',')
-                  .map(s => s.trim())
-                  .filter(s => s.length > 0);
+                  .map((s) => s.trim())
+                  .filter((s) => s.length > 0);
                 setFormData({ ...formData, subtitles: subtitlesArray });
               }}
               placeholder="en"
             />
             <p className="text-xs text-gray-500">
-              Nhập các ngôn ngữ phụ đề, phân cách bằng dấu phẩy. Ví dụ: Vietnamese, English, Chinese
+              Nhập các ngôn ngữ phụ đề, phân cách bằng dấu phẩy. Ví dụ:
+              Vietnamese, English, Chinese
             </p>
           </div>
         </div>
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Hủy Bỏ
           </Button>
           <Button

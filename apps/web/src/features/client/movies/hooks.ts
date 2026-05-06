@@ -1,3 +1,4 @@
+import { clientQueryKeys } from '@/features/client/shared/query-keys';
 import { useAuth } from '@clerk/nextjs';
 import {
   MovieDetailResponse,
@@ -14,16 +15,16 @@ import {
 import { toast } from 'sonner';
 import {
   createMovie,
-  CreateMovieRequest,
   deleteMovie,
   getMovieDetail,
   getMovies,
   updateMovie,
-  UpdateMovieRequest,
-} from '../libs/actions/movies/movie-action';
+} from '@/api/services';
+type CreateMovieRequest = Parameters<typeof createMovie>[0];
+type UpdateMovieRequest = Parameters<typeof updateMovie>[1];
 export const useGetMovies = (initialQuery?: Omit<MovieQuery, 'page'>) => {
   return useInfiniteQuery({
-    queryKey: ['movies', initialQuery],
+    queryKey: clientQueryKeys.movies.list(initialQuery as Record<string, unknown> | undefined),
     queryFn: async ({ pageParam = 1 }) => {
       // gọi getMovies và merge query params
       return await getMovies({
@@ -48,7 +49,7 @@ export const useGetMovies = (initialQuery?: Omit<MovieQuery, 'page'>) => {
 
 export const useGetMovieDetail = (movieId: string) => {
   return useQuery<ServiceResult<MovieDetailResponse>>({
-    queryKey: ['movies', movieId],
+    queryKey: clientQueryKeys.movies.detail(movieId),
     queryFn: async () => {
       return await getMovieDetail(movieId);
     },
@@ -94,7 +95,7 @@ export const useUpdateMovie = (movieId: string, data: UpdateMovieRequest) => {
     onSuccess: () => {
       toast.success('Cập nhật phim thành công');
       queryClient.invalidateQueries({ queryKey: ['movies'] });
-      queryClient.invalidateQueries({ queryKey: ['movies', movieId] });
+      queryClient.invalidateQueries({ queryKey: clientQueryKeys.movies.detail(movieId) });
     },
     onError: (error) => {
       toast.error(error?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
@@ -118,7 +119,7 @@ export const useDeleteMovie = (movieId: string) => {
     onSuccess: () => {
       toast.success('Xóa phim thành công');
       queryClient.invalidateQueries({ queryKey: ['movies'] });
-      queryClient.invalidateQueries({ queryKey: ['movies', movieId] });
+      queryClient.invalidateQueries({ queryKey: clientQueryKeys.movies.detail(movieId) });
     },
     onError: (error) => {
       toast.error(error?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');

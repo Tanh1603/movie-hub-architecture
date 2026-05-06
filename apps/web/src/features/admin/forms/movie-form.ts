@@ -1,4 +1,4 @@
-import type { CreateMovieRequest, Movie, UpdateMovieRequest } from '@/libs/api/types';
+import type { CreateMovieRequest, Movie, UpdateMovieRequest } from '@/types';
 
 export type MovieFormValues = Partial<CreateMovieRequest> & {
   genreIds: string[];

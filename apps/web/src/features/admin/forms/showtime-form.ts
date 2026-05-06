@@ -1,4 +1,4 @@
-import type { CreateShowtimeRequest, Showtime, UpdateShowtimeRequest } from '@/libs/api/types';
+import type { CreateShowtimeRequest, Showtime, UpdateShowtimeRequest } from '@/types';
 import { FormatEnum } from '@movie-hub/shared-types/cinema/enum';
 
 export const createDefaultShowtimeForm = (): CreateShowtimeRequest => ({

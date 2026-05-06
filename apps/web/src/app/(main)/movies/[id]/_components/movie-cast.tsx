@@ -7,13 +7,12 @@ interface Actor {
   profileUrl: string | null;
 }
 import { Skeleton } from '@movie-hub/shacdn-ui/skeleton'; // hoặc tự tạo nếu bạn chưa có
-import { useGetMovieDetail } from '@/hooks/movie-hooks';
+import { useGetMovieDetail } from '@/features/client/movies/hooks';
 import { ErrorFallback } from '@/components/error-fallback';
 
 export const MovieCast = ({ movieId }: { movieId: string }) => {
-  const { data, isLoading, isError, error } =
-    useGetMovieDetail(movieId);
-  const actors: Actor[] = data?.data.cast as Actor[] || [];
+  const { data, isLoading, isError, error } = useGetMovieDetail(movieId);
+  const actors: Actor[] = (data?.data.cast as Actor[]) || [];
 
   if (isLoading) {
     return (
@@ -36,7 +35,7 @@ export const MovieCast = ({ movieId }: { movieId: string }) => {
   if (isError) {
     return (
       <div className="text-center text-red-400">
-        <ErrorFallback message={error?.message}/>
+        <ErrorFallback message={error?.message} />
       </div>
     );
   }

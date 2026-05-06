@@ -24,7 +24,7 @@ import { useMemo } from 'react';
 import { useAdminHallsGroupedByCinema } from '@/features/admin/cinemas';
 import { useAdminMovies } from '@/features/admin/movies';
 import { useAdminShowtimes, useAdminShowtimeSeats } from '@/features/admin/showtimes';
-import type { CinemasGroupedResponse, Hall, TicketPricingDto, SeatRowDto, SeatItemDto } from '@/libs/api/types';
+import type { CinemasGroupedResponse, Hall, TicketPricingDto, SeatRowDto, SeatItemDto } from '@/types';
 
 type ReservationStatus = 'AVAILABLE' | 'HELD' | 'CONFIRMED' | 'CANCELLED';
 type SeatType = 'STANDARD' | 'VIP' | 'COUPLE' | 'PREMIUM' | 'WHEELCHAIR';
@@ -150,7 +150,9 @@ export default function ShowtimeSeatsPage() {
             <SelectContent>
               {showtimes.map((showtime) => {
                 // TIMEZONE WORKAROUND: BE adds +7h in mapper, we need to subtract it
-                const correctedStartTime = new Date(new Date(showtime.startTime || showtime.start_time || showtime.start).getTime() - 7 * 60 * 60 * 1000);
+                const correctedStartTime = new Date(
+                  new Date(showtime.startTime).getTime() - 7 * 60 * 60 * 1000
+                );
                 return (
                   <SelectItem key={showtime.id} value={showtime.id}>
                     <div className="flex items-center gap-2 text-sm">

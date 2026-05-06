@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { moviesApi } from '@/libs/api';
-import type { CreateMovieRequest, Movie, UpdateMovieRequest } from '@/libs/api/types';
+import { moviesApi } from '@/api';
+import type { CreateMovieRequest, Movie, UpdateMovieRequest } from '@/types';
 import { adminInvalidation } from '../shared/invalidation';
 import { adminQueryKeys } from '../shared/query-keys';
 

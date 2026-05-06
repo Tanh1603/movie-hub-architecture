@@ -11,8 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@movie-hub/shacdn-ui/select';
-import { useGetConcessions } from '@/hooks/concession-hooks';
-import { ConcessionDto } from '@/libs/types/concession.type';
+import { useGetConcessions } from '@/features/client/concessions/hooks';
+import { ConcessionDto } from '@/types/concession.type';
 import { ConcessionCategory } from '@movie-hub/shared-types';
 import { Loader } from '@/components/loader';
 import { toast } from 'sonner';

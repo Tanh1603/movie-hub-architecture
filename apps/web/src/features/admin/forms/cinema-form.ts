@@ -1,4 +1,4 @@
-import type { Cinema, CreateCinemaRequest, UpdateCinemaRequest } from '@/libs/api/types';
+import type { Cinema, CreateCinemaRequest, UpdateCinemaRequest } from '@/types';
 
 export type CinemaFormValues = Partial<CreateCinemaRequest>;
 

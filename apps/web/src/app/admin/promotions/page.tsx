@@ -49,13 +49,13 @@ import {
   useUpdatePromotion,
   useDeletePromotion,
   useTogglePromotionActive,
-} from '@/libs/api';
+} from '@/features/admin/shared/api-hooks';
 import type {
   Promotion,
   CreatePromotionRequest,
   UpdatePromotionRequest,
   PromotionType,
-} from '@/libs/api/types';
+} from '@/types';
 import { cn } from '@movie-hub/shacdn-utils';
 import { format } from 'date-fns';
 
@@ -441,7 +441,7 @@ export default function PromotionsPage() {
                             <span className="font-semibold">
                               {p.type === 'PERCENTAGE'
                                 ? `${p.value}%`
-                                : `${Number(p.value).toLocaleString()}đ`}
+                                : `${Number(p.value).toLocaleString()}₫`}
                             </span>
                             <span className="text-[10px] text-gray-400 font-medium uppercase tracking-tight">
                               {typeInfo?.label}

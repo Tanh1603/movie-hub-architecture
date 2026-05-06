@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { genresApi } from '@/libs/api';
+import { genresApi } from '@/api';
 import type {
   CreateGenreRequest,
   Genre,
   UpdateGenreRequest,
-} from '@/libs/api/types';
+} from '@/types';
 import { adminInvalidation } from '../shared/invalidation';
 import { adminQueryKeys } from '../shared/query-keys';
 
