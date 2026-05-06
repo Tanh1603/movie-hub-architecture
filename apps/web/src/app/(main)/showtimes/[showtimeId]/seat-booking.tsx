@@ -30,22 +30,18 @@ export const SeatBooking = ({ showtimeId }: { showtimeId: string }) => {
   } = useBookingStore();
   const { data: checking, isLoading } =
     useCheckUserBookingAtShowtime(showtimeId);
-  console.log('Checking booking at showtime:', checking);
   const { mutateAsync: createBookingMutate } = useCreateBooking();
 
   useEffect(() => {
     if (isLoading) return;
 
     if (checking?.data) {
-      console.log('User has existing booking at this showtime.');
       return;
     }
 
     const create = async () => {
       try {
-        console.log('No existing booking. Creating new booking...');
         await createBookingMutate({ showtimeId });
-        console.log('Booking created successfully.');
       } catch (err) {
         console.error('Error creating booking:', err);
       }
