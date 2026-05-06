@@ -844,14 +844,14 @@ export interface ConcessionFiltersParams {
 
 export interface SystemConfig {
   key: string;
-  value: any;
+  value: unknown;
   description?: string;
   updatedAt?: string;
 }
 
 export interface UpdateSystemConfigRequest {
   key: string;
-  value: any;
+  value: unknown;
   description?: string;
 }
 

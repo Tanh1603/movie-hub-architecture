@@ -43,14 +43,16 @@ import {
   DropdownMenuTrigger,
 } from '@movie-hub/shacdn-ui/dropdown-menu';
 import {
-  useMovies,
-  useCreateMovie,
-  useUpdateMovie,
-  useDeleteMovie,
-  useGenres,
   moviesApi,
   movieReleasesApi,
 } from '@/libs/api';
+import { useGenres } from '@/libs/api';
+import {
+  useAdminCreateMovie,
+  useAdminDeleteMovie,
+  useAdminMovies,
+  useAdminUpdateMovie,
+} from '@/features/admin/movies';
 import type {
   Movie,
   CreateMovieRequest,
@@ -113,7 +115,7 @@ export default function MoviesPage() {
   });
 
   // API hooks
-  const { data: moviesData = [] } = useMovies();
+  const { data: moviesData = [] } = useAdminMovies();
   const movies = useMemo(() => moviesData || [], [moviesData]);
   const { data: genresData = [] } = useGenres();
   const genres = useMemo(() => genresData || [], [genresData]);
@@ -126,9 +128,9 @@ export default function MoviesPage() {
         .includes(q)
     );
   }, [genres, genreSearch]);
-  const createMovie = useCreateMovie();
-  const updateMovie = useUpdateMovie();
-  const deleteMovie = useDeleteMovie();
+  const createMovie = useAdminCreateMovie();
+  const updateMovie = useAdminUpdateMovie();
+  const deleteMovie = useAdminDeleteMovie();
 
   const loading =
     createMovie.isPending || updateMovie.isPending || deleteMovie.isPending;

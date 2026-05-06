@@ -23,7 +23,12 @@ import {
 import { Badge } from '@movie-hub/shacdn-ui/badge';
 import { Calendar } from '@movie-hub/shacdn-ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@movie-hub/shacdn-ui/popover';
-import { useShowtimes, useDeleteShowtime, useMovies, useCinemas, useHallsGroupedByCinema } from '@/libs/api';
+import { useMovies, useCinemas } from '@/libs/api';
+import {
+  useAdminDeleteShowtime,
+  useAdminShowtimes,
+} from '@/features/admin/showtimes';
+import { useAdminHallsGroupedByCinema } from '@/features/admin/cinemas';
 import type { Showtime, Hall } from '@/libs/api/types';
 import { format } from 'date-fns';
 import ShowtimeDialog from '../_components/forms/ShowtimeDialog';
@@ -45,7 +50,7 @@ export default function ShowtimesPage() {
     return `${year}-${month}-${day}`;
   };
 
-  const { data: showtimesData = [], isLoading: loading, refetch: refetchShowtimes } = useShowtimes({
+  const { data: showtimesData = [], isLoading: loading, refetch: refetchShowtimes } = useAdminShowtimes({
     cinemaId: selectedCinemaId !== 'all' ? selectedCinemaId : undefined,
     movieId: selectedMovieId !== 'all' ? selectedMovieId : undefined,
     date: formatDateForQuery(selectedDate),
@@ -57,10 +62,10 @@ export default function ShowtimesPage() {
   const { data: cinemasData = [] } = useCinemas();
   const cinemas = cinemasData || [];
   const cinemasAdmin = cinemas;
-  const deleteShowtime = useDeleteShowtime();
+  const deleteShowtime = useAdminDeleteShowtime();
 
   // Halls: derive a flat halls list from grouped halls by cinema
-  const { data: hallsByCinema = {} } = useHallsGroupedByCinema();
+  const { data: hallsByCinema = {} } = useAdminHallsGroupedByCinema();
   const halls: Hall[] = Object.values(hallsByCinema).flatMap((g: { cinema: unknown; halls: unknown[] }) => (g.halls || []) as Hall[]);
 
   useEffect(() => {

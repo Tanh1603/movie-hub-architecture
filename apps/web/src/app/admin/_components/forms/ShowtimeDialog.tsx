@@ -20,7 +20,12 @@ import {
 } from '@movie-hub/shacdn-ui/select';
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { useToast } from '../../_libs/use-toast';
-import { useCreateShowtime, useUpdateShowtime, useShowtime, useMovieReleases } from '@/libs/api';
+import { useMovieReleases } from '@/libs/api';
+import {
+  useAdminCreateShowtime,
+  useAdminShowtime,
+  useAdminUpdateShowtime,
+} from '@/features/admin/showtimes';
 import type { Showtime, Movie, Cinema, Hall, CreateShowtimeRequest } from '@/libs/api/types';
 import { FormatEnum } from '@movie-hub/shared-types/cinema/enum';
 
@@ -47,10 +52,10 @@ export default function ShowtimeDialog({
   preSelectedReleaseId,
   onSuccess,
 }: ShowtimeDialogProps) {
-  const createShowtime = useCreateShowtime();
-  const updateShowtime = useUpdateShowtime();
+  const createShowtime = useAdminCreateShowtime();
+  const updateShowtime = useAdminUpdateShowtime();
   // Fetch full showtime detail from API when editing (if showtime ID provided)
-  const { data: fetchedShowtimeDetail } = useShowtime(editingShowtime?.id || null);
+  const { data: fetchedShowtimeDetail } = useAdminShowtime(editingShowtime?.id || null);
   // Use fetched detail if available, otherwise fall back to editingShowtime from props
   const fullShowtimeDetail = fetchedShowtimeDetail || editingShowtime;
   const [formData, setFormData] = useState<CreateShowtimeRequest>({

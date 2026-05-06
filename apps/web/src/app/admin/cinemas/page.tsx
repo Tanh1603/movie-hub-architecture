@@ -40,12 +40,12 @@ import { Label } from '@movie-hub/shacdn-ui/label';
 import { Textarea } from '@movie-hub/shacdn-ui/textarea';
 // removed unused toast import
 import {
-  useCinemas,
-  useCreateCinema,
-  useUpdateCinema,
-  useDeleteCinema,
-  useHallsGroupedByCinema,
-} from '@/libs/api';
+  useAdminCinemas,
+  useAdminCreateCinema,
+  useAdminDeleteCinema,
+  useAdminHallsGroupedByCinema,
+  useAdminUpdateCinema,
+} from '@/features/admin/cinemas';
 import type { CreateCinemaRequest as ApiCreateCinemaRequest } from '@/libs/api';
 import type { Cinema, CreateCinemaRequest } from '@/libs/api/types';
 
@@ -93,12 +93,12 @@ export default function CinemasPage() {
   // toast not used in this page
 
   // API hooks
-  const { data: cinemasData = [], isLoading: loading } = useCinemas();
+  const { data: cinemasData = [], isLoading: loading } = useAdminCinemas();
   const cinemas = cinemasData || [];
-  const { data: hallsByCinema = {} } = useHallsGroupedByCinema();
-  const createCinema = useCreateCinema();
-  const updateCinema = useUpdateCinema();
-  const deleteCinema = useDeleteCinema();
+  const { data: hallsByCinema = {} } = useAdminHallsGroupedByCinema();
+  const createCinema = useAdminCreateCinema();
+  const updateCinema = useAdminUpdateCinema();
+  const deleteCinema = useAdminDeleteCinema();
 
   // Calculate halls count for each cinema - using actual API data
   const getHallsCount = (cinemaId: string) => {
