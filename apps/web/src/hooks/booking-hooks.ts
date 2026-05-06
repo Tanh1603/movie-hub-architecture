@@ -1,7 +1,5 @@
-import { useAuth } from '@clerk/clerk-react';
 import {
   CreateBookingDto,
-  PaginationQuery,
   UpdateBookingDto,
 } from '@movie-hub/shared-types';
 import { useMutation, useQuery } from '@tanstack/react-query';

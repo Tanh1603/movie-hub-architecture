@@ -5,7 +5,6 @@ import {
   getSessionTTL,
   getShowtimeSeats,
 } from '../libs/actions/cinemas/showtime/showtime-action';
-import { useAuth } from '@clerk/nextjs';
 import { ApiResponse } from '@movie-hub/shared-types/common';
 import { ShowtimeSeatResponse } from '@movie-hub/shared-types';
 

@@ -191,8 +191,7 @@ export const showtimesApi = {
     try {
       const result = await api.get<Showtime[]>('/api/v1/showtimes', { params });
       return result || [];
-    } catch (error) {
-      console.error('[ShowtimesAPI] Error fetching showtimes:', error);
+    } catch {
       return [];
     }
   },
@@ -241,7 +240,7 @@ export const movieReleasesApi = {
 
     try {
       movies = await moviesApi.getAll();
-    } catch (error) {
+    } catch {
       // Continue anyway - we can still fetch releases by iterating through them individually
       // This fallback won't work for the full list, but is better than complete failure
       return [];
