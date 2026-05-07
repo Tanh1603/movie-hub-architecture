@@ -40,6 +40,7 @@ export interface FindBookingsByDateRangeDto extends PaginationQuery {
   startDate: Date;
   endDate: Date;
   status?: BookingStatus;
+  cinemaId?: string;
 }
 
 /**

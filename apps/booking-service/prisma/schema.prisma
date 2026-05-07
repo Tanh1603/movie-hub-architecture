@@ -20,6 +20,7 @@ enum BookingStatus {
   CANCELLED
   EXPIRED
   COMPLETED
+  REFUNDED
 }
 
 enum PaymentStatus {

@@ -49,13 +49,15 @@ export interface BookingDetailDto extends BookingSummaryDto {
   cancelledAt?: Date;
   cancellationReason?: string;
   updatedAt: Date;
+  // Refund voucher code (available when status is REFUNDED)
+  refundVoucherCode?: string;
 }
 
-//Extented summary with breakdown 
+//Extented summary with breakdown
 export interface BookingCalculationDto {
   // Booking ID
   bookingId: string;
-  
+
   // Movie & Showtime Info
   movie: {
     id: string;

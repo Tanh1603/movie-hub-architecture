@@ -9,4 +9,9 @@ export interface ReviewResponse {
     id: string;
     title: string;
   };
+  user?: {
+    id: string;
+    fullName: string | null;
+    imageUrl: string;
+  };
 }

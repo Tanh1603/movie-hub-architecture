@@ -6,9 +6,25 @@
   "tags": [],
   "// targets": "to see all targets run: nx show project web --web",
   "targets": {
+    "build": {
+      "executor": "@nx/next:build",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "root": "apps/web",
+        "outputPath": "dist/apps/web"
+      },
+      "configurations": {
+        "development": {
+          "outputPath": "apps/web/.next"
+        },
+        "production": {}
+      }
+    },
     "serve": {
       "executor": "@nx/next:server",
       "defaultConfiguration": "development",
+      "dependsOn": ["build"],
       "options": {
         "buildTarget": "web:build",
         "port": 4200,
@@ -18,11 +34,11 @@
         "development": {
           "buildTarget": "web:build:development",
           "dev": true
+        },
+        "production": {
+          "buildTarget": "web:build:production",
+          "dev": false
         }
-      },
-      "production": {
-        "buildTarget": "web:build:production",
-        "dev": false
       }
     }
   }

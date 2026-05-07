@@ -1,0 +1,199 @@
+{
+  "concessions": [
+    {
+      "name": "Bắp rang bơ lớn",
+      "name_en": "Large Butter Popcorn",
+      "description": "Bắp rang tươi với bơ thơm ngon, kích thước lớn",
+      "category": "FOOD",
+      "price": 85000,
+      "image_url": "https://example.com/popcorn-large.jpg",
+      "available": true,
+      "inventory": 100,
+      "nutrition_info": {
+        "calories": 520,
+        "fat": "28g",
+        "sodium": "980mg",
+        "carbs": "65g"
+      },
+      "allergens": ["Dairy", "Butter"]
+    },
+    {
+      "name": "Coca Cola lớn",
+      "name_en": "Large Coca Cola",
+      "description": "Coca Cola nguyên chất, kích thước lớn 500ml",
+      "category": "DRINK",
+      "price": 65000,
+      "image_url": "https://example.com/coke-large.jpg",
+      "available": true,
+      "inventory": 150,
+      "nutrition_info": {
+        "calories": 210,
+        "sugar": "58g",
+        "caffeine": "34mg"
+      },
+      "allergens": []
+    },
+    {
+      "name": "Combo Couple",
+      "name_en": "Couple Combo",
+      "description": "2 bắp rang + 2 nước ngọt + kẹo",
+      "category": "COMBO",
+      "price": 180000,
+      "image_url": "https://example.com/couple-combo.jpg",
+      "available": true,
+      "inventory": 50,
+      "nutrition_info": {
+        "calories": 950,
+        "fat": "42g",
+        "sugar": "120g"
+      },
+      "allergens": ["Dairy"]
+    },
+    {
+      "name": "Áo thun CGV",
+      "name_en": "CGV T-shirt",
+      "description": "Áo thun chính hãng CGV, nhiều màu sắc",
+      "category": "MERCHANDISE",
+      "price": 250000,
+      "image_url": "https://example.com/cgv-tshirt.jpg",
+      "available": true,
+      "inventory": 20,
+      "allergens": []
+    },
+    {
+      "name": "Nachos phô mai",
+      "name_en": "Cheese Nachos",
+      "description": "Bánh tortilla giòn với sốt phô mai nóng",
+      "category": "FOOD",
+      "price": 75000,
+      "image_url": "https://example.com/nachos.jpg",
+      "available": true,
+      "inventory": 80,
+      "nutrition_info": {
+        "calories": 380,
+        "fat": "22g",
+        "sodium": "850mg"
+      },
+      "allergens": ["Dairy", "Gluten"]
+    }
+  ],
+  "promotions": [
+    {
+      "code": "WELCOME20",
+      "name": "Chào mừng thành viên mới",
+      "description": "Giảm 20% cho lần đặt vé đầu tiên",
+      "type": "PERCENTAGE",
+      "value": 20,
+      "min_purchase": 100000,
+      "max_discount": 50000,
+      "valid_from": "2024-01-01",
+      "valid_to": "2027-12-31",
+      "usage_limit": 1000,
+      "usage_per_user": 1,
+      "current_usage": 156,
+      "applicable_for": ["tickets"],
+      "active": true
+    },
+    {
+      "code": "STUDENT15",
+      "name": "Ưu đãi sinh viên",
+      "description": "Giảm 15% cho sinh viên",
+      "type": "PERCENTAGE",
+      "value": 15,
+      "min_purchase": 80000,
+      "max_discount": 30000,
+      "valid_from": "2024-01-01",
+      "valid_to": "2027-12-31",
+      "usage_limit": 5000,
+      "usage_per_user": 10,
+      "current_usage": 892,
+      "applicable_for": ["tickets"],
+      "active": true
+    },
+    {
+      "code": "FREECOKE",
+      "name": "Coca miễn phí",
+      "description": "Tặng 1 Coca khi mua combo",
+      "type": "FREE_ITEM",
+      "value": 1,
+      "min_purchase": 150000,
+      "valid_from": "2024-01-01",
+      "valid_to": "2027-06-30",
+      "usage_limit": 500,
+      "usage_per_user": 2,
+      "current_usage": 234,
+      "applicable_for": ["concessions"],
+      "active": true
+    },
+    {
+      "code": "GIAM50K",
+      "name": "Giảm ngay 50K",
+      "description": "Giảm trực tiếp 50.000đ cho đơn hàng từ 200k",
+      "type": "FIXED_AMOUNT",
+      "value": 50000,
+      "min_purchase": 200000,
+      "valid_from": "2024-01-01",
+      "valid_to": "2027-12-31",
+      "usage_limit": 500,
+      "usage_per_user": 2,
+      "current_usage": 0,
+      "applicable_for": ["tickets"],
+      "active": true
+    }
+  ],
+  "loyaltyAccounts": [
+    {
+      "user_id": "user_1",
+      "current_points": 1250,
+      "tier": "SILVER",
+      "total_spent": 2500000
+    },
+    {
+      "user_id": "user_2",
+      "current_points": 3200,
+      "tier": "GOLD",
+      "total_spent": 5800000
+    },
+    {
+      "user_id": "user_3",
+      "current_points": 580,
+      "tier": "BRONZE",
+      "total_spent": 980000
+    },
+    {
+      "user_id": "user_4",
+      "current_points": 8500,
+      "tier": "PLATINUM",
+      "total_spent": 12500000
+    }
+  ],
+  "userIds": [
+    "auth0|663a1b2c3d4e5f6a7b8c9d0e",
+    "auth0|663a2b3c4d5e6f7a8b9c0d1e",
+    "auth0|663a3b4c5d6e7f8a9b0c1d2e",
+    "auth0|663a4b5c6d7e8f9a0b1c2d3e",
+    "auth0|663a5b6c7d8e9f0a1b2c3d4e",
+    "auth0|663a6b7c8d9e0f1a2b3c4d5e",
+    "auth0|663a7b8c9d0e1f2a3b4c5d6e",
+    "auth0|663a8b9c0d1e2f3a4b5c6d7e",
+    "auth0|663a9b0c1d2e3f4a5b6c7d8e",
+    "auth0|663a0b1c2d3e4f5a6b7c8d9e",
+    "user_1",
+    "user_2",
+    "user_3",
+    "user_4",
+    "user_5"
+  ],
+  "customerNames": [
+    "Nguyễn Văn An",
+    "Trần Thị Bình",
+    "Lê Văn Cường",
+    "Phạm Thị Dung",
+    "Hoàng Văn Em",
+    "Vũ Thị Phương",
+    "Đặng Văn Giang",
+    "Bùi Thị Hoa",
+    "Đinh Văn Khoa",
+    "Ngô Thị Lan"
+  ]
+}

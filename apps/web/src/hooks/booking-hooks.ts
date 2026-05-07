@@ -38,22 +38,16 @@ export const useCreateBooking = () => {
 };
 
 interface UseGetBookingsProps {
-  status: BookingStatus;
+  status?: BookingStatus;
   page?: number;
   limit?: number;
 }
 
-export const useGetBookings = ({
-  status,
-  page = 1
-}: UseGetBookingsProps) => {
+export const useGetBookings = ({ status, page = 1 }: UseGetBookingsProps) => {
   return useQuery({
     queryKey: ['my-bookings', status, page],
     queryFn: async () => {
-      const data = await getUserBookings(
-        status,
-        { page },
-      );
+      const data = await getUserBookings(status, { page });
       return data;
     },
     staleTime: 1000 * 60,
@@ -70,7 +64,7 @@ export const useGetBookingById = (bookingId: string) => {
     enabled: !!bookingId,
     staleTime: 1000 * 60,
   });
-}
+};
 
 export const useCheckUserBookingAtShowtime = (showtimeId: string) => {
   const { setBookingId } = useBookingStore();
@@ -90,9 +84,12 @@ export const useCheckUserBookingAtShowtime = (showtimeId: string) => {
 export const useUpdateBooking = () => {
   return useMutation({
     mutationKey: ['update-booking'],
-    mutationFn: async ({bookingId, data}: {
+    mutationFn: async ({
+      bookingId,
+      data,
+    }: {
       bookingId: string;
-      data: UpdateBookingDto
+      data: UpdateBookingDto;
     }) => {
       return await updateBooking(bookingId, data);
     },
@@ -106,6 +103,5 @@ export const useUpdateBooking = () => {
           'Đã có lỗi xảy ra khi cập nhật đặt vé. Vui lòng thử lại.'
       );
     },
-    
   });
 };

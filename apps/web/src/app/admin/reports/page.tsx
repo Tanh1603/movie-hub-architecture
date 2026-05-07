@@ -1,23 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+export const dynamic = 'force-dynamic';
+
+import { useState, useEffect, useCallback } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { format } from 'date-fns';
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
   AreaChart,
   Area,
-  LineChart,
-  Line,
-  Legend,
 } from 'recharts';
 import {
   TrendingUp,
@@ -59,96 +54,105 @@ import {
   TabsTrigger,
 } from '@movie-hub/shacdn-ui/tabs';
 import { Badge } from '@movie-hub/shacdn-ui/badge';
-import type { Cinema, Movie } from '../_libs/types';
-import { mockCinemas, mockMovies } from '../_libs/mockData';
-
-// Mock data for reports
-const revenueData = [
-  { date: '01/12', revenue: 125000000, tickets: 1250, avgPrice: 100000 },
-  { date: '02/12', revenue: 145000000, tickets: 1420, avgPrice: 102113 },
-  { date: '03/12', revenue: 138000000, tickets: 1380, avgPrice: 100000 },
-  { date: '04/12', revenue: 165000000, tickets: 1650, avgPrice: 100000 },
-  { date: '05/12', revenue: 198000000, tickets: 1980, avgPrice: 100000 },
-  { date: '06/12', revenue: 210000000, tickets: 2100, avgPrice: 100000 },
-  { date: '07/12', revenue: 185000000, tickets: 1850, avgPrice: 100000 },
-];
-
-const revenueBySource = [
-  { name: 'Website', value: 45, color: '#8b5cf6' },
-  { name: 'Mobile App', value: 35, color: '#06b6d4' },
-  { name: 'Counter', value: 15, color: '#f59e0b' },
-  { name: 'Partners', value: 5, color: '#10b981' },
-];
-
-const moviePerformance = [
-  { name: 'Oppenheimer', revenue: 450000000, tickets: 4500, rating: 4.8 },
-  { name: 'Barbie', revenue: 380000000, tickets: 4200, rating: 4.5 },
-  { name: 'The Conjuring', revenue: 320000000, tickets: 3800, rating: 4.2 },
-  { name: 'Mission Impossible', revenue: 290000000, tickets: 2900, rating: 4.6 },
-  { name: 'Spider-Man', revenue: 260000000, tickets: 3100, rating: 4.7 },
-];
-
-const genreBreakdown = [
-  { genre: 'Action', revenue: 520000000, percentage: 28 },
-  { genre: 'Horror', revenue: 380000000, percentage: 20 },
-  { genre: 'Drama', revenue: 340000000, percentage: 18 },
-  { genre: 'Comedy', revenue: 290000000, percentage: 15 },
-  { genre: 'Sci-Fi', revenue: 220000000, percentage: 12 },
-  { genre: 'Romance', revenue: 130000000, percentage: 7 },
-];
-
-const cinemaPerformance = [
-  { name: 'CGV Vincom', revenue: 580000000, occupancy: 78, shows: 245 },
-  { name: 'Lotte Diamond', revenue: 420000000, occupancy: 72, shows: 198 },
-  { name: 'Galaxy Nguyen Du', revenue: 380000000, occupancy: 68, shows: 187 },
-  { name: 'BHD Star', revenue: 310000000, occupancy: 65, shows: 156 },
-];
-
-const hourlyDistribution = [
-  { hour: '09:00', bookings: 45 },
-  { hour: '10:00', bookings: 78 },
-  { hour: '11:00', bookings: 95 },
-  { hour: '12:00', bookings: 120 },
-  { hour: '13:00', bookings: 145 },
-  { hour: '14:00', bookings: 180 },
-  { hour: '15:00', bookings: 165 },
-  { hour: '16:00', bookings: 190 },
-  { hour: '17:00', bookings: 220 },
-  { hour: '18:00', bookings: 280 },
-  { hour: '19:00', bookings: 320 },
-  { hour: '20:00', bookings: 290 },
-  { hour: '21:00', bookings: 210 },
-  { hour: '22:00', bookings: 140 },
-];
-
-const customerSegments = [
-  { segment: 'New Customers', count: 2450, percentage: 35 },
-  { segment: 'Regular', count: 2100, percentage: 30 },
-  { segment: 'VIP Members', count: 1750, percentage: 25 },
-  { segment: 'Inactive (Returning)', count: 700, percentage: 10 },
-];
-
-const COLORS = ['#8b5cf6', '#06b6d4', '#f59e0b', '#10b981', '#ef4444', '#ec4899'];
+import type { Cinema, Movie } from '@/libs/api/types';
+import { cinemasApi, moviesApi } from '@/libs/api/services';
+import {
+  getRevenueReport,
+  getTopMovies,
+  getTopCinemas,
+  type RevenueReportDto,
+  type TopMovieDto,
+  type TopCinemaDto,
+} from '@/libs/api/dashboard-api';
 
 export default function ReportsPage() {
   const [cinemas, setCinemas] = useState<Cinema[]>([]);
   const [movies, setMovies] = useState<Movie[]>([]);
   const [selectedCinema, setSelectedCinema] = useState<string>('all');
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
-    from: new Date(2024, 11, 1),
-    to: new Date(2024, 11, 7),
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    to: new Date(),
   });
   const [loading, setLoading] = useState(false);
+  const [revenueReport, setRevenueReport] = useState<RevenueReportDto | null>(
+    null
+  );
+  const [topMovies, setTopMovies] = useState<TopMovieDto[]>([]);
+  const [topCinemas, setTopCinemas] = useState<TopCinemaDto[]>([]);
 
+  // Fetch static data (cinemas, movies) once
   useEffect(() => {
-    setCinemas(mockCinemas);
-    setMovies(mockMovies);
+    const fetchStaticData = async () => {
+      try {
+        const [cinemasRes, moviesRes] = await Promise.all([
+          cinemasApi.getAll(),
+          moviesApi.getAll(),
+        ]);
+        setCinemas(cinemasRes || []);
+        setMovies(moviesRes || []);
+      } catch (err) {
+        console.error('Failed to fetch static data:', err);
+      }
+    };
+    fetchStaticData();
   }, []);
 
-  const handleRefresh = async () => {
+  // RBAC State - use Clerk metadata directly
+  const { user } = useUser();
+  const userRole = user?.publicMetadata?.role as string | undefined;
+  const userCinemaId = user?.publicMetadata?.cinemaId as string | undefined;
+  const isManager = userRole === 'CINEMA_MANAGER';
+
+  // Filter cinemas for managers - only show their assigned cinema
+  const filteredCinemas =
+    isManager && userCinemaId
+      ? cinemas.filter((c) => c.id === userCinemaId)
+      : cinemas;
+
+  // Auto-initialize selectedCinema for managers (lock to their cinema)
+  useEffect(() => {
+    if (isManager && userCinemaId && selectedCinema === 'all') {
+      setSelectedCinema(userCinemaId);
+    }
+  }, [isManager, userCinemaId, selectedCinema]);
+
+  // Fetch report data based on date range & cinema
+  const fetchReportData = useCallback(async () => {
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setLoading(false);
+    try {
+      // Format dates for API (YYYY-MM-DD format)
+      const startDate = format(dateRange.from, 'yyyy-MM-dd');
+      const endDate = format(dateRange.to, 'yyyy-MM-dd');
+      const cinemaId = selectedCinema === 'all' ? undefined : selectedCinema;
+
+      const [revenueRes, topMoviesRes, topCinemasRes] = await Promise.all([
+        getRevenueReport({
+          startDate,
+          endDate,
+          groupBy: 'day',
+          cinemaId, // Add cinema filter
+        }),
+        getTopMovies(5, cinemaId, startDate, endDate), // Add filters
+        getTopCinemas(5, cinemaId, startDate, endDate), // Add filters
+      ]);
+
+      setRevenueReport(revenueRes);
+      setTopMovies(topMoviesRes || []);
+      setTopCinemas(topCinemasRes || []);
+    } catch (err) {
+      console.error('Failed to fetch report data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [dateRange.from, dateRange.to, selectedCinema]);
+
+  // Fetch report data when date range changes
+  useEffect(() => {
+    fetchReportData();
+  }, [fetchReportData]);
+
+  const handleRefresh = () => {
+    fetchReportData();
   };
 
   const formatCurrency = (value: number) => {
@@ -163,10 +167,40 @@ export default function ReportsPage() {
     return new Intl.NumberFormat('vi-VN').format(value);
   };
 
-  const totalRevenue = revenueData.reduce((sum, d) => sum + d.revenue, 0);
-  const totalTickets = revenueData.reduce((sum, d) => sum + d.tickets, 0);
-  const avgOccupancy = 72;
-  const revenueGrowth = 12.5;
+  const totalRevenue = revenueReport?.totalRevenue ?? 0;
+  const totalTickets = revenueReport?.bookingCount ?? 0;
+  const avgOccupancy =
+    topCinemas.length > 0
+      ? Math.round(
+          topCinemas.reduce((acc, c) => acc + c.occupancyRate, 0) /
+            topCinemas.length
+        )
+      : 0;
+  const revenueGrowth = 0; // Not available yet
+
+  const revenueChartData = (revenueReport?.revenueByPeriod || []).map((p) => ({
+    date: new Date(p.period).toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+    }),
+    revenue: p.revenue,
+    tickets: p.bookingCount,
+    avgPrice: p.bookingCount > 0 ? p.revenue / p.bookingCount : 0,
+  }));
+
+  const moviePerformance = topMovies.map((m) => ({
+    name: m.title.length > 15 ? m.title.substring(0, 15) + '...' : m.title,
+    revenue: m.totalRevenue,
+    tickets: m.totalBookings,
+    rating: 0,
+  }));
+
+  const cinemaPerformance = topCinemas.map((c) => ({
+    name: c.name,
+    revenue: c.totalRevenue,
+    occupancy: Math.round(c.occupancyRate),
+    shows: 0,
+  }));
 
   return (
     <div className="space-y-6">
@@ -174,20 +208,27 @@ export default function ReportsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
             <TrendingUp className="h-8 w-8 text-green-600" />
-            Reports & Analytics
+            Báo Cáo & Phân Tích
           </h1>
           <p className="text-gray-500 mt-1">
-            Comprehensive insights into your cinema operations
+            Thông tin chi tiết về hoạt động của rạp chiếu phim
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={loading}
+          >
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`}
+            />
+            Làm Mới
           </Button>
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
-            Export
+            Tải Xuống
           </Button>
         </div>
       </div>
@@ -198,13 +239,23 @@ export default function ReportsPage() {
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
               <Building2 className="h-4 w-4 text-gray-500" />
-              <Select value={selectedCinema} onValueChange={setSelectedCinema}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Select cinema" />
+              <Select
+                value={selectedCinema}
+                onValueChange={setSelectedCinema}
+                disabled={isManager}
+              >
+                <SelectTrigger
+                  className={`w-48 ${
+                    isManager ? 'opacity-60 cursor-not-allowed' : ''
+                  }`}
+                >
+                  <SelectValue placeholder="Chọn rạp" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Cinemas</SelectItem>
-                  {cinemas.map((cinema) => (
+                  {!isManager && (
+                    <SelectItem value="all">Tất Cả Rạp</SelectItem>
+                  )}
+                  {filteredCinemas.map((cinema) => (
                     <SelectItem key={cinema.id} value={cinema.id}>
                       {cinema.name}
                     </SelectItem>
@@ -217,7 +268,10 @@ export default function ReportsPage() {
               <CalendarIcon className="h-4 w-4 text-gray-500" />
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-64 justify-start text-left font-normal">
+                  <Button
+                    variant="outline"
+                    className="w-64 justify-start text-left font-normal"
+                  >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {dateRange.from && dateRange.to ? (
                       <>
@@ -225,7 +279,7 @@ export default function ReportsPage() {
                         {format(dateRange.to, 'dd/MM/yyyy')}
                       </>
                     ) : (
-                      <span>Pick a date range</span>
+                      <span>Chọn khoảng thời gian</span>
                     )}
                   </Button>
                 </PopoverTrigger>
@@ -251,55 +305,65 @@ export default function ReportsPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Tổng Doanh Thu
+            </CardTitle>
             <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(totalRevenue)}
+            </div>
             <div className="flex items-center text-xs text-green-600">
-              <ArrowUpRight className="h-4 w-4 mr-1" />
-              +{revenueGrowth}% from last week
+              <ArrowUpRight className="h-4 w-4 mr-1" />+{revenueGrowth}% từ tuần
+              trước
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tickets Sold</CardTitle>
+            <CardTitle className="text-sm font-medium">Vé Đã Bán</CardTitle>
             <Users className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatNumber(totalTickets)}</div>
+            <div className="text-2xl font-bold">
+              {formatNumber(totalTickets)}
+            </div>
             <div className="flex items-center text-xs text-green-600">
               <ArrowUpRight className="h-4 w-4 mr-1" />
-              +8.2% from last week
+              +8.2% từ tuần trước
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Occupancy</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Lượng Lấp Đầy Trung Bình
+            </CardTitle>
             <Building2 className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{avgOccupancy}%</div>
             <div className="flex items-center text-xs text-red-600">
               <ArrowDownRight className="h-4 w-4 mr-1" />
-              -2.3% from last week
+              -2.3% từ tuần trước
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Movies</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Phim Đang Chiếu
+            </CardTitle>
             <Film className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{movies.length}</div>
             <div className="flex items-center text-xs text-gray-500">
-              Currently showing
+              Đang chiếu hiện tại
             </div>
           </CardContent>
         </Card>
@@ -307,97 +371,64 @@ export default function ReportsPage() {
 
       {/* Main Reports Tabs */}
       <Tabs defaultValue="revenue" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="revenue">Revenue</TabsTrigger>
-          <TabsTrigger value="movies">Movies</TabsTrigger>
-          <TabsTrigger value="cinemas">Cinemas</TabsTrigger>
-          <TabsTrigger value="customers">Customers</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="revenue">Doanh Thu</TabsTrigger>
+          <TabsTrigger value="movies">Phim</TabsTrigger>
+          <TabsTrigger value="cinemas">Rạp</TabsTrigger>
         </TabsList>
 
         {/* Revenue Tab */}
         <TabsContent value="revenue" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Revenue Trend</CardTitle>
-                <CardDescription>Daily revenue over the selected period</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={revenueData}>
-                      <defs>
-                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
-                          <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
-                      <Tooltip
-                        formatter={(value: number) => formatCurrency(value)}
-                        labelFormatter={(label) => `Date: ${label}`}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="revenue"
-                        stroke="#8b5cf6"
-                        fillOpacity={1}
-                        fill="url(#colorRevenue)"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Revenue by Source</CardTitle>
-                <CardDescription>Breakdown by booking channel</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={revenueBySource}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={5}
-                        dataKey="value"
-                        label={({ name, value }) => `${name}: ${value}%`}
-                      >
-                        {revenueBySource.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
           <Card>
             <CardHeader>
-              <CardTitle>Genre Performance</CardTitle>
-              <CardDescription>Revenue breakdown by movie genre</CardDescription>
+              <CardTitle>Xu Hướng Doanh Thu</CardTitle>
+              <CardDescription>
+                Doanh thu hàng ngày trong khoảng thời gian đã chọn
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={genreBreakdown} layout="vertical">
+                  <AreaChart data={revenueChartData}>
+                    <defs>
+                      <linearGradient
+                        id="colorRevenue"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#8b5cf6"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#8b5cf6"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" tickFormatter={(value) => `${(value / 1000000).toFixed(0)}M`} />
-                    <YAxis dataKey="genre" type="category" width={80} />
-                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                    <Bar dataKey="revenue" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
-                  </BarChart>
+                    <XAxis dataKey="date" />
+                    <YAxis
+                      tickFormatter={(value) =>
+                        `${(value / 1000000).toFixed(0)}M`
+                      }
+                    />
+                    <Tooltip
+                      formatter={(value: number) => formatCurrency(value)}
+                      labelFormatter={(label) => `Ngày: ${label}`}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#8b5cf6"
+                      fillOpacity={1}
+                      fill="url(#colorRevenue)"
+                    />
+                  </AreaChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
@@ -408,8 +439,10 @@ export default function ReportsPage() {
         <TabsContent value="movies" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Top Performing Movies</CardTitle>
-              <CardDescription>Ranked by revenue in the selected period</CardDescription>
+              <CardTitle>Phim Có Hiệu Suất Tốt Nhất</CardTitle>
+              <CardDescription>
+                Xếp hạng theo doanh thu trong khoảng thời gian đã chọn
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -435,7 +468,7 @@ export default function ReportsPage() {
                       <div>
                         <h4 className="font-semibold">{movie.name}</h4>
                         <p className="text-sm text-gray-500">
-                          {formatNumber(movie.tickets)} tickets sold
+                          {formatNumber(movie.tickets)} vé đã bán
                         </p>
                       </div>
                     </div>
@@ -456,137 +489,49 @@ export default function ReportsPage() {
 
         {/* Cinemas Tab */}
         <TabsContent value="cinemas" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Cinema Performance</CardTitle>
-                <CardDescription>Revenue and occupancy by location</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {cinemaPerformance.map((cinema) => (
-                    <div
-                      key={cinema.name}
-                      className="p-4 rounded-lg border hover:border-purple-200 transition-colors"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold">{cinema.name}</h4>
-                        <Badge className="bg-green-100 text-green-700">
-                          {cinema.occupancy}% occupancy
-                        </Badge>
+          <Card>
+            <CardHeader>
+              <CardTitle>Hiệu Suất Rạp</CardTitle>
+              <CardDescription>
+                Doanh thu và lượng lấp đầy theo vị trí
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {cinemaPerformance.map((cinema) => (
+                  <div
+                    key={cinema.name}
+                    className="p-4 rounded-lg border hover:border-purple-200 transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">{cinema.name}</h4>
+                      <Badge className="bg-green-100 text-green-700">
+                        {cinema.occupancy}% lấp đầy
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <span className="text-gray-500">Doanh thu:</span>{' '}
+                        <span className="font-medium">
+                          {formatCurrency(cinema.revenue)}
+                        </span>
                       </div>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div>
-                          <span className="text-gray-500">Revenue:</span>{' '}
-                          <span className="font-medium">{formatCurrency(cinema.revenue)}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Shows:</span>{' '}
-                          <span className="font-medium">{cinema.shows}</span>
-                        </div>
-                      </div>
-                      <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-purple-600 h-2 rounded-full"
-                          style={{ width: `${cinema.occupancy}%` }}
-                        />
+                      <div>
+                        <span className="text-gray-500">Suất chiếu:</span>{' '}
+                        <span className="font-medium">N/A</span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Hourly Booking Distribution</CardTitle>
-                <CardDescription>Peak booking hours analysis</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={hourlyDistribution}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="hour" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line
-                        type="monotone"
-                        dataKey="bookings"
-                        stroke="#8b5cf6"
-                        strokeWidth={2}
-                        dot={{ r: 4 }}
-                        activeDot={{ r: 6 }}
+                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-purple-600 h-2 rounded-full"
+                        style={{ width: `${cinema.occupancy}%` }}
                       />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* Customers Tab */}
-        <TabsContent value="customers" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Customer Segments</CardTitle>
-                <CardDescription>Breakdown by customer type</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={customerSegments}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={100}
-                        dataKey="count"
-                        label={({ segment, percentage }) => `${segment}: ${percentage}%`}
-                      >
-                        {customerSegments.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Customer Metrics</CardTitle>
-                <CardDescription>Key customer statistics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {customerSegments.map((segment, index) => (
-                    <div
-                      key={segment.segment}
-                      className="flex items-center justify-between p-3 rounded-lg bg-gray-50"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-4 h-4 rounded"
-                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                        />
-                        <span className="font-medium">{segment.segment}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-semibold">{formatNumber(segment.count)}</div>
-                        <div className="text-sm text-gray-500">{segment.percentage}%</div>
-                      </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

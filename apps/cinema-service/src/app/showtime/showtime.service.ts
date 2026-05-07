@@ -38,13 +38,15 @@ export class ShowtimeService {
   ) {}
 
   async getShowtimes(filter: AdminShowtimeFilterDTO) {
-    const { cinemaId, date, movieId, hallId } = filter;
+    const { cinemaId, date, movieId, hallId, status } = filter;
 
     const where: Prisma.ShowtimesWhereInput = {};
 
     if (cinemaId) where.cinema_id = cinemaId;
     if (movieId) where.movie_id = movieId;
     if (hallId) where.hall_id = hallId;
+
+    if (status) where.status = status as ShowtimeStatus;
 
     if (date) {
       where.start_time = {
@@ -80,7 +82,12 @@ export class ShowtimeService {
       : [];
 
     // ===== 3. Map movieId -> movie =====
-    const movieMap = new Map(movies.map((movie) => [movie.id, movie]));
+    const movieList = (movies as any).data || movies;
+    const movieMap = new Map(
+      Array.isArray(movieList)
+        ? movieList.map((movie) => [movie.id, movie])
+        : []
+    );
 
     // ===== 4. Build response =====
     const data: ShowtimeSummaryResponse[] = showtimes.map((showtime) => {
@@ -126,6 +133,48 @@ export class ShowtimeService {
   }
 
   /**
+   * 🚀 Batch fetch multiple showtimes by IDs (for aggregation queries)
+   * Returns a map of showtimeId -> { movieId, cinemaId, hallId, hallName, cinemaName }
+   */
+  async getShowtimesByIds(showtimeIds: string[]): Promise<{
+    data: Array<{
+      showtimeId: string;
+      movieId: string;
+      cinemaId: string;
+      hallId: string;
+      hallName: string;
+      cinemaName: string;
+    }>;
+  }> {
+    if (!showtimeIds || showtimeIds.length === 0) {
+      return { data: [] };
+    }
+
+    const showtimes = await this.prisma.showtimes.findMany({
+      where: { id: { in: showtimeIds } },
+      select: {
+        id: true,
+        movie_id: true,
+        cinema_id: true,
+        hall_id: true,
+        hall: { select: { name: true } },
+        cinema: { select: { name: true } },
+      },
+    });
+
+    return {
+      data: showtimes.map((s) => ({
+        showtimeId: s.id,
+        movieId: s.movie_id,
+        cinemaId: s.cinema_id,
+        hallId: s.hall_id,
+        hallName: s.hall?.name ?? '',
+        cinemaName: s.cinema?.name ?? '',
+      })),
+    };
+  }
+
+  /**
    * 📅 Lấy danh sách suất chiếu của 1 phim tại 1 rạp (có cache)
    */
   async getMovieShowtimesAtCinema(
@@ -133,22 +182,33 @@ export class ShowtimeService {
     movieId: string,
     query: GetShowtimesQuery
   ): Promise<ServiceResult<ShowtimeSummaryResponse[]>> {
-    const cacheKey = `showtime:list:${cinemaId}:${movieId}:${query.date}`;
+    const cacheKey = `showtime:list:${cinemaId}:${movieId}:${
+      query.date ?? 'all'
+    }`;
 
     const data = await this.realtimeService.getOrSetCache(
       cacheKey,
       60,
       async () => {
+        const where: Prisma.ShowtimesWhereInput = {
+          cinema_id: cinemaId,
+          movie_id: movieId,
+          status: ShowtimeStatus.SELLING,
+        };
+
+        if (query.date) {
+          where.start_time = {
+            gte: new Date(`${query.date}T00:00:00.000Z`),
+            lt: new Date(`${query.date}T23:59:59.999Z`),
+          };
+        } else {
+          where.start_time = {
+            gte: new Date(),
+          };
+        }
+
         const showtimes = await this.prisma.showtimes.findMany({
-          where: {
-            cinema_id: cinemaId,
-            movie_id: movieId,
-            start_time: {
-              gte: new Date(`${query.date}T00:00:00.000Z`),
-              lt: new Date(`${query.date}T23:59:59.999Z`),
-            },
-            status: ShowtimeStatus.SELLING,
-          },
+          where,
           orderBy: { start_time: 'asc' },
         });
 

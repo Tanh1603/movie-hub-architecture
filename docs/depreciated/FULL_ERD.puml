@@ -1,0 +1,423 @@
+@startuml
+!theme plain
+hide circle
+skinparam linetype ortho
+package "Booking Service" {
+  entity "Bookings" as BookingService_Bookings {
+    * id : String
+    * user_id : String
+    * showtime_id : String
+    --
+    booking_code : String
+    customer_name : String
+    customer_email : String
+    customer_phone : String?
+    subtotal : Decimal
+    discount : Decimal
+    points_used : Int
+    points_discount : Decimal
+    final_amount : Decimal
+    promotion_code : String?
+    status : BookingStatus
+    payment_status : PaymentStatus
+    expires_at : DateTime?
+    cancelled_at : DateTime?
+    cancellation_reason : String?
+    created_at : DateTime
+    updated_at : DateTime
+    tickets : Tickets[]
+    payments : Payments[]
+    booking_concessions : BookingConcessions[]
+  }
+  entity "Tickets" as BookingService_Tickets {
+    * id : String
+    * booking_id : String
+    * seat_id : String
+    * booking : Bookings
+    --
+    ticket_code : String
+    qr_code : String?
+    barcode : String?
+    ticket_type : String
+    price : Decimal
+    status : TicketStatus
+    used_at : DateTime?
+    created_at : DateTime
+  }
+  entity "Payments" as BookingService_Payments {
+    * id : String
+    * booking_id : String
+    * transaction_id : String?
+    * provider_transaction_id : String?
+    * booking : Bookings
+    --
+    amount : Decimal
+    payment_method : PaymentMethod
+    status : PaymentStatus
+    payment_url : String?
+    paid_at : DateTime?
+    metadata : Json?
+    created_at : DateTime
+    updated_at : DateTime
+    refunds : Refunds[]
+  }
+  entity "Refunds" as BookingService_Refunds {
+    * id : String
+    * payment_id : String
+    * payment : Payments
+    --
+    amount : Decimal
+    reason : String
+    status : RefundStatus
+    refunded_at : DateTime?
+    created_at : DateTime
+  }
+  entity "Concessions" as BookingService_Concessions {
+    * id : String
+    * cinema_id : String?
+    --
+    name : String
+    name_en : String?
+    description : String?
+    category : ConcessionCategory
+    price : Decimal
+    image_url : String?
+    available : Boolean
+    inventory : Int?
+    nutrition_info : Json?
+    allergens : String[]
+    created_at : DateTime
+    updated_at : DateTime
+    booking_concessions : BookingConcessions[]
+  }
+  entity "BookingConcessions" as BookingService_BookingConcessions {
+    * id : String
+    * booking_id : String
+    * concession_id : String
+    * booking : Bookings
+    * concession : Concessions
+    --
+    quantity : Int
+    unit_price : Decimal
+    total_price : Decimal
+    created_at : DateTime
+  }
+  entity "Promotions" as BookingService_Promotions {
+    * id : String
+    --
+    code : String
+    name : String
+    description : String?
+    type : PromotionType
+    value : Decimal
+    min_purchase : Decimal?
+    max_discount : Decimal?
+    valid_from : DateTime
+    valid_to : DateTime
+    usage_limit : Int?
+    usage_per_user : Int?
+    current_usage : Int
+    applicable_for : String[]
+    conditions : Json?
+    active : Boolean
+    created_at : DateTime
+    updated_at : DateTime
+  }
+  entity "LoyaltyAccounts" as BookingService_LoyaltyAccounts {
+    * id : String
+    * user_id : String
+    --
+    current_points : Int
+    tier : LoyaltyTier
+    total_spent : Decimal
+    created_at : DateTime
+    updated_at : DateTime
+    transactions : LoyaltyTransactions[]
+  }
+  entity "LoyaltyTransactions" as BookingService_LoyaltyTransactions {
+    * id : String
+    * loyalty_account_id : String
+    * transaction_id : String?
+    * loyalty_account : LoyaltyAccounts
+    --
+    points : Int
+    type : LoyaltyTransactionType
+    description : String?
+    expires_at : DateTime?
+    created_at : DateTime
+  }
+}
+package "User Service" {
+  entity "Role" as UserService_Role {
+    * id : String
+    --
+    name : String
+    rolePermissions : RolePermission[]
+    userRoles : UserRole[]
+  }
+  entity "Permission" as UserService_Permission {
+    * id : String
+    --
+    name : String
+    rolePermissions : RolePermission[]
+  }
+  entity "UserRole" as UserService_UserRole {
+    * id : String
+    * userId : String
+    * roleId : String
+    * role : Role
+    --
+  }
+  entity "RolePermission" as UserService_RolePermission {
+    * id : String
+    * roleId : String
+    * permissionId : String
+    * role : Role
+    * permission : Permission
+    --
+  }
+  entity "Staff" as UserService_Staff {
+    * id : String
+    * cinemaId : String
+    --
+    fullName : String
+    email : String
+    phone : String
+    gender : Gender
+    dob : DateTime
+    position : StaffPosition
+    status : StaffStatus
+    workType : WorkType
+    shiftType : ShiftType
+    salary : Decimal
+    hireDate : DateTime
+    createdAt : DateTime
+    updatedAt : DateTime
+  }
+  entity "Setting" as UserService_Setting {
+    * key : String
+    --
+    value : Json
+    description : String?
+  }
+}
+package "Cinema Service" {
+  entity "Cinemas" as CinemaService_Cinemas {
+    * id : String
+    --
+    name : String
+    address : String
+    city : String
+    district : String?
+    phone : String?
+    email : String?
+    website : String?
+    latitude : Decimal?
+    longitude : Decimal?
+    description : String?
+    amenities : String[]
+    facilities : Json?
+    images : String[]
+    virtual_tour_360_url : String?
+    rating : Decimal?
+    total_reviews : Int
+    operating_hours : Json?
+    social_media : Json?
+    status : CinemaStatus
+    timezone : String
+    created_at : DateTime
+    updated_at : DateTime
+    reviews : CinemaReviews[]
+    halls : Halls[]
+    showtimes : Showtimes[]
+  }
+  entity "Halls" as CinemaService_Halls {
+    * id : String
+    * cinema_id : String
+    * cinema : Cinemas
+    --
+    name : String
+    type : HallType
+    capacity : Int
+    rows : Int
+    screen_type : String?
+    sound_system : String?
+    features : String[]
+    status : HallStatus
+    created_at : DateTime
+    updated_at : DateTime
+    layout_type : LayoutType
+    seats : Seats[]
+    showtimes : Showtimes[]
+    pricing : TicketPricing[]
+  }
+  entity "Seats" as CinemaService_Seats {
+    * id : String
+    * hall_id : String
+    * hall : Halls
+    --
+    row_letter : String
+    seat_number : Int
+    type : SeatType
+    status : SeatStatus
+    created_at : DateTime
+    reservations : SeatReservations[]
+  }
+  entity "TicketPricing" as CinemaService_TicketPricing {
+    * id : String
+    * hall_id : String
+    * hall : Halls
+    --
+    seat_type : SeatType
+    day_type : DayType
+    price : Decimal
+    created_at : DateTime
+  }
+  entity "Showtimes" as CinemaService_Showtimes {
+    * id : String
+    * movie_id : String
+    * cinema_id : String
+    * hall_id : String
+    * movie_release_id : String
+    * cinema : Cinemas
+    * hall : Halls
+    --
+    start_time : DateTime
+    end_time : DateTime
+    format : Format
+    language : String
+    subtitles : String[]
+    available_seats : Int
+    total_seats : Int
+    status : ShowtimeStatus
+    created_at : DateTime
+    updated_at : DateTime
+    day_type : DayType
+    reservations : SeatReservations[]
+  }
+  entity "SeatReservations" as CinemaService_SeatReservations {
+    * id : String
+    * showtime_id : String
+    * seat_id : String
+    * user_id : String?
+    * booking_id : String?
+    * seat : Seats
+    * showtime : Showtimes
+    --
+    status : ReservationStatus
+    created_at : DateTime
+  }
+  entity "CinemaReviews" as CinemaService_CinemaReviews {
+    * id : String
+    * cinema_id : String
+    * user_id : String
+    * cinema : Cinemas
+    --
+    rating : Int
+    comment : String?
+    aspects : Json?
+    verified_visit : Boolean
+    status : ReviewStatus
+    created_at : DateTime
+    updated_at : DateTime
+  }
+}
+package "Movie Service" {
+  entity "Movie" as MovieService_Movie {
+    * id : String
+    * movieGenres : MovieGenre[]
+    * movieReleases : MovieRelease[]
+    --
+    title : String
+    originalTitle : String
+    overview : String
+    posterUrl : String
+    trailerUrl : String
+    backdropUrl : String
+    runtime : Int
+    releaseDate : DateTime
+    ageRating : AgeRating
+    originalLanguage : String
+    spokenLanguages : String[]
+    productionCountry : String
+    languageType : LanguageOption
+    director : String
+    cast : Json
+    createdAt : DateTime
+    updatedAt : DateTime
+    reviews : Review[]
+  }
+  entity "MovieRelease" as MovieService_MovieRelease {
+    * id : String
+    * movieId : String
+    * movie : Movie
+    --
+    startDate : DateTime
+    endDate : DateTime?
+    note : String?
+  }
+  entity "Genre" as MovieService_Genre {
+    * id : String
+    * movieGenres : MovieGenre[]
+    --
+    name : String
+  }
+  entity "MovieGenre" as MovieService_MovieGenre {
+    * movieId : String
+    * genreId : String
+    * movie : Movie
+    * genre : Genre
+    --
+    createdAt : DateTime
+    updatedAt : DateTime
+  }
+  entity "Review" as MovieService_Review {
+    * id : String
+    * movieId : String
+    * userId : String
+    * movie : Movie
+    --
+    rating : Int
+    content : String
+    createdAt : DateTime
+    updatedAt : DateTime
+  }
+}
+package "External / IAM" {
+  entity "User" as External_User {
+    * id : String
+  }
+}
+BookingService_Tickets }o..|| BookingService_Bookings
+BookingService_Payments }o..|| BookingService_Bookings
+BookingService_Refunds }o..|| BookingService_Payments
+BookingService_BookingConcessions }o..|| BookingService_Bookings
+BookingService_BookingConcessions }o..|| BookingService_Concessions
+BookingService_LoyaltyTransactions }o..|| BookingService_LoyaltyAccounts
+UserService_UserRole }o..|| UserService_Role
+UserService_RolePermission }o..|| UserService_Role
+UserService_RolePermission }o..|| UserService_Permission
+CinemaService_Halls }o..|| CinemaService_Cinemas
+CinemaService_Seats }o..|| CinemaService_Halls
+CinemaService_TicketPricing }o..|| CinemaService_Halls
+CinemaService_Showtimes }o..|| CinemaService_Cinemas
+CinemaService_Showtimes }o..|| CinemaService_Halls
+CinemaService_SeatReservations }o..|| CinemaService_Seats
+CinemaService_SeatReservations }o..|| CinemaService_Showtimes
+CinemaService_CinemaReviews }o..|| CinemaService_Cinemas
+MovieService_MovieRelease }o..|| MovieService_Movie
+MovieService_MovieGenre }o..|| MovieService_Movie
+MovieService_MovieGenre }o..|| MovieService_Genre
+MovieService_Review }o..|| MovieService_Movie
+BookingService_Bookings }o..|| External_User
+BookingService_Bookings }o..|| CinemaService_Showtimes
+BookingService_Concessions }o..|| CinemaService_Cinemas
+BookingService_LoyaltyAccounts }o..|| External_User
+UserService_UserRole }o..|| External_User
+UserService_Staff }o..|| CinemaService_Cinemas
+CinemaService_Showtimes }o..|| MovieService_Movie
+CinemaService_Showtimes }o..|| MovieService_MovieRelease
+CinemaService_SeatReservations }o..|| External_User
+CinemaService_CinemaReviews }o..|| External_User
+MovieService_Review }o..|| External_User
+@enduml

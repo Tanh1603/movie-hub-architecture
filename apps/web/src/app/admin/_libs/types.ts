@@ -1,19 +1,64 @@
 // Admin Types - Cinema Management System
+// Import enums from shared-types
+import {
+  HallTypeEnum as HallType,
+  LayoutTypeEnum as LayoutType,
+  SeatTypeEnum as SeatType,
+  SeatStatusEnum as SeatStatus,
+  ShowtimeStatusEnum as ShowtimeStatus,
+  FormatEnum as ShowtimeFormat,
+  DayTypeEnum as DayType,
+} from '@movie-hub/shared-types/cinema/enum';
+
+import {
+  AgeRatingEnum as AgeRating,
+  LanguageOptionEnum,
+} from '@movie-hub/shared-types/movie/enum';
+
+import {
+  Gender,
+  StaffStatus,
+  WorkType,
+  StaffPosition,
+  ShiftType,
+} from '@movie-hub/shared-types/user/enum';
+
+import {
+  BookingStatus,
+  PaymentStatus,
+  PaymentMethod,
+} from '@movie-hub/shared-types/booking/enum';
+
+// Re-export for convenience
+export type {
+  HallType,
+  LayoutType,
+  SeatType,
+  SeatStatus,
+  ShowtimeStatus,
+  ShowtimeFormat,
+  DayType,
+  AgeRating,
+  Gender,
+  StaffStatus,
+  WorkType,
+  StaffPosition,
+  ShiftType,
+  BookingStatus,
+  PaymentStatus,
+  PaymentMethod,
+};
+
+export type LanguageType = LanguageOptionEnum;
+export const LanguageType = LanguageOptionEnum;
 
 export type CinemaStatus = 'ACTIVE' | 'MAINTENANCE' | 'CLOSED';
-export type HallType = 'STANDARD' | 'PREMIUM' | 'IMAX' | 'FOUR_DX';
 export type HallStatus = 'ACTIVE' | 'MAINTENANCE' | 'CLOSED';
-export type LayoutType = 'STANDARD' | 'DUAL_AISLE' | 'STADIUM';
-export type SeatType = 'STANDARD' | 'VIP' | 'COUPLE' | 'PREMIUM' | 'WHEELCHAIR';
-export type ShowtimeStatus = 'SELLING' | 'STOPPED' | 'CANCELLED';
-export type ShowtimeFormat = 'TWO_D' | 'THREE_D' | 'IMAX' | 'FOUR_DX';
-export type DayType = 'WEEKDAY' | 'WEEKEND' | 'HOLIDAY';
-export type AgeRating = 'P' | 'K' | 'T13' | 'T16' | 'T18' | 'C';
-export type LanguageType = 'ORIGINAL' | 'SUBTITLE' | 'DUBBED';
 export type MovieStatus = 'now_showing' | 'upcoming';
 
 // Generic object type to replace any
 type GenericObject = Record<string, unknown>;
+
 
 export interface Cinema {
   id: string;
@@ -35,10 +80,10 @@ export interface Cinema {
   totalReviews: number;
   operatingHours?: GenericObject;
   socialMedia?: GenericObject;
-  status: CinemaStatus;
+  status: CinemaStatus | string;
   timezone: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CreateCinemaRequest {
@@ -73,8 +118,9 @@ export interface Hall {
   features: string[];
   layoutType?: LayoutType;
   status: HallStatus;
-  createdAt: string;
-  updatedAt: string;
+  seatMap: PhysicalSeatRowDto[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CreateHallRequest {
@@ -100,8 +146,14 @@ export interface Genre {
   name: string;
 }
 
+export interface GenreResponse {
+  id: string;
+  name: string;
+}
+
 export interface MovieCast {
   name: string;
+  character?: string;
   profileUrl?: string;
 }
 
@@ -109,41 +161,42 @@ export interface MovieSummary {
   id: string;
   title: string;
   posterUrl: string;
-  backdropUrl?: string;
+  backdropUrl: string;
   runtime: number;
   ageRating: AgeRating;
   productionCountry: string;
   languageType: LanguageType;
+  averageRating: number;
+  reviewCount: number;
 }
 
 export interface Movie extends MovieSummary {
-  originalTitle?: string;
+  originalTitle: string;
   overview: string;
-  cast: MovieCast[];
-  trailerUrl?: string;
+  cast: unknown;
+  trailerUrl: string;
+  releaseDate: Date;
   originalLanguage: string;
   spokenLanguages: string[];
-  genre: Genre[];
-  releaseDate: string;
-  director?: string;
-  status?: MovieStatus;
+  director: string;
+  genre: GenreResponse[];
 }
 
 export interface CreateMovieDto {
   title: string;
   overview: string;
-  originalTitle?: string;
+  originalTitle: string;
   posterUrl: string;
-  trailerUrl?: string;
-  backdropUrl?: string;
+  trailerUrl: string;
+  backdropUrl: string;
   runtime: number;
-  releaseDate: string;
+  releaseDate: Date;
   ageRating: AgeRating;
   originalLanguage: string;
   spokenLanguages: string[];
   languageType: LanguageType;
   productionCountry: string;
-  director?: string;
+  director: string;
   cast: MovieCast[];
   genreIds: string[];
 }
@@ -151,11 +204,11 @@ export interface CreateMovieDto {
 export interface Showtime {
   id: string;
   movieId: string;
-  movieReleaseId: string;
+  movieReleaseId?: string;
   cinemaId: string;
   hallId: string;
-  startTime: string;
-  endTime: string;
+  startTime: Date;
+  endTime: Date;
   format: ShowtimeFormat;
   language: string;
   subtitles: string[];
@@ -163,20 +216,8 @@ export interface Showtime {
   totalSeats: number;
   status: ShowtimeStatus;
   dayType: DayType;
-  createdAt: string;
-  updatedAt: string;
-  // Nested relations (optional for expanded queries)
-  movieRelease?: {
-    movie?: {
-      title?: string;
-    };
-  };
-  hall?: {
-    name?: string;
-  };
-  cinema?: {
-    name?: string;
-  };
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CreateShowtimeRequest {
@@ -203,21 +244,24 @@ export interface UpdateShowtimeRequest {
 
 export interface Staff {
   id: string;
-  name: string;
-  role: string;
+  cinemaId: string;
+  fullName: string;
   email: string;
   phone: string;
-  hiredAt: string;
-  status: string;
-  locationId: string;
+  gender: Gender;
+  dob: Date;
+  position: StaffPosition;
+  status: StaffStatus;
+  workType: WorkType;
+  shiftType: ShiftType;
+  salary: number;
+  hireDate: Date;
 }
 
 export interface MovieRelease {
   id: string;
-  movieId: string;
-  startDate: string;
-  endDate: string;
-  status: 'UPCOMING' | 'ACTIVE' | 'ENDED';
+  startDate: Date;
+  endDate: Date;
   note: string;
 }
 
@@ -229,8 +273,12 @@ export interface ApiResponse<T> {
 }
 
 // Seat types
-export type SeatStatus = 'ACTIVE' | 'MAINTENANCE' | 'BROKEN';
 export type ShowtimeSeatStatus = 'AVAILABLE' | 'BOOKED' | 'RESERVED' | 'LOCKED';
+
+export interface PhysicalSeatRowDto {
+  row: string;
+  seats: Seat[];
+}
 
 export interface Seat {
   id: string;
@@ -239,8 +287,8 @@ export interface Seat {
   number: number;
   type: SeatType;
   status: SeatStatus;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ShowtimeSeat {
@@ -259,17 +307,7 @@ export interface TicketPricing {
   hallId: string;
   seatType: SeatType;
   dayType: DayType;
-  format?: ShowtimeFormat;
   price: number;
-  createdAt: string;
-  updatedAt: string;
-  // Optional nested relations
-  hall?: {
-    name?: string;
-    cinema?: {
-      name?: string;
-    };
-  };
 }
 
 // ============================================
@@ -305,7 +343,7 @@ export interface BatchCreateResponse {
 }
 
 // ============================================
-// Seat Status Types  
+// Seat Status Types
 // ============================================
 
 export interface SeatDetail {
@@ -396,7 +434,13 @@ export interface AppearanceSettings {
 // Showtime Seats Types
 // ============================================
 
-export type ReservationStatus = 'AVAILABLE' | 'HELD' | 'RESERVED' | 'SOLD';
+export type ReservationStatus =
+  | 'AVAILABLE'
+  | 'HELD'
+  | 'RESERVED'
+  | 'SOLD'
+  | 'CONFIRMED'
+  | 'CANCELLED';
 
 export interface ShowtimeSeatDetail {
   id: string;

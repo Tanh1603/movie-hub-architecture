@@ -1,61 +1,64 @@
-import {
-  ReservationStatusEnum,
-  SeatStatusEnum,
-  SeatTypeEnum,
-} from '@/libs/types/showtime.type';
-import { Accessibility } from 'lucide-react';
+import { SeatTypeEnum } from '@/libs/types/showtime.type';
+import { Accessibility, Star } from 'lucide-react';
 
 const seatLegendItems = [
-  // --- Trạng thái ---
+  // --- Trạng thái (Status) ---
+  {
+    label: 'Đã chọn',
+    color:
+      'bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.6)] border-yellow-300',
+    type: 'SELECTED',
+  },
   {
     label: 'Đã đặt',
-    color: 'bg-rose-800',
+    color: 'bg-red-600 border-red-500',
     type: 'CONFIRMED',
   },
   {
     label: 'Đang giữ',
-    color: 'bg-neutral-400 animate-pulse',
+    color: 'bg-orange-500/50 border border-orange-400 animate-pulse',
     type: 'HELD',
   },
   {
     label: 'Hỏng',
-    color: 'bg-gray-700',
+    color: 'bg-gray-700 border-gray-600',
     type: 'BROKEN',
   },
 
-  // --- Loại ghế ---
+  // --- Loại ghế (Seat Types) - Synced with Seat.tsx ---
   {
     label: 'Thường',
-    color: 'bg-transparent border border-rose-500',
+    color: 'bg-card border border-white/10 text-muted-foreground',
     type: SeatTypeEnum.STANDARD,
   },
   {
     label: 'VIP',
-    color: 'bg-transparent border border-yellow-500',
+    color: 'bg-card border border-purple-400/60 text-purple-400',
+    icon: Star,
     type: SeatTypeEnum.VIP,
   },
   {
     label: 'Cao cấp',
-    color: 'bg-transparent border border-blue-400 shadow-[0_0_6px_#60a5fa]',
+    color: 'bg-card border border-violet-400/60 text-violet-400',
     type: SeatTypeEnum.PREMIUM,
   },
   {
     label: 'Xe lăn',
     color:
-      'bg-transparent border border-cyan-400 text-[10px] flex items-center justify-center',
+      'bg-card border border-fuchsia-400/60 text-fuchsia-400 flex items-center justify-center',
     icon: Accessibility,
     type: SeatTypeEnum.WHEELCHAIR,
   },
   {
     label: 'Đôi',
-    color: 'border-purple-500',
+    color: 'bg-card border border-pink-500/60 text-pink-400',
     type: SeatTypeEnum.COUPLE,
     isCouple: true,
   },
 ];
 
 export const SeatLegend = () => (
-  <div className="flex flex-wrap gap-4 mt-8 text-white">
+  <div className="flex flex-wrap gap-4 mt-8 text-white justify-center">
     {seatLegendItems.map((item) => (
       <div key={item.label} className="flex items-center gap-2">
         {/* Couple Seat */}
@@ -63,16 +66,16 @@ export const SeatLegend = () => (
           <div className={`h-5 w-10 rounded border ${item.color}`} />
         ) : (
           <div
-            className={`h-5 w-5 rounded flex items-center justify-center ${item.color}`}
+            className={`h-5 w-5 rounded flex items-center justify-center border ${item.color}`}
           >
-            {/* icon wheelchair nếu có */}
+            {/* icon if available */}
             {item.icon && (
-              <item.icon className="w-3 h-3 md:w-4 md:h-4 text-cyan-300" />
+              <item.icon className="w-3 h-3 text-current opacity-70" />
             )}
           </div>
         )}
 
-        <span>{item.label}</span>
+        <span className="text-sm text-gray-300">{item.label}</span>
       </div>
     ))}
   </div>

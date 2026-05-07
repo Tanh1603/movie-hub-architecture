@@ -13,6 +13,8 @@ import {
   Patch,
   Delete,
   UseGuards,
+  Req,
+  ForbiddenException,
 } from '@nestjs/common';
 import { CinemaService } from '../service/cinema.service';
 import {
@@ -42,9 +44,23 @@ export class CinemaController {
    * Get all cinemas
    */
   @Get()
-  async getAllCinemas(@Query('status') status?: CinemaStatusEnum) {
+  async getAllCinemas(
+    @Req() req: any,
+    @Query('status') status?: CinemaStatusEnum
+  ) {
     const cinemaStatus = status ?? CinemaStatusEnum.ACTIVE;
-    return this.cinemaService.getCinemas(cinemaStatus);
+    const result = await this.cinemaService.getCinemas(cinemaStatus);
+
+    // Extract the data array from the response
+    const cinemas = result?.data || result || [];
+
+    // RBAC: If manager, only return their cinema
+    const userCinemaId = req.staffContext?.cinemaId;
+    if (userCinemaId && Array.isArray(cinemas)) {
+      return cinemas.filter((c: any) => c.id === userCinemaId);
+    }
+
+    return cinemas;
   }
 
   /**
@@ -53,7 +69,11 @@ export class CinemaController {
   @Post('cinema')
   @UseGuards(ClerkAuthGuard)
   //@Permission('cinema:create')
-  createCinema(@Body() createCinemaDto: CreateCinemaRequest) {
+  createCinema(@Req() req: any, @Body() createCinemaDto: CreateCinemaRequest) {
+    const userCinemaId = req.staffContext?.cinemaId;
+    if (userCinemaId) {
+      throw new ForbiddenException('Managers cannot create cinemas');
+    }
     return this.cinemaService.createCinema(createCinemaDto);
   }
 
@@ -64,9 +84,14 @@ export class CinemaController {
   @UseGuards(ClerkAuthGuard)
   //@Permission('cinema:create')
   updateCinema(
+    @Req() req: any,
     @Param('cinemaId') cinemaId: string,
     @Body() updateCinemaRequest: UpdateCinemaRequest
   ) {
+    const userCinemaId = req.staffContext?.cinemaId;
+    if (userCinemaId && userCinemaId !== cinemaId) {
+      throw new ForbiddenException('You can only update your own cinema');
+    }
     return this.cinemaService.updateCinema(cinemaId, updateCinemaRequest);
   }
 
@@ -75,7 +100,11 @@ export class CinemaController {
   @Delete('cinema/:cinemaId')
   @UseGuards(ClerkAuthGuard)
   //@Permission('cinema:create')
-  deleteCinema(@Param('cinemaId') cinemaId: string) {
+  deleteCinema(@Req() req: any, @Param('cinemaId') cinemaId: string) {
+    const userCinemaId = req.staffContext?.cinemaId;
+    if (userCinemaId) {
+      throw new ForbiddenException('Managers cannot delete cinemas');
+    }
     return this.cinemaService.deleteCinema(cinemaId);
   }
 

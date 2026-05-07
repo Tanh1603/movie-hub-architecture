@@ -1,82 +1,184 @@
-# MovieHub
+# Movie Hub
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+Movie Hub is a modern movie ticketing platform based on a microservices architecture built with **NestJS** (Backend), **Next.js** (Frontend), and managed using an **Nx Monorepo**.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+## Core Features
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/nest?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+- **User Management**: Authentication, profiles, and role-based access control.
+- **Movie Catalog**: Movie exploration, viewing details, and scheduling.
+- **Cinema Operations**: Management of theaters, showtimes, and seat layouts.
+- **Booking System**: Real-time ticket booking and reservation handling.
 
-## Finish your CI setup
+## System Architecture Diagram
 
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/ivNHq2ad2f)
+```mermaid
+flowchart TB
+    Client([Client Application / Next.js Web])
 
+    subgraph Gateway [API Gateway Layer]
+        API["API Gateway (NestJS)"]
+    end
 
-## Run tasks
+    subgraph Microservices [Microservices Layer - NestJS]
+        User["User Service"]
+        Movie["Movie Service"]
+        Cinema["Cinema Service"]
+        Booking["Booking Service"]
+    end
 
-To run the dev server for your app, use:
+    subgraph Databases [Data Layer - PostgreSQL & Redis]
+        UserDB[("User DB")]
+        MovieDB[("Movie DB")]
+        CinemaDB[("Cinema DB")]
+        BookingDB[("Booking DB")]
+        Redis[("Redis (Pub/Sub)")]
+    end
 
-```sh
-npx nx serve movie-hub
+    Client -->|HTTP/REST| API
+
+    API -->|TCP| User
+    API -->|TCP| Movie
+    API -->|TCP| Cinema
+    API -->|TCP| Booking
+
+    %% Internal service-to-service communication discovered from codebase
+    Booking -.->|TCP| Cinema
+    Booking -.->|TCP| User
+    Cinema -.->|TCP| Movie
+
+    User --- UserDB
+    Movie --- MovieDB
+    Cinema --- CinemaDB
+    Booking --- BookingDB
+
+    User -.- Redis
+    Movie -.- Redis
+    Cinema -.- Redis
+    Booking -.- Redis
 ```
 
-To create a production bundle:
+The system utilizes a hybrid communication approach between microservices:
+- **TCP**: Used for direct, synchronous service-to-service communication to ensure fast and reliable data exchange.
+- **Redis Pub/Sub**: Utilized for asynchronous event-driven communication, allowing services to broadcast and react to system-wide events decoupled from immediate execution.
 
-```sh
-npx nx build movie-hub
+## Documentation
+
+Comprehensive project documentation is available in the [`docs`](./docs) directory:
+
+- **[Core Documentation](./docs/project_documentation_v1_1st_Dec)**:
+  - [Software Requirements Specification (SRS)](./docs/project_documentation_v1_1st_Dec/SRS_MOVIE_PLATFORM.md)
+  - [System Architecture](./docs/project_documentation_v1_1st_Dec/ARCHITECTURE.md)
+  - [API Contract](./docs/project_documentation_v1_1st_Dec/API_CONTRACT.md)
+  - [Feature List](./docs/project_documentation_v1_1st_Dec/FEATURES.md)
+- **[Functional Specifications](./docs/functional_specs)**: Detailed module-by-module breakdown.
+- **[Project Management](./docs/Project%20management%20artifacts)**: Timelines and management artifacts.
+
+## Architecture Overview
+
+The system strictly follows a microservices architecture:
+
+- **Frontend**: Next.js application.
+- **API Gateway**: Single entry point for all client requests.
+- **Microservices**: User, Movie, Cinema, and Booking services handling specific business domains.
+- **Infrastructure**: Dockerized services using PostgreSQL (database per service) and Redis.
+
+## Prerequisites
+
+Before getting started, ensure you have the following tools installed:
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop)
+- [Node.js](https://nodejs.org/) (Version 20+ recommended)
+- [Git](https://git-scm.com/)
+
+## Getting Started
+
+Follow these steps to run the system locally.
+
+### 1. Clone Repository
+
+```bash
+git clone https://github.com/Tanh1603/movie-hub.git
+cd movie-hub
 ```
 
-To see all available targets to run for a project, run:
+### 2. Environment Variables
 
-```sh
-npx nx show project movie-hub
+```env
+# Database Configuration (.env.db)
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=movie_hub_<service_name>  # e.g., movie_hub_user, movie_hub_movie
+
+# Service Configuration (.env)
+TCP_HOST=0.0.0.0
+DB_HOST=postgres-<service_name>       # e.g., postgres-user, postgres-movie
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+### 3. Run with Docker Compose
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+This command will build the images, start the databases, Redis, the backend microservices, and run data seeding scripts.
 
-## Add new projects
-
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-Use the plugin's generator to create new projects.
-
-To generate a new application, use:
-
-```sh
-npx nx g @nx/nest:app demo
+```bash
+docker compose up -d --build
 ```
 
-To generate a new library, use:
+Wait a few minutes for the services to build and pass health checks. You can check the logs with:
 
-```sh
-npx nx g @nx/node:lib mylib
+```bash
+docker compose logs -f
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+### 4. Start Frontend
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Since the frontend is optimized for local development, run it outside of Docker:
 
+```bash
+# Install dependencies
+npm install
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+# Start the web application
+npx nx serve web
+```
 
-## Install Nx Console
+## Testing
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+To run the test suites across the project, use the standard Nx command:
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```bash
+npx nx test
+```
 
-## Useful links
+## Deployment & Access URLs
 
-Learn more:
+Once everything is up and running, you can access the services at:
 
-- [Learn more about this workspace setup](https://nx.dev/nx-api/nest?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+| Service | Access URL | Description |
+| --- | --- | --- |
+| **Frontend** | [http://localhost:4200](http://localhost:4200) | Main User Interface |
+| **API Gateway** | [http://localhost:4000/api](http://localhost:4000/api) | Main API Endpoint |
+| **Swagger Docs** | [http://localhost:4000/docs](http://localhost:4000/docs) | API Documentation |
+| **User Service** | `localhost:4001` | TCP/Debugging Port |
+| **Movie Service** | `localhost:4002` | TCP/Debugging Port |
+| **Cinema Service** | `localhost:4003` | TCP/Debugging Port |
+| **Booking Service** | `localhost:4004` | TCP/Debugging Port |
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Database Access (Optional)
+
+If you have a database client (e.g., DBeaver, PGAdmin), you can connect to the databases via the following ports:
+
+- **User DB**: `localhost:5435`
+- **Movie DB**: `localhost:5436`
+- **Cinema DB**: `localhost:5437`
+- **Booking DB**: `localhost:5438`
+
+## Contact Information
+
+| Full Name | Role | Student ID | Email |
+| :--- | :--- | :--- | :--- |
+| Nguyễn Thiên An | Team Leader | 23520020 | 23520020@gm.uit.edu.vn |
+| Nguyễn Lê Tuấn Anh | Member | 23520064 | 23520064@gm.uit.edu.vn |
+| Lê Văn Huy | Member | 23520616 | 23520616@gm.uit.edu.vn |
+| Quách Vĩnh Cơ | Member | 23520189 | 23520189@gm.uit.edu.vn |
+| Điều Xuân Hiển | Member | 23520456 | 23520456@gm.uit.edu.vn |
+| Phạm Hùng | Member | 23520573 | 23520573@gm.uit.edu.vn |
+| Lưu Bình | Member | 23520156 | 23520156@gm.uit.edu.vn |

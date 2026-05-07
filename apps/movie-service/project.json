@@ -75,7 +75,7 @@
       "cache": false,
       "executor": "nx:run-commands",
       "options": {
-        "command": "prisma db push",
+        "command": "prisma db push --accept-data-loss",
         "cwd": "apps/movie-service"
       }
     },
@@ -84,8 +84,8 @@
       "cache": false,
       "executor": "nx:run-commands",
       "options": {
-        "command": "ts-node seed.ts",
-        "cwd": "apps/movie-service/prisma"
+        "command": "tsx prisma/seed.ts",
+        "cwd": "apps/movie-service"
       }
     },
 

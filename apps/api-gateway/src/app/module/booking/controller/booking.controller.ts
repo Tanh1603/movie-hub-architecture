@@ -7,6 +7,9 @@ import {
   Param,
   Query,
   UseGuards,
+  Header,
+  Req,
+  ForbiddenException,
 } from '@nestjs/common';
 import { BookingService } from '../service/booking.service';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
@@ -34,7 +37,6 @@ export class BookingController {
 
   @Post()
   @UseGuards(ClerkAuthGuard)
-  
   async create(
     @CurrentUserId() userId: string,
     @Body() createBookingDto: CreateBookingDto
@@ -44,7 +46,6 @@ export class BookingController {
 
   @Get()
   @UseGuards(ClerkAuthGuard)
-  
   async findAll(
     @CurrentUserId() userId: string,
     @Query('status') status?: BookingStatus,
@@ -60,16 +61,14 @@ export class BookingController {
 
   @Get(':id')
   @UseGuards(ClerkAuthGuard)
- 
   async findOne(@CurrentUserId() userId: string, @Param('id') id: string) {
     return this.bookingService.findOne(id, userId);
   }
 
   @Post(':id/cancel')
   @UseGuards(ClerkAuthGuard)
-
   async cancel(
-    @CurrentUserId() userId: string ,
+    @CurrentUserId() userId: string,
     @Param('id') id: string,
     @Body('reason') reason?: string
   ) {
@@ -78,10 +77,7 @@ export class BookingController {
 
   @Get(':id/summary')
   @UseGuards(ClerkAuthGuard)
-  async getSummary(
-    @CurrentUserId() userId: string,
-    @Param('id') id: string
-  ) {
+  async getSummary(@CurrentUserId() userId: string, @Param('id') id: string) {
     return this.bookingService.getBookingSummary(id, userId);
   }
 
@@ -98,8 +94,8 @@ export class BookingController {
     @Query('includeStatuses') includeStatuses?: string
   ) {
     // Parse comma-separated statuses if provided
-    const statuses = includeStatuses 
-      ? includeStatuses.split(',').map(s => s.trim() as BookingStatus)
+    const statuses = includeStatuses
+      ? includeStatuses.split(',').map((s) => s.trim() as BookingStatus)
       : undefined;
 
     return this.bookingService.findUserBookingByShowtime(
@@ -113,62 +109,99 @@ export class BookingController {
 
   @Get('admin/all')
   @UseGuards(ClerkAuthGuard)
-  async adminFindAll(@Query() filters: AdminFindAllBookingsDto) {
+  async adminFindAll(
+    @Req() req: any,
+    @Query() filters: AdminFindAllBookingsDto
+  ) {
+    const userCinemaId = req.staffContext?.cinemaId;
+    if (userCinemaId) {
+      filters.cinemaId = userCinemaId;
+    }
     return this.bookingService.adminFindAll(filters);
   }
 
   @Get('admin/showtime/:showtimeId')
   @UseGuards(ClerkAuthGuard)
   async findByShowtime(
+    @Req() req: any,
     @Param('showtimeId') showtimeId: string,
     @Query('status') status?: BookingStatus
   ) {
+    // TODO: For full RBAC, verify that the showtime belongs to the user's cinema
+    // This requires fetching showtime details to check cinemaId
     return this.bookingService.findByShowtime(showtimeId, status);
   }
 
   @Get('admin/date-range')
   @UseGuards(ClerkAuthGuard)
-  async findByDateRange(@Query() filters: FindBookingsByDateRangeDto) {
+  async findByDateRange(
+    @Req() req: any,
+    @Query() filters: FindBookingsByDateRangeDto
+  ) {
+    const userCinemaId = req.staffContext?.cinemaId;
+    if (userCinemaId) {
+      filters.cinemaId = userCinemaId;
+    }
     return this.bookingService.findByDateRange(filters);
   }
 
   @Put('admin/:id/status')
   @UseGuards(ClerkAuthGuard)
   async updateStatus(
+    @Req() req: any,
     @Param('id') bookingId: string,
     @Body('status') status: BookingStatus,
     @Body('reason') reason?: string
   ) {
+    // TODO: For full RBAC, verify that the booking belongs to the user's cinema
+    // This requires fetching booking details to check cinemaId
     return this.bookingService.updateStatus(bookingId, status, reason);
   }
 
   @Post('admin/:id/confirm')
   @UseGuards(ClerkAuthGuard)
-  async confirmBooking(@Param('id') bookingId: string) {
+  async confirmBooking(@Req() req: any, @Param('id') bookingId: string) {
+    // TODO: For full RBAC, verify that the booking belongs to the user's cinema
     return this.bookingService.confirmBooking(bookingId);
   }
 
   @Post('admin/:id/complete')
   @UseGuards(ClerkAuthGuard)
-  async completeBooking(@Param('id') bookingId: string) {
+  async completeBooking(@Req() req: any, @Param('id') bookingId: string) {
+    // TODO: For full RBAC, verify that the booking belongs to the user's cinema
     return this.bookingService.completeBooking(bookingId);
   }
 
   @Post('admin/:id/expire')
   @UseGuards(ClerkAuthGuard)
-  async expireBooking(@Param('id') bookingId: string) {
+  async expireBooking(@Req() req: any, @Param('id') bookingId: string) {
+    // TODO: For full RBAC, verify that the booking belongs to the user's cinema
     return this.bookingService.expireBooking(bookingId);
   }
 
   @Get('admin/statistics')
   @UseGuards(ClerkAuthGuard)
-  async getStatistics(@Query() filters: GetBookingStatisticsDto) {
+  async getStatistics(
+    @Req() req: any,
+    @Query() filters: GetBookingStatisticsDto
+  ) {
+    const userCinemaId = req.staffContext?.cinemaId;
+    if (userCinemaId) {
+      filters.cinemaId = userCinemaId;
+    }
     return this.bookingService.getStatistics(filters);
   }
 
   @Get('admin/revenue-report')
   @UseGuards(ClerkAuthGuard)
-  async getRevenueReport(@Query() filters: GetRevenueReportDto) {
+  async getRevenueReport(
+    @Req() req: any,
+    @Query() filters: GetRevenueReportDto
+  ) {
+    const userCinemaId = req.staffContext?.cinemaId;
+    if (userCinemaId) {
+      filters.cinemaId = userCinemaId;
+    }
     return this.bookingService.getRevenueReport(filters);
   }
 
@@ -196,6 +229,8 @@ export class BookingController {
 
   @Get(':id/refund-calculation')
   @UseGuards(ClerkAuthGuard)
+  @Header('Deprecation', 'true')
+  @Header('X-Deprecation-Notice', 'Use POST /refunds/booking/:id/voucher')
   async calculateRefund(
     @CurrentUserId() userId: string,
     @Param('id') id: string
@@ -205,6 +240,8 @@ export class BookingController {
 
   @Post(':id/cancel-with-refund')
   @UseGuards(ClerkAuthGuard)
+  @Header('Deprecation', 'true')
+  @Header('X-Deprecation-Notice', 'Use POST /refunds/booking/:id/voucher')
   async cancelWithRefund(
     @CurrentUserId() userId: string,
     @Param('id') id: string,

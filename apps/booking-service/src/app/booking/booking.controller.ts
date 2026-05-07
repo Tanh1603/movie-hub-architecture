@@ -20,9 +20,7 @@ export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
 
   @MessagePattern('booking.create')
-  async create(
-    @Payload() data: { userId: string; dto: CreateBookingDto }
-  ) {
+  async create(@Payload() data: { userId: string; dto: CreateBookingDto }) {
     return this.bookingService.createBooking(data.userId, data.dto);
   }
 
@@ -45,9 +43,7 @@ export class BookingController {
   }
 
   @MessagePattern('booking.findOne')
-  async findOne(
-    @Payload() data: { id: string; userId: string }
-  ) {
+  async findOne(@Payload() data: { id: string; userId: string }) {
     return this.bookingService.findOne(data.id, data.userId);
   }
 
@@ -55,33 +51,23 @@ export class BookingController {
   async cancel(
     @Payload() data: { id: string; userId: string; reason?: string }
   ) {
-    return this.bookingService.cancelBooking(
-      data.id,
-      data.userId,
-      data.reason
-    );
+    return this.bookingService.cancelBooking(data.id, data.userId, data.reason);
   }
 
   @MessagePattern('booking.getSummary')
-  async getSummary(
-    @Payload() data: { id: string; userId: string }
-  ) {
+  async getSummary(@Payload() data: { id: string; userId: string }) {
     return this.bookingService.getBookingSummary(data.id, data.userId);
   }
 
   // ==================== ADMIN OPERATIONS ====================
 
   @MessagePattern('booking.admin.findAll')
-  async adminFindAll(
-    @Payload() payload: { filters: AdminFindAllBookingsDto }
-  ) {
+  async adminFindAll(@Payload() payload: { filters: AdminFindAllBookingsDto }) {
     return this.bookingService.adminFindAllBookings(payload.filters);
   }
 
   @MessagePattern('booking.findByShowtime')
-  async findByShowtime(
-    @Payload() payload: FindBookingsByShowtimeDto
-  ) {
+  async findByShowtime(@Payload() payload: FindBookingsByShowtimeDto) {
     return this.bookingService.findBookingsByShowtime(
       payload.showtimeId,
       payload.status
@@ -96,9 +82,7 @@ export class BookingController {
   }
 
   @MessagePattern('booking.updateStatus')
-  async updateStatus(
-    @Payload() data: UpdateBookingStatusDto
-  ) {
+  async updateStatus(@Payload() data: UpdateBookingStatusDto) {
     return this.bookingService.updateBookingStatus(
       data.bookingId,
       data.status,
@@ -107,52 +91,79 @@ export class BookingController {
   }
 
   @MessagePattern('booking.confirm')
-  async confirm(
-    @Payload() data: { bookingId: string }
-  ) {
+  async confirm(@Payload() data: { bookingId: string }) {
     return this.bookingService.confirmBooking(data.bookingId);
   }
 
   @MessagePattern('booking.complete')
-  async complete(
-    @Payload() data: { bookingId: string }
-  ) {
+  async complete(@Payload() data: { bookingId: string }) {
     return this.bookingService.completeBooking(data.bookingId);
   }
 
   @MessagePattern('booking.expire')
-  async expire(
-    @Payload() data: { bookingId: string }
-  ) {
+  async expire(@Payload() data: { bookingId: string }) {
     return this.bookingService.expireBooking(data.bookingId);
   }
 
   // ==================== STATISTICS & REPORTS ====================
 
   @MessagePattern('booking.getStatistics')
-  async getStatistics(@Payload() payload: { filters?: GetBookingStatisticsDto }) {
+  async getStatistics(
+    @Payload() payload: { filters?: GetBookingStatisticsDto }
+  ) {
     return this.bookingService.getBookingStatistics(payload?.filters || {});
   }
 
   @MessagePattern('booking.getRevenueReport')
-  async getRevenueReport(@Payload() payload: { filters?: GetRevenueReportDto }) {
+  async getRevenueReport(
+    @Payload() payload: { filters?: GetRevenueReportDto }
+  ) {
     return this.bookingService.getRevenueReport(payload?.filters || {});
+  }
+
+  @MessagePattern('booking.getRevenueByMovieId')
+  async getRevenueByMovieId(
+    @Payload() filters: { startDate?: Date; endDate?: Date; cinemaId?: string }
+  ) {
+    return this.bookingService.getRevenueGroupedByMovieId(filters);
+  }
+
+  @MessagePattern('booking.getRevenueByCinemaId')
+  async getRevenueByCinemaId(
+    @Payload() filters: { startDate?: Date; endDate?: Date; cinemaId?: string }
+  ) {
+    return this.bookingService.getRevenueGroupedByCinemaId(filters);
   }
 
   // ==================== NEW FEATURES ====================
 
+  /**
+   * @deprecated Use POST /refunds/booking/:bookingId/voucher instead.
+   * This endpoint uses the legacy 2-hour/70% cash refund policy.
+   */
   @MessagePattern('booking.calculateRefund')
-  async calculateRefund(
-    @Payload() data: { id: string; userId: string }
-  ) {
+  async calculateRefund(@Payload() data: { id: string; userId: string }) {
     return this.bookingService.calculateRefund(data.id, data.userId);
   }
 
+  /**
+   * @deprecated Use POST /refunds/booking/:bookingId/voucher instead.
+   * This endpoint uses the legacy cancellation policy without voucher generation.
+   */
   @MessagePattern('booking.cancelWithRefund')
   async cancelWithRefund(
-    @Payload() data: { id: string; userId: string; dto: CancelBookingWithRefundDto }
+    @Payload()
+    data: {
+      id: string;
+      userId: string;
+      dto: CancelBookingWithRefundDto;
+    }
   ) {
-    return this.bookingService.cancelBookingWithRefund(data.id, data.userId, data.dto);
+    return this.bookingService.cancelBookingWithRefund(
+      data.id,
+      data.userId,
+      data.dto
+    );
   }
 
   @MessagePattern('booking.update')
@@ -166,7 +177,11 @@ export class BookingController {
   async reschedule(
     @Payload() data: { id: string; userId: string; dto: RescheduleBookingDto }
   ) {
-    return this.bookingService.rescheduleBooking(data.id, data.userId, data.dto);
+    return this.bookingService.rescheduleBooking(
+      data.id,
+      data.userId,
+      data.dto
+    );
   }
 
   @MessagePattern('booking.getCancellationPolicy')
@@ -177,9 +192,10 @@ export class BookingController {
 
   @MessagePattern('booking.findUserBookingByShowtime')
   async findUserBookingByShowtime(
-    @Payload() data: { 
-      showtimeId: string; 
-      userId: string; 
+    @Payload()
+    data: {
+      showtimeId: string;
+      userId: string;
       includeStatuses?: BookingStatus[];
     }
   ) {

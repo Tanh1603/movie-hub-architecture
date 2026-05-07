@@ -18,6 +18,6 @@ import { PrismaService } from '../prisma.service';
     }),
   ],
   providers: [RealtimeService, ResolveBookingService, PrismaService],
-  exports: [RealtimeService],
+  exports: [RealtimeService, ResolveBookingService],
 })
 export class RealtimeModule {}

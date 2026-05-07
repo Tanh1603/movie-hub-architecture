@@ -6,5 +6,6 @@ export interface ValidatePromotionItemDto {
 
 export interface ValidatePromotionDto {
   bookingAmount: number;
+  userId?: string; // For refund voucher owner validation
   items?: ValidatePromotionItemDto[];
 }

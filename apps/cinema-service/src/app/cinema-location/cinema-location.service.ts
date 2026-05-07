@@ -34,7 +34,7 @@ export class CinemaLocationService {
   ): Promise<ServiceResult<CinemaListResponse>> {
     const { latitude, longitude, radiusKm = 10, limit = 20 } = dto;
 
-    if (!latitude || !longitude) {
+    if (latitude === undefined || longitude === undefined || latitude === null || longitude === null) {
       throw new BadRequestException('Latitude and longitude are required');
     }
 

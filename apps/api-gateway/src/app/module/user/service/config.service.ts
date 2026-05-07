@@ -14,6 +14,7 @@ export class ConfigService {
         this.client.send(UserMessage.CONFIG.GET_LIST, {})
       );
     } catch (error) {
+      console.error('ConfigService.findAll error:', error);
       throw new RpcException(error);
     }
   }

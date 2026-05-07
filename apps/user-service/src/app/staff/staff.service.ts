@@ -150,6 +150,40 @@ export class StaffService {
     };
   }
 
+  async findByEmail(email: string): Promise<ServiceResult<StaffResponse>> {
+    const staff = await this.prisma.staff.findFirst({
+      where: { email },
+      select: {
+        id: true,
+        cinemaId: true,
+        fullName: true,
+        email: true,
+        phone: true,
+        gender: true,
+        dob: true,
+        position: true,
+        status: true,
+        workType: true,
+        shiftType: true,
+        salary: true,
+        hireDate: true,
+      },
+    });
+
+    if (!staff) {
+      throw new RpcException({
+        summary: 'Staff not found',
+        statusCode: 404,
+        code: 'STAFF_NOT_FOUND',
+        message: 'Staff not found',
+      });
+    }
+
+    return {
+      data: staff as unknown as StaffResponse,
+    };
+  }
+
   async update(
     id: string,
     updateStaffDto: UpdateStaffRequest
@@ -219,7 +253,8 @@ export class StaffService {
             summary: 'Delete staff failed',
             statusCode: 400,
             code: 'STAFF_IN_USE',
-            message: 'Staff cannot be deleted because it is referenced by bookings or other entities',
+            message:
+              'Staff cannot be deleted because it is referenced by bookings or other entities',
           });
         }
       }

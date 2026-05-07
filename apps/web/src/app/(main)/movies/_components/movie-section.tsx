@@ -11,7 +11,7 @@ interface MovieSectionProps {
 export const MovieSection = ({ isShowing }: MovieSectionProps) => {
   const { data, isError, error, isLoading, fetchNextPage, isFetchingNextPage } =
     useGetMovies({
-      status: isShowing ? 'now-showing' : 'upcoming',
+      status: isShowing ? 'now_showing' : 'upcoming',
       limit: 12,
     });
   const movies = data?.pages ?? [];

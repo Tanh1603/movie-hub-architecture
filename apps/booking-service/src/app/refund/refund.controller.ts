@@ -4,6 +4,7 @@ import { RefundService } from './refund.service';
 import {
   CreateRefundDto,
   FindAllRefundsDto,
+  RefundMessage,
 } from '@movie-hub/shared-types';
 
 @Controller()
@@ -43,5 +44,16 @@ export class RefundController {
   @MessagePattern('refund.reject')
   async reject(@Payload() payload: { refundId: string; reason: string }) {
     return this.refundService.rejectRefund(payload.refundId, payload.reason);
+  }
+
+  @MessagePattern(RefundMessage.PROCESS_VOUCHER)
+  async processAsVoucher(
+    @Payload() payload: { bookingId: string; userId: string; reason?: string }
+  ) {
+    return this.refundService.processRefundAsVoucher(
+      payload.bookingId,
+      payload.userId,
+      payload.reason
+    );
   }
 }

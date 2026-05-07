@@ -66,14 +66,14 @@ export const useCreateMovie = (data: CreateMovieRequest) => {
       return await createMovie(data, token);
     },
     onMutate() {
-      toast.loading('Creating movie...');
+      toast.loading('Đang tạo phim...');
     },
     onSuccess: () => {
-      toast.success('Movie created successfully');
+      toast.success('Tạo phim thành công');
       queryClient.invalidateQueries({ queryKey: ['movies'] });
     },
     onError: (error) => {
-      toast.error(error?.message || 'Something went wrong. Please try again.');
+      toast.error(error?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
     },
   });
 };
@@ -89,15 +89,15 @@ export const useUpdateMovie = (movieId: string, data: UpdateMovieRequest) => {
       return await updateMovie(movieId, data, token);
     },
     onMutate() {
-      toast.loading('Updating movie...');
+      toast.loading('Đang cập nhật phim...');
     },
     onSuccess: () => {
-      toast.success('Movie updated successfully');
+      toast.success('Cập nhật phim thành công');
       queryClient.invalidateQueries({ queryKey: ['movies'] });
       queryClient.invalidateQueries({ queryKey: ['movies', movieId] });
     },
     onError: (error) => {
-      toast.error(error?.message || 'Something went wrong. Please try again.');
+      toast.error(error?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
     },
   });
 };
@@ -113,15 +113,15 @@ export const useDeleteMovie = (movieId: string) => {
       return await deleteMovie(movieId, token);
     },
     onMutate() {
-      toast.loading('Deleting movie...');
+      toast.loading('Đang xóa phim...');
     },
     onSuccess: () => {
-      toast.success('Movie deleted successfully');
+      toast.success('Xóa phim thành công');
       queryClient.invalidateQueries({ queryKey: ['movies'] });
       queryClient.invalidateQueries({ queryKey: ['movies', movieId] });
     },
     onError: (error) => {
-      toast.error(error?.message || 'Something went wrong. Please try again.');
+      toast.error(error?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
     },
   });
 };

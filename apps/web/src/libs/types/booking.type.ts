@@ -1,4 +1,4 @@
-import { PaymentStatus } from "./payment.type";
+import { PaymentStatus } from './payment.type';
 
 export enum BookingStatus {
   PENDING = 'PENDING',
@@ -6,6 +6,7 @@ export enum BookingStatus {
   CANCELLED = 'CANCELLED',
   EXPIRED = 'EXPIRED',
   COMPLETED = 'COMPLETED',
+  REFUNDED = 'REFUNDED',
 }
 
 export interface SeatInfoDto {
@@ -35,7 +36,7 @@ export interface BookingSummaryDto {
   seatCount: number;
   totalAmount: number;
   status: BookingStatus;
-  createdAt:Date;
+  createdAt: Date;
 }
 
 export interface BookingDetailDto extends BookingSummaryDto {
@@ -56,6 +57,6 @@ export interface BookingDetailDto extends BookingSummaryDto {
   cancelledAt?: Date;
   cancellationReason?: string;
   updatedAt: Date;
+  // Refund voucher code (available when status is REFUNDED)
+  refundVoucherCode?: string;
 }
-
-

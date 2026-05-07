@@ -32,7 +32,9 @@ export const DateSelect = ({
   const [selected, setSelected] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
-  const [selectedLocation, setSelectedLocation] = useState<string>(availableCities[0] || '');
+  const [selectedLocation, setSelectedLocation] = useState<string>(
+    availableCities[0] || ''
+  );
   const [selectedShowtime, setSelectedShowtime] = useState<string | null>(null);
 
   const handleSelectShowtime = useCallback((showtimeId: string) => {
@@ -82,7 +84,7 @@ export const DateSelect = ({
       : [];
   return (
     <div id="dateSelect" className="pt-30 relative">
-      <div className="flex flex-col items-center justify-between gap-10 relative p-8 bg-rose-500/10  border border-rose-500/20 rounded-lg">
+      <div className="flex flex-col items-center justify-between gap-10 relative p-8 bg-slate-200/5 border border-slate-200/10 rounded-lg">
         <BlurCircle top="-100px" left="-100px" />
         <BlurCircle top="100px" right="0px" />
         {/* Date select */}
@@ -92,7 +94,7 @@ export const DateSelect = ({
           <Button
             disabled={!selectedShowtime}
             onClick={onBookHandler}
-            className="cursor-pointer px-8 py-2 transition-all hover:bg-rose-500/90 max-sm:mx-auto"
+            className="cursor-pointer px-8 py-2 transition-all bg-primary hover:bg-primary/90 max-sm:mx-auto"
           >
             Đặt ngay
           </Button>
@@ -106,24 +108,26 @@ export const DateSelect = ({
               value={selectedLocation}
               onValueChange={setSelectedLocation}
             >
-              <SelectTrigger className=" w-[180px] h-10 bg-transparent  text-rose-500 font-semibold text-lg border border-rose-500/70 rounded-focus:outline-none focus:ring-2 focus:ring-rose-700 focus:ring-offset-2 focus:ring-offset-transparent data-[state=open]:ring-2 data-[state=open]:ring-rose-700transition-all">
+              <SelectTrigger className=" w-[180px] h-10 bg-transparent text-slate-100 font-semibold text-lg border border-slate-200/20 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-transparent data-[state=open]:ring-2 data-[state=open]:ring-primary transition-all">
                 <SelectValue
                   placeholder={
-                    <span className="text-rose-500">Chọn khu vực</span>
+                    <span className="text-slate-100">Chọn khu vực</span>
                   }
                 />
               </SelectTrigger>
-              <SelectContent className="text-rose-400" position="popper">
+              <SelectContent
+                className="text-slate-100 bg-zinc-900 border-slate-200/20"
+                position="popper"
+              >
                 {availableCities?.map((city) => (
                   <SelectItem
                     key={city}
                     value={city}
-                    className="data-[disabled]:text-gray-500 data-[highlighted]:bg-rose-500/20 "
+                    className="data-[disabled]:text-gray-500 data-[highlighted]:bg-primary/20 "
                   >
                     {city}
                   </SelectItem>
                 ))}
-        
               </SelectContent>
             </Select>
           </div>

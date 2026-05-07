@@ -1,4 +1,4 @@
-import { FormatEnum } from '@movie-hub/shared-types/cinema/enum';
+import { FormatEnum, ShowtimeStatusEnum } from '@movie-hub/shared-types/cinema/enum';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
@@ -25,6 +25,11 @@ export const createShowtimeSchema = z.object({
     .max(10, { message: 'language quá dài' }),
 
   subtitles: z.array(z.string()).optional().default([]),
+
+  status: z
+    .enum(Object.values(ShowtimeStatusEnum) as [string, ...string[]])
+    .optional()
+    .default(ShowtimeStatusEnum.SELLING),
 });
 
 export class CreateShowtimeRequest extends createZodDto(createShowtimeSchema) {}

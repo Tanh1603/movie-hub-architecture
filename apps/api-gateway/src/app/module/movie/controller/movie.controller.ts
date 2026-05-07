@@ -15,7 +15,11 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
+  Req,
+  ForbiddenException,
 } from '@nestjs/common';
+import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 import { MovieService } from '../service/movie.service';
 
 @Controller({
@@ -41,20 +45,36 @@ export class MovieController {
   }
 
   @Post()
-  async createMovie(@Body() request: CreateMovieRequest) {
+  @UseGuards(ClerkAuthGuard)
+  async createMovie(@Req() req: any, @Body() request: CreateMovieRequest) {
+    const userCinemaId = req.staffContext?.cinemaId;
+    if (userCinemaId) {
+      throw new ForbiddenException('Managers cannot create movies');
+    }
     return this.movieService.createMovie(request);
   }
 
   @Put(':id')
+  @UseGuards(ClerkAuthGuard)
   async updateMovie(
+    @Req() req: any,
     @Param('id') id: string,
     @Body() request: UpdateMovieRequest
   ) {
+    const userCinemaId = req.staffContext?.cinemaId;
+    if (userCinemaId) {
+      throw new ForbiddenException('Managers cannot update movies');
+    }
     return this.movieService.updateMovie(id, request);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  @UseGuards(ClerkAuthGuard)
+  async remove(@Req() req: any, @Param('id') id: string) {
+    const userCinemaId = req.staffContext?.cinemaId;
+    if (userCinemaId) {
+      throw new ForbiddenException('Managers cannot delete movies');
+    }
     await this.movieService.deleteMovie(id);
     return null;
   }
@@ -67,7 +87,11 @@ export class MovieController {
   }
 
   @Post(':id/reviews')
-  async createReview(@Body() request: CreateReviewRequest) {
+  async createReview(
+    @Param('id') id: string,
+    @Body() request: CreateReviewRequest
+  ) {
+    request.movieId = id;
     return this.movieService.createReviews(request);
   }
 

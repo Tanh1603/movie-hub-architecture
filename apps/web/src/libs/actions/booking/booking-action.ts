@@ -9,7 +9,9 @@ import {
 import api from '../../api-client';
 import { BookingDetailDto, BookingStatus } from '../../types/booking.type';
 
-export const createBooking = async (createBookingDto: CreateBookingDto): Promise<ServiceResult<BookingCalculationDto>> => {
+export const createBooking = async (
+  createBookingDto: CreateBookingDto
+): Promise<ServiceResult<BookingCalculationDto>> => {
   try {
     const response = await api.post('/bookings', createBookingDto);
     return response.data;
@@ -28,17 +30,17 @@ export const updateBooking = async (
   } catch (error) {
     throw error;
   }
-}
+};
 
 export const getUserBookings = async (
-  status: BookingStatus,
+  status: BookingStatus | undefined,
   pagination: PaginationQuery
-) : Promise<ServiceResult<BookingSummaryDto[]>> => {
+): Promise<ServiceResult<BookingSummaryDto[]>> => {
   try {
     const response = await api.get('/bookings', {
       params: {
         status,
-        ...pagination
+        ...pagination,
       },
     });
     return response.data;
@@ -47,7 +49,9 @@ export const getUserBookings = async (
   }
 };
 
-export const getBookingDetails = async (bookingId: string): Promise<ServiceResult<BookingDetailDto>> => {
+export const getBookingDetails = async (
+  bookingId: string
+): Promise<ServiceResult<BookingDetailDto>> => {
   try {
     const response = await api.get(`/bookings/${bookingId}`);
     return response.data;
@@ -67,7 +71,10 @@ export const cancelBooking = async (bookingId: string, reason?: string) => {
   }
 };
 
-export const checkUserBookingAtShowtime = async (showtimeId: string, includeStatuses?: string) : Promise<ServiceResult<BookingCalculationDto | null>> => {
+export const checkUserBookingAtShowtime = async (
+  showtimeId: string,
+  includeStatuses?: string
+): Promise<ServiceResult<BookingCalculationDto | null>> => {
   try {
     const response = await api.get(`/bookings/showtime/${showtimeId}/check`, {
       params: {
@@ -78,4 +85,4 @@ export const checkUserBookingAtShowtime = async (showtimeId: string, includeStat
   } catch (error) {
     throw error;
   }
-}
+};

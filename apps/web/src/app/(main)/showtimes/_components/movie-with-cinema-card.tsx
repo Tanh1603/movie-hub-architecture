@@ -142,6 +142,7 @@ export const MovieWithCinemaCard = ({ movie }: MovieWithCinemaCardProps) => {
                             const label = start.toLocaleTimeString('vi-VN', {
                               hour: '2-digit',
                               minute: '2-digit',
+                              timeZone: 'UTC',
                             });
 
                             const disabled = !s.id || start < now;

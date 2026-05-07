@@ -23,6 +23,11 @@ export class StaffController {
     return this.staffService.findAll(query);
   }
 
+  @MessagePattern(UserMessage.STAFF.FIND_BY_EMAIL)
+  async findByEmail(@Payload() email: string) {
+    return this.staffService.findByEmail(email);
+  }
+
   @MessagePattern(UserMessage.STAFF.GET_DETAIL)
   async findOne(@Payload() id: string) {
     return this.staffService.findOne(id);

@@ -19,6 +19,7 @@ module.exports = {
       outputHashing: 'none',
       generatePackageJson: true,
       sourceMaps: true,
+      excludeLibsInPackageJson: true,
     }),
   ],
   ignoreWarnings: [/Failed to parse source map.*prisma/],

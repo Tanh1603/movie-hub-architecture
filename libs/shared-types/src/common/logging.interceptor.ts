@@ -56,9 +56,14 @@ export class LoggingInterceptor implements NestInterceptor {
         error: (error) => {
           const responseTime = Date.now() - now;
 
+          const errorContent =
+            error instanceof Error
+              ? { ...error, message: error.message, stack: error.stack }
+              : error;
+
           this.logger.error(
             `[${logPrefix}] Error (${responseTime}ms): ${JSON.stringify(
-              error.message
+              errorContent
             )}`
           );
         },

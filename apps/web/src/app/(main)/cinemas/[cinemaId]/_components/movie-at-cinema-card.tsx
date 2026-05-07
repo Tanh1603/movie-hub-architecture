@@ -38,6 +38,7 @@ export const MovieAtCinemaCard = ({
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
+        timeZone: 'UTC',
       });
 
       if (!acc[dateLabel]) acc[dateLabel] = [];
@@ -47,7 +48,7 @@ export const MovieAtCinemaCard = ({
   }, [movie]);
 
   return (
-    <Card className="w-full rounded-2xl bg-rose-500/10 border border-rose-500/20 text-gray-200 shadow-lg">
+    <Card className="w-full rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-gray-200 shadow-lg">
       <CardContent className="grid grid-cols-1 gap-6 p-4 md:grid-cols-[190px,1fr]">
         {/* Poster */}
         <button
@@ -68,7 +69,7 @@ export const MovieAtCinemaCard = ({
           {/* Movie info */}
           <div>
             <h2
-              className="mb-2 cursor-pointer text-2xl font-bold uppercase tracking-wide text-rose-300 hover:text-rose-400"
+              className="mb-2 cursor-pointer text-2xl font-bold uppercase tracking-wide text-cyan-300 hover:text-cyan-200"
               onClick={goToMovieDetail}
             >
               {movie.title}
@@ -77,19 +78,19 @@ export const MovieAtCinemaCard = ({
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-300">
               {/* Genre */}
               <span className="flex items-center gap-1">
-                <Theater className="w-4 h-4 text-rose-400" />
+                <Theater className="w-4 h-4 text-cyan-400" />
                 {movie.genre.map((g) => g.name).join(', ')}
               </span>
 
               {/* Runtime */}
               <span className="flex items-center gap-1">
-                <Timer className="w-4 h-4 text-rose-400" />
+                <Timer className="w-4 h-4 text-cyan-400" />
                 {movie.runtime} phút
               </span>
 
               {/* Country */}
               <span className="flex items-center gap-1">
-                <Globe2 className="w-4 h-4 text-rose-400" />
+                <Globe2 className="w-4 h-4 text-cyan-400" />
                 {movie.productionCountry}
               </span>
             </div>
@@ -117,9 +118,9 @@ export const MovieAtCinemaCard = ({
               return (
                 <div
                   key={dateLabel}
-                  className="rounded-xl bg-rose-500/10 border border-rose-500/30 p-4"
+                  className="rounded-xl bg-cyan-500/10 border border-cyan-500/30 p-4"
                 >
-                  <p className="mb-2 text-sm font-semibold text-rose-300">
+                  <p className="mb-2 text-sm font-semibold text-cyan-300">
                     {dateLabel}
                   </p>
 
@@ -131,7 +132,7 @@ export const MovieAtCinemaCard = ({
                     Object.entries(byFormat).map(([format, showtimes]) => (
                       <div key={format} className="mb-3 last:mb-0">
                         <div className="mb-2 flex items-center justify-between text-xs">
-                          <span className="font-semibold uppercase tracking-wide text-rose-400">
+                          <span className="font-semibold uppercase tracking-wide text-cyan-400">
                             {format}
                           </span>
                         </div>
@@ -144,6 +145,7 @@ export const MovieAtCinemaCard = ({
                               {
                                 hour: '2-digit',
                                 minute: '2-digit',
+                                timeZone: 'UTC',
                               }
                             );
 
@@ -158,10 +160,10 @@ export const MovieAtCinemaCard = ({
                                   !disabled && goToShowtimeDetail(s.id)
                                 }
                                 className={[
-                                  'rounded-lg border px-4 py-2 text-sm font-semibold',
+                                  'rounded-lg border px-4 py-2 text-sm font-semibold transition-all duration-200',
                                   disabled
-                                    ? 'cursor-not-allowed border-rose-800 text-rose-800'
-                                    : 'border-rose-400 bg-transparent text-rose-300 hover:bg-rose-500 hover:text-white',
+                                    ? 'cursor-not-allowed border-slate-600 text-slate-600'
+                                    : 'border-cyan-400 bg-transparent text-cyan-300 hover:bg-gradient-to-r hover:from-cyan-500 hover:to-teal-500 hover:text-white hover:border-transparent hover:shadow-lg hover:shadow-cyan-500/30',
                                 ].join(' ')}
                               >
                                 {timeLabel}
@@ -181,7 +183,7 @@ export const MovieAtCinemaCard = ({
           <button
             type="button"
             onClick={goToMovieDetail}
-            className="mt-1 w-fit text-sm font-bold text-rose-300 underline hover:text-rose-400"
+            className="mt-1 w-fit text-sm font-bold text-cyan-300 underline hover:text-cyan-200"
           >
             Xem thêm lịch chiếu
           </button>

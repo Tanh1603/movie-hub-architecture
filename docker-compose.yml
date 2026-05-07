@@ -1,6 +1,3 @@
-
-
-
 # ===========================================
 # MOVIEHUB MICROSERVICES DOCKER COMPOSE
 # Local Development and Collaboration setup
@@ -24,9 +21,9 @@ services:
   # ===========================================
   redis:
     image: redis:7
-    command: ['redis-server', '--notify-keyspace-events', 'Ex']
+    command: ["redis-server", "--notify-keyspace-events", "Ex"]
     ports:
-      - '6379:6379'
+      - "6379:6379"
     container_name: moviehub-redis
     restart: unless-stopped
     networks:
@@ -40,10 +37,10 @@ services:
       - ./apps/user-service/.env.db
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}  # ⚠️ FILL THIS IN .env
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres} # ⚠️ FILL THIS IN .env
       POSTGRES_DB: ${POSTGRES_DB:-movie_hub_user}
     ports:
-      - "5435:5432"  # External:Internal (Internal is always 5432)
+      - "5435:5432" # External:Internal (Internal is always 5432)
     volumes:
       - postgres_user_data:/var/lib/postgresql/data
     networks:
@@ -62,10 +59,10 @@ services:
       - ./apps/movie-service/.env.db
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}  # ⚠️ FILL THIS IN .env
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres} # ⚠️ FILL THIS IN .env
       POSTGRES_DB: ${POSTGRES_DB:-movie_hub_movie}
     ports:
-      - "5436:5432"  # External:Internal (Internal is always 5432)
+      - "5436:5432" # External:Internal (Internal is always 5432)
     volumes:
       - postgres_movie_data:/var/lib/postgresql/data
     networks:
@@ -76,7 +73,6 @@ services:
       timeout: 5s
       retries: 5
 
-
   postgres-cinema:
     image: postgres:15-alpine
     container_name: moviehub-postgres-cinema
@@ -85,10 +81,10 @@ services:
       - ./apps/cinema-service/.env.db
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}  # ⚠️ FILL THIS IN .env
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres} # ⚠️ FILL THIS IN .env
       POSTGRES_DB: ${POSTGRES_DB:-movie_hub_cinema}
     ports:
-      - "5437:5432"  # External:Internal (Internal is always 5432)
+      - "5437:5432" # External:Internal (Internal is always 5432)
     volumes:
       - postgres_cinema_data:/var/lib/postgresql/data
     networks:
@@ -151,7 +147,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-    command: sh -c "npx --yes prisma@6.16.2 migrate deploy  && node main.js"
+    command: sh -c "npx --yes prisma@6.16.2 db push --accept-data-loss --skip-generate && node main.js"
 
   movie-service:
     build:
@@ -178,7 +174,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-    command: sh -c "npx --yes prisma@6.16.2 migrate deploy && node main.js"
+    command: sh -c "npx --yes prisma@6.16.2 db push --accept-data-loss --skip-generate && node main.js"
   cinema-service:
     build:
       context: .
@@ -204,7 +200,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-    command: sh -c "npx --yes prisma@6.16.2 migrate deploy  && node main.js"
+    command: sh -c "npx --yes prisma@6.16.2 db push --accept-data-loss --skip-generate && node main.js"
 
 
   booking-service:
@@ -232,7 +228,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-    command: sh -c "npx --yes prisma@6.16.2 migrate deploy  && node main.js"
+    command: sh -c "npx --yes prisma@6.16.2 db push --accept-data-loss --skip-generate && node main.js"
 
   api-gateway:
     build:
@@ -256,7 +252,15 @@ services:
       # Mount for hot-reload in development (optional)
       - ./apps/api-gateway/src:/app/apps/api-gateway/src:ro
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000/api/health",
+        ]
       interval: 30s
       timeout: 5s
       retries: 3

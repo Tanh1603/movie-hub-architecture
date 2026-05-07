@@ -16,19 +16,19 @@ export function CinemaLocationCard({
     <Card
       className="
         w-full cursor-pointer
-        rounded-2xl border border-rose-500/20
+        rounded-2xl border border-primary/20
         bg-black/70
-        shadow-md shadow-rose-500/10
+        shadow-md shadow-primary/10
         transition-all
         hover:-translate-y-1
-        hover:border-rose-400/60
-        hover:shadow-lg hover:shadow-rose-500/30
+        hover:border-primary/60
+        hover:shadow-lg hover:shadow-primary/30
         p-4
       "
       onClick={() => onSelect(cinema.id)}
     >
       <CardContent className="p-0 flex flex-col gap-3">
-        <div className="relative w-full h-40 rounded-xl overflow-hidden border border-rose-500/20 bg-rose-950/40">
+        <div className="relative w-full h-40 rounded-xl overflow-hidden border border-primary/20 bg-primary/10">
           <Image
             src={cinema.images?.[0] || '/images/placeholder-bg.png'}
             alt={cinema.name}
@@ -42,8 +42,8 @@ export function CinemaLocationCard({
             {cinema.name}
           </h3>
 
-          <div className="flex items-center text-xs text-rose-200/80">
-            <MapPin className="w-4 h-4 mr-1 text-rose-400" />
+          <div className="flex items-center text-xs text-primary/80">
+            <MapPin className="w-4 h-4 mr-1 text-primary" />
             {cinema.location?.distanceText || 'Khoảng cách chưa xác định'}
           </div>
 
@@ -61,7 +61,7 @@ export function CinemaLocationCard({
         <Button
           className="
             w-full mt-2 rounded-xl
-            bg-rose-500 hover:bg-rose-600
+            bg-primary hover:bg-primary/90
             text-white
             border-none
           "
@@ -79,21 +79,21 @@ CinemaLocationCard.Skeleton = function CinemaLocationCardSkeleton() {
       className="
         w-full rounded-2xl p-4
         bg-black/70
-        border border-rose-500/20
-        shadow-md shadow-rose-500/10
+        border border-primary/20
+        shadow-md shadow-primary/10
         animate-pulse
       "
     >
       <CardContent className="p-0 flex flex-col gap-3">
-        <div className="w-full h-40 rounded-xl bg-rose-500/10" />
+        <div className="w-full h-40 rounded-xl bg-primary/10" />
 
         <div className="flex flex-col gap-2">
-          <div className="h-5 w-3/4 bg-rose-500/15 rounded" />
-          <div className="h-4 w-1/2 bg-rose-500/10 rounded" />
-          <div className="h-4 w-1/3 bg-rose-500/10 rounded" />
+          <div className="h-5 w-3/4 bg-primary/15 rounded" />
+          <div className="h-4 w-1/2 bg-primary/10 rounded" />
+          <div className="h-4 w-1/3 bg-primary/10 rounded" />
         </div>
 
-        <div className="h-10 w-full bg-rose-500/15 rounded-xl mt-2" />
+        <div className="h-10 w-full bg-primary/15 rounded-xl mt-2" />
       </CardContent>
     </Card>
   );

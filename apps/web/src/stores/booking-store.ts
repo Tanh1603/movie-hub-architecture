@@ -65,6 +65,9 @@ type BookingState = {
   // Build DTO for server
   buildBookingPayload: () => UpdateBookingDto;
 
+  // Check if voucher exceeds bill (for warning display)
+  getVoucherExcessAmount: () => number;
+
   // Build preview UI
   buildPreviewData: () => {
     seats: SeatItem[];
@@ -335,10 +338,12 @@ export const useBookingStore = create<BookingState>((set, get) => ({
         price: state.concessionMap[id]?.price ?? 0,
         quantity: qty,
       }));
-    const totalFinal =
+    const rawTotal =
       state.totalTicketPrice +
       state.totalConcessionPrice -
       state.discountAmount;
+    // Cap at 0 to prevent negative totals
+    const totalFinal = Math.max(0, rawTotal);
     return {
       seats,
       concessions,
@@ -347,11 +352,20 @@ export const useBookingStore = create<BookingState>((set, get) => ({
       total: totalFinal,
     };
   },
+  getVoucherExcessAmount: () => {
+    const state = get();
+    const subtotal = state.totalTicketPrice + state.totalConcessionPrice;
+    const excess = state.discountAmount - subtotal;
+    return excess > 0 ? excess : 0;
+  },
   getTotalFinal: () => {
     const state = get();
-    return (
-      state.totalTicketPrice + state.totalConcessionPrice - state.discountAmount
-    );
+    const rawTotal =
+      state.totalTicketPrice +
+      state.totalConcessionPrice -
+      state.discountAmount;
+    // Cap at 0 to prevent negative totals
+    return Math.max(0, rawTotal);
   },
 
   updateHoldTimeSeconds: (seconds: number) => {

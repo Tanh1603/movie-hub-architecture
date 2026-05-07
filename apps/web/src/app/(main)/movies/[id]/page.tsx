@@ -1,15 +1,20 @@
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+export const dynamic = 'force-dynamic';
 import { getMovieDetail } from '@/libs/actions/movies/movie-action';
 import { DateSelect } from './_components/date-select';
 import { MovieCast } from './_components/movie-cast';
 import { MovieHeader } from './_components/movie-header';
 import { getQueryClient } from '@/libs/get-query-client';
-import { getAvailableCities, getCinemaDetail } from '@/libs/actions/cinemas/cinema-action';
+import {
+  getAvailableCities,
+  getCinemaDetail,
+} from '@/libs/actions/cinemas/cinema-action';
 import { TrailerModal } from '@/components/modal/trailer-modal';
+import { MovieReviews } from './_components/movie-reviews';
 
 export default async function MovieDetailsPage({
   params,
-  searchParams
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
   searchParams?: Promise<{ cinemaId?: string }>;
@@ -35,18 +40,28 @@ export default async function MovieDetailsPage({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <div className="min-h-screen flex flex-col gap-10 pb-20">
+      <div className="flex flex-col gap-12 pb-32 relative">
         <MovieHeader movieId={id} />
 
-        <section className="relative flex flex-col gap-4">
-          <p className="text-white text-lg font-bold mt-20">Diễn viên</p>
-          <MovieCast movieId={id} />
-        </section>
+        <div className="max-w-[1920px] mx-auto w-full space-y-20">
+          <section className="relative flex flex-col gap-6 px-4">
+            <h2 className="text-white text-3xl font-bold tracking-tight">
+              Diễn viên
+            </h2>
+            <MovieCast movieId={id} />
+          </section>
 
-        <DateSelect movieId={id} cinemaId={cinemaId}  availableCities={availableCities.data}/>
-        <TrailerModal/>
+          <DateSelect
+            movieId={id}
+            cinemaId={cinemaId}
+            availableCities={availableCities.data}
+          />
+
+          <MovieReviews movieId={id} />
+        </div>
+
+        <TrailerModal />
       </div>
     </HydrationBoundary>
   );
 }
-

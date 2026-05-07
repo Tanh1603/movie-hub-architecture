@@ -10,6 +10,8 @@ import { MovieReleaseController } from './controller/movie-release.controller';
 import { ReviewController } from './controller/review.controller';
 import { ReviewService } from './service/review.service';
 
+import { AuthModule } from '../../common/auth/auth.module';
+
 @Module({
   imports: [
     ClientsModule.registerAsync([
@@ -25,8 +27,14 @@ import { ReviewService } from './service/review.service';
         }),
       },
     ]),
+    AuthModule,
   ],
-  controllers: [MovieController, GenreController, MovieReleaseController, ReviewController],
+  controllers: [
+    MovieController,
+    GenreController,
+    MovieReleaseController,
+    ReviewController,
+  ],
   providers: [MovieService, GenreService, ReviewService],
   exports: [],
 })

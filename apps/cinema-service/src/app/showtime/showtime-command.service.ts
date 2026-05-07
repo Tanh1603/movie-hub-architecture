@@ -1,5 +1,5 @@
 // cinema.service.ts
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, Logger } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { PrismaService } from '../prisma.service';
 import {
@@ -15,12 +15,21 @@ import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { ServiceResult } from '@movie-hub/shared-types/common';
 import { ShowtimeMapper } from './showtime.mapper';
 import { RealtimeService } from '../realtime/realtime.service';
+import {
+  ReleaseSeatEvent,
+  ResolveBookingService,
+} from '../realtime/resolve-booking.service';
+import { RedisPubSubService } from '@movie-hub/shared-redis';
 
 @Injectable()
 export class ShowtimeCommandService {
+  private readonly logger = new Logger(ShowtimeCommandService.name);
+
   constructor(
     private prisma: PrismaService,
     private readonly realtimeService: RealtimeService,
+    private readonly resolveBookingService: ResolveBookingService,
+    @Inject('REDIS_CINEMA') private readonly redis: RedisPubSubService,
     @Inject('MOVIE_SERVICE') private readonly movieClient: ClientProxy
   ) {}
 
@@ -40,6 +49,7 @@ export class ShowtimeCommandService {
         format,
         language,
         subtitles,
+        status,
       } = dto;
 
       await this.checkCinemaAndHallStatus(cinemaId, hallId);
@@ -58,21 +68,31 @@ export class ShowtimeCommandService {
         });
       }
 
-      // startTime: "2025-12-15 18:30:00"
-      const start = new Date(startTime.replace(' ', 'T') + 'Z');
+      // startTime: "2025-12-15 18:30:00" or "2025-12-15T18:30:00.000Z"
+      const start = new Date(
+        startTime.includes('T') ? startTime : startTime.replace(' ', 'T') + 'Z'
+      );
+      const runtime = movie?.runtime || 120;
       const end = new Date(
-        start.getTime() + movie.runtime * 60000 + 15 * 60000
+        start.getTime() + runtime * 60000 + 15 * 60000
       );
 
       // ===========================
       // CHECK RELEASE PERIOD
       // ===========================
-      if (start < release.startDate || end > release.endDate) {
+      const releaseStart = new Date(release.startDate);
+      releaseStart.setUTCHours(0, 0, 0, 0);
+
+      const releaseEnd = new Date(release.endDate);
+      releaseEnd.setUTCHours(23, 59, 59, 999);
+
+      if (start < releaseStart || start > releaseEnd) {
         throw new RpcException({
           summary: 'Movie release period violation',
           statusCode: 409,
           code: 'MOVIE_RELEASE_PERIOD_VIOLATION',
-          message: 'Showtime must be within the movie release period',
+          message:
+            'Showtime start time must be within the movie release period',
         });
       }
 
@@ -95,6 +115,7 @@ export class ShowtimeCommandService {
           total_seats: totalSeats,
           available_seats: totalSeats,
           day_type: dayType,
+          status: status ? (status as ShowtimeStatus) : ShowtimeStatus.SELLING,
         },
       });
       return {
@@ -102,6 +123,9 @@ export class ShowtimeCommandService {
         message: 'Showtime created successfully',
       };
     } catch (exception) {
+      if (exception instanceof RpcException) {
+        throw exception;
+      }
       throw new RpcException(exception);
     }
   }
@@ -126,6 +150,7 @@ export class ShowtimeCommandService {
         format,
         language,
         subtitles,
+        status,
       } = input;
 
       await this.checkCinemaAndHallStatus(cinemaId, hallId);
@@ -145,12 +170,50 @@ export class ShowtimeCommandService {
       }
 
       // ===========================
+      // VALIDATE INPUT
+      // ===========================
+      if (!timeSlots || timeSlots.length === 0) {
+        throw new RpcException({
+          code: 'TIMESLOTS_REQUIRED',
+          message: 'Time slots must not be empty',
+        });
+      }
+
+      if (
+        repeatType === 'CUSTOM_WEEKDAYS' &&
+        (!weekdays || weekdays.length === 0)
+      ) {
+        throw new RpcException({
+          code: 'WEEKDAYS_REQUIRED',
+          message: 'Weekdays is required for CUSTOM_WEEKDAYS',
+        });
+      }
+
+      const runtime = movie.runtime;
+      const bufferMin = 15;
+
+      if (!runtime || runtime <= 0) {
+        throw new RpcException({
+          code: 'INVALID_RUNTIME',
+          message: 'Movie runtime is invalid',
+        });
+      }
+
+      this.validateTimeSlotsConflict(timeSlots, runtime, bufferMin);
+
+      // ===========================
       // PARSE DATE RANGE AS UTC
       // ===========================
-      const rangeStart = new Date(`${startDate}T00:00:00Z`);
-      const rangeEnd = new Date(`${endDate}T23:59:59Z`);
+      const rangeStart = new Date(`${startDate}T00:00:00.000Z`);
+      const rangeEnd = new Date(`${endDate}T23:59:59.999Z`);
 
-      if (rangeStart < release.startDate || rangeEnd > release.endDate) {
+      const releaseStart = new Date(release.startDate);
+      releaseStart.setUTCHours(0, 0, 0, 0);
+
+      const releaseEnd = new Date(release.endDate);
+      releaseEnd.setUTCHours(23, 59, 59, 999);
+
+      if (rangeStart < releaseStart || rangeEnd > releaseEnd) {
         throw new RpcException({
           summary: 'Movie release period violation',
           statusCode: 409,
@@ -158,9 +221,6 @@ export class ShowtimeCommandService {
           message: 'Showtimes must be within the movie release period',
         });
       }
-
-      const runtime = movie.runtime;
-      const bufferMin = 15;
 
       // ===========================
       // BUILD VALID DAYS (UTC)
@@ -237,6 +297,9 @@ export class ShowtimeCommandService {
             total_seats: totalSeats,
             available_seats: totalSeats,
             day_type: dayType,
+            status: status
+              ? (status as ShowtimeStatus)
+              : ShowtimeStatus.SELLING,
           },
         });
 
@@ -256,6 +319,9 @@ export class ShowtimeCommandService {
         message: 'Batch create showtimes completed',
       };
     } catch (e) {
+      if (e instanceof RpcException) {
+        throw e;
+      }
       throw new RpcException(e);
     }
   }
@@ -303,8 +369,8 @@ export class ShowtimeCommandService {
         where: {
           hall_id: hallId,
           id: { not: id },
-          start_time: { lte: end },
-          end_time: { gte: start },
+          start_time: { lt: end },
+          end_time: { gt: start },
         },
       });
       if (conflict)
@@ -328,6 +394,7 @@ export class ShowtimeCommandService {
         format: dto.format ? (dto.format as Format) : showtime.format,
         language: dto.language ?? showtime.language,
         subtitles: dto.subtitles ?? showtime.subtitles,
+        status: dto.status ? (dto.status as ShowtimeStatus) : showtime.status,
         updated_at: new Date(),
       },
     });
@@ -395,6 +462,54 @@ export class ShowtimeCommandService {
   }
 
   // ===========================
+  // RELEASE SEATS (FOR REFUNDS)
+  // ===========================
+  /**
+   * Handle seat release event from booking service when a refund is processed.
+   * This releases confirmed seat reservations and broadcasts the update via Redis pub/sub.
+   */
+  async releaseSeats(event: ReleaseSeatEvent): Promise<{ success: boolean }> {
+    const { showtimeId, seatIds } = event;
+
+    this.logger.log(
+      `Processing seat release for showtime ${showtimeId}, seats: ${seatIds.join(
+        ', '
+      )}`
+    );
+
+    try {
+      // Delete seat reservations via ResolveBookingService
+      const released = await this.resolveBookingService.deleteSeatReservations(
+        event
+      );
+
+      if (released) {
+        // Broadcast seat release event via Redis to notify real-time clients
+        await this.redis.publish(
+          'cinema.seat_released',
+          JSON.stringify({
+            showtimeId,
+            seatIds,
+            reason: 'REFUND',
+          })
+        );
+
+        this.logger.log(
+          `Successfully released ${seatIds.length} seats for showtime ${showtimeId}`
+        );
+      }
+
+      return { success: released };
+    } catch (error) {
+      this.logger.error(
+        `Failed to release seats for showtime ${showtimeId}: ${error.message}`,
+        error.stack
+      );
+      return { success: false };
+    }
+  }
+
+  // ===========================
   // HELPERS
   // ===========================
   private async getTotalSeats(hallId: string) {
@@ -402,6 +517,7 @@ export class ShowtimeCommandService {
   }
 
   private async checkHallConflict(hallId: string, start: Date, end: Date) {
+    console.log('Checking conflict for hall', hallId, start, end);
     const overlap = await this.prisma.showtimes.findFirst({
       where: {
         hall_id: hallId,
@@ -411,10 +527,10 @@ export class ShowtimeCommandService {
     });
     if (overlap)
       throw new RpcException({
-        summary: `Conflict with showtime ${overlap.id}`,
+        summary: `Conflict with showtime existing in hall`,
         statusCode: 409,
         code: 'SHOWTIME_CONFLICT',
-        message: `Conflict with showtime ${overlap.id}`,
+        message: 'Showtime conflicts with an existing showtime in this hall',
       });
   }
 
@@ -516,6 +632,58 @@ export class ShowtimeCommandService {
         code: 'HALL_INACTIVE',
         message: 'Hall is not active',
       });
+    }
+  }
+
+  private validateTimeSlotsConflict(
+    timeSlots: string[],
+    runtime: number,
+    bufferMin: number
+  ): void {
+    if (!timeSlots || timeSlots.length <= 1) {
+      return;
+    }
+
+    const minGapMinutes = runtime + bufferMin;
+
+    // Convert HH:mm -> minutes since 00:00
+    const slotsInMinutes = timeSlots
+      .map((slot) => {
+        const [h, m] = slot.split(':').map(Number);
+
+        if (
+          Number.isNaN(h) ||
+          Number.isNaN(m) ||
+          h < 0 ||
+          h > 23 ||
+          m < 0 ||
+          m > 59
+        ) {
+          throw new RpcException({
+            code: 'INVALID_TIMESLOT_FORMAT',
+            message: `Invalid time slot format: ${slot}`,
+          });
+        }
+
+        return h * 60 + m;
+      })
+      .sort((a, b) => a - b);
+
+    for (let i = 1; i < slotsInMinutes.length; i++) {
+      const prevStart = slotsInMinutes[i - 1];
+      const currentStart = slotsInMinutes[i];
+      const actualGap = currentStart - prevStart;
+
+      if (actualGap < minGapMinutes) {
+        throw new RpcException({
+          code: 'TIMESLOT_CONFLICT',
+          message: `Time slots must be at least ${minGapMinutes} minutes apart (runtime ${runtime} + buffer ${bufferMin})`,
+          metadata: {
+            requiredGapMinutes: minGapMinutes,
+            actualGapMinutes: actualGap,
+          },
+        });
+      }
     }
   }
 }

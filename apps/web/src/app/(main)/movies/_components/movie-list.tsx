@@ -1,10 +1,8 @@
 'use client';
+import { useCallback } from 'react';
 import { useGetMovies } from '@/hooks/movie-hooks';
 import MovieCard from '../../_components/MovieCard';
-import { useInView } from 'react-intersection-observer';
-import { useCallback, useEffect } from 'react';
 import { ErrorFallback } from '@/components/error-fallback';
-import { useRouter } from 'next/navigation';
 import { Button } from '@movie-hub/shacdn-ui/button';
 
 interface MovieListProps {
@@ -12,13 +10,12 @@ interface MovieListProps {
   href?: string;
 }
 export const MovieListSummary = ({ isShowing, href }: MovieListProps) => {
- 
-  const { data, isError, error, isLoading, hasNextPage, fetchNextPage } = useGetMovies({
-    status: isShowing ? 'now-showing' : 'upcoming',
-    limit: 12,
-  });
+  const { data, isError, error, isLoading, hasNextPage, fetchNextPage } =
+    useGetMovies({
+      status: isShowing ? 'now_showing' : 'upcoming',
+      limit: 12,
+    });
   const movies = data?.pages ?? [];
-
 
   const handleExpend = useCallback(() => {
     if (hasNextPage) {
@@ -26,7 +23,6 @@ export const MovieListSummary = ({ isShowing, href }: MovieListProps) => {
       fetchNextPage();
     }
   }, [fetchNextPage, hasNextPage]);
-
 
   return (
     <div className="relative md:px-16 lg:px-40 overflow-hidden">
@@ -47,7 +43,7 @@ export const MovieListSummary = ({ isShowing, href }: MovieListProps) => {
           )}
           <div className="col-span-full flex justify-center w-full">
             {hasNextPage && (
-              <Button onClick={handleExpend} variant="outline" size="lg" >
+              <Button onClick={handleExpend} variant="outline" size="lg">
                 Xem thêm
               </Button>
             )}

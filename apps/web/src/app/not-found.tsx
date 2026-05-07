@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+export const metadata = { title: "404 - Not Found" };
+
 export default function NotFound() {
   return (
     <div className="bg-gradient-to-r from-slate-200 to-gray-200 dark:from-gray-800 dark:to-gray-900 text-black dark:text-white">
@@ -12,7 +14,7 @@ export default function NotFound() {
           </p>
           <Link
             href="/"
-            className="px-6 py-3 bg-white font-bold font-semibold rounded-full hover:bg-purple-100 transition duration-300 ease-in-out dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
+            className="px-6 py-3 bg-white font-semibold rounded-full hover:bg-purple-100 transition duration-300 ease-in-out dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
           >
             Go Home
           </Link>

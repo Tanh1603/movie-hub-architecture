@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+export const dynamic = 'force-dynamic';
+
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Plus, Calendar as CalendarIcon, Pencil, Trash2, Film, Clock, Zap } from 'lucide-react';
@@ -14,6 +16,14 @@ import {
 } from '@movie-hub/shacdn-ui/card';
 import { Input } from '@movie-hub/shacdn-ui/input';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@movie-hub/shacdn-ui/dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -22,13 +32,12 @@ import {
 } from '@movie-hub/shacdn-ui/select';
 import { Badge } from '@movie-hub/shacdn-ui/badge';
 import { useToast } from '../_libs/use-toast';
-// import api from '@/lib/api';
-import type { Movie } from '../_libs/types';
+import { useMovieReleases, useDeleteMovieRelease, useMovies, useCinemas, useHallsGroupedByCinema } from '@/libs/api';
+import type { MovieRelease } from '@/libs/api';
+import type { Hall } from '@/libs/api/types';
 import { format } from 'date-fns';
-import { mockMovies, mockReleases, mockCinemas, mockHalls } from '../_libs/mockData';
 import MovieReleaseDialog from '../_components/forms/MovieReleaseDialog';
-import ShowtimeDialog from '../_components/ShowtimeDialog';
-import type { Cinema, Hall } from '../_libs/types';
+import ShowtimeDialog from '../_components/forms/ShowtimeDialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,23 +50,11 @@ import {
 } from '@movie-hub/shacdn-ui/dropdown-menu';
 import { MoreVertical } from 'lucide-react';
 
-interface MovieRelease {
-  id: string;
-  movieId: string;
-  startDate: string;
-  endDate: string;
-  status?: 'ACTIVE' | 'UPCOMING' | 'ENDED';
-  note: string;
-}
-
 export default function MovieReleasesPage() {
   const router = useRouter();
-  const [releases, setReleases] = useState<MovieRelease[]>([]);
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [cinemas, setCinemas] = useState<Cinema[]>([]);
-  const [halls, setHalls] = useState<Hall[]>([]);
-  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedReleaseForDelete, setSelectedReleaseForDelete] = useState<MovieRelease | null>(null);
   const [showtimeDialogOpen, setShowtimeDialogOpen] = useState(false);
   const [editingRelease, setEditingRelease] = useState<MovieRelease | null>(null);
   const [selectedReleaseForShowtime, setSelectedReleaseForShowtime] = useState<MovieRelease | null>(null);
@@ -65,66 +62,57 @@ export default function MovieReleasesPage() {
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // API hooks
+  const { data: releasesData = [], isLoading: loading, refetch: refetchReleases } = useMovieReleases();
+  const releases = releasesData || [];
+  const { data: moviesData = [] } = useMovies();
+  const movies = moviesData || [];
+  const { data: cinemasData = [] } = useCinemas();
+  const cinemas = cinemasData || [];
+  const deleteRelease = useDeleteMovieRelease();
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      // const [releasesRes, moviesRes] = await Promise.all([
-      //   api.get('/movie-releases'),
-      //   api.get('/movies'),
-      // ]);
-      // setReleases(releasesRes.data);
-      // setMovies(moviesRes.data);
-
-      // Mock data with delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setReleases(mockReleases);
-      setMovies(mockMovies);
-      setCinemas(mockCinemas);
-      setHalls(mockHalls);
-    } catch {
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch movie releases',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Halls: derive a flat halls list from grouped halls by cinema
+  const { data: hallsByCinema = {} } = useHallsGroupedByCinema();
+  const halls: Hall[] = Object.values(hallsByCinema).flatMap((g: unknown) => (g as { halls?: Hall[] }).halls || []);
 
   const handleEdit = (release: MovieRelease) => {
     setEditingRelease(release);
     setDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this release?')) {
-      return;
-    }
+  const handleDelete = (release: MovieRelease) => {
+    setDeleteDialogOpen(true);
+    setSelectedReleaseForDelete(release);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedReleaseForDelete) return;
 
     try {
-      // await api.delete(`/movie-releases/${id}`);
-      toast({ title: 'Success', description: 'Release deleted successfully' });
-      fetchData();
+      await deleteRelease.mutateAsync(selectedReleaseForDelete.id);
+      setDeleteDialogOpen(false);
+      setSelectedReleaseForDelete(null);
     } catch {
-      toast({
-        title: 'Error',
-        description: 'Failed to delete release',
-        variant: 'destructive',
-      });
+      // Error toast already shown by mutation hook
     }
   };
 
-  const getMovieById = (movieId: string) => {
-    return movies.find(m => m.id === movieId);
+  const getMovieById = (movieId: string, release?: MovieRelease) => {
+    // First try to get from page's movies list
+    const movieFromList = movies.find(m => m.id === movieId);
+    if (movieFromList) return movieFromList;
+    
+    // If not found and release has enriched movie data, use that
+    if (release?.movie) {
+      return release.movie;
+    }
+    
+    return undefined;
   };
 
   const getReleaseStatus = (release: MovieRelease) => {
@@ -158,7 +146,7 @@ export default function MovieReleasesPage() {
 
   // Filter releases
   const filteredReleases = releases.filter(release => {
-    const movie = getMovieById(release.movieId);
+    const movie = getMovieById(release.movieId, release);
     const status = getReleaseStatus(release);
     
     // Search by movie name
@@ -168,15 +156,32 @@ export default function MovieReleasesPage() {
     // Filter by status
     const matchStatus = selectedStatus === 'all' || status === selectedStatus;
     
-    return matchSearch && matchStatus;
+    // Filter by date range (check if release period intersects with filter range)
+    let matchDateRange = true;
+    if (dateFrom || dateTo) {
+      const releaseStart = new Date(release.startDate);
+      const releaseEnd = new Date(release.endDate);
+      
+      if (dateFrom) {
+        const filterFrom = new Date(dateFrom);
+        matchDateRange = matchDateRange && releaseEnd >= filterFrom;
+      }
+      
+      if (dateTo) {
+        const filterTo = new Date(dateTo);
+        matchDateRange = matchDateRange && releaseStart <= filterTo;
+      }
+    }
+    
+    return matchSearch && matchStatus && matchDateRange;
   });
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Movie Releases</h1>
-          <p className="text-gray-500 mt-1">Manage movie release schedules</p>
+          <h1 className="text-3xl font-bold tracking-tight">Phát Hành Phim</h1>
+          <p className="text-gray-500 mt-1">Quản lý lịch phát hành phim</p>
         </div>
         <Button
           onClick={() => {
@@ -186,58 +191,119 @@ export default function MovieReleasesPage() {
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
         >
           <Plus className="mr-2 h-4 w-4" />
-          Add Release
+          Thêm Phát Hành
         </Button>
       </div>
 
       <div className="grid gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>All Releases</CardTitle>
+            <CardTitle>Tất Cả Phát Hành</CardTitle>
             <CardDescription>
-              {filteredReleases.length} of {releases.length} release schedule{releases.length !== 1 ? 's' : ''}
+              {filteredReleases.length} trong {releases.length} lịch phát hành
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col md:flex-row gap-4 md:max-w-2xl">
-              {/* Search */}
-              <div className="flex-1">
-                <Input
-                  placeholder="Search by movie name..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
-                />
+            {/* Single-line Filter Row - All 4 filters in purple box */}
+            <div className="p-4 bg-gradient-to-r from-purple-50 via-blue-50 to-pink-50 rounded-lg border border-purple-200/50 shadow-sm">
+              <div className="flex items-end gap-3">
+                {/* Search Input */}
+                <div className="flex-1 min-w-0">
+                  <label className="text-xs font-medium text-gray-600 mb-2 block">Tìm Kiếm</label>
+                  <Input
+                    placeholder="🔍 Tìm kiếm theo tên phim..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full h-10 border-purple-200 focus:border-purple-400 focus:ring-purple-200 bg-white"
+                  />
+                </div>
+
+                {/* Status Select */}
+                <div className="w-48 flex-shrink-0">
+                  <label className="text-xs font-medium text-gray-600 mb-2 block">Trạng Thái</label>
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                    <SelectTrigger className="h-10 border-purple-200 focus:border-purple-400 bg-white">
+                      <SelectValue placeholder="Tất Cả Trạng Thái" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tất Cả Trạng Thái</SelectItem>
+                      <SelectItem value="active">Đang Hoạt Động</SelectItem>
+                      <SelectItem value="upcoming">Sắp Tới</SelectItem>
+                      <SelectItem value="ended">Đã Kết Thúc</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* From Date */}
+                <div className="w-40 flex-shrink-0">
+                  <label className="text-xs font-medium text-gray-600 mb-2 block">Từ Ngày</label>
+                  <Input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-full h-10 border-purple-200 focus:border-purple-400 focus:ring-purple-200 bg-white"
+                  />
+                </div>
+
+                {/* To Date */}
+                <div className="w-40 flex-shrink-0">
+                  <label className="text-xs font-medium text-gray-600 mb-2 block">Đến Ngày</label>
+                  <Input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="w-full h-10 border-purple-200 focus:border-purple-400 focus:ring-purple-200 bg-white"
+                  />
+                </div>
               </div>
 
-              {/* Filter by Status */}
-              <div className="w-full md:w-64">
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="upcoming">Upcoming</SelectItem>
-                    <SelectItem value="ended">Ended</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Active Filter Tags */}
+              {(searchTerm || selectedStatus !== 'all' || dateFrom || dateTo) && (
+                <div className="flex flex-wrap gap-2 pt-3 mt-3 border-t border-purple-200/50">
+                  {searchTerm && (
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-white rounded-full border border-purple-200 shadow-sm">
+                      <span className="text-xs text-gray-600">Search: <span className="font-semibold text-purple-700">{searchTerm}</span></span>
+                      <button onClick={() => setSearchTerm('')} className="text-purple-400 hover:text-purple-600">✕</button>
+                    </div>
+                  )}
+                  {selectedStatus !== 'all' && (
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-white rounded-full border border-purple-200 shadow-sm">
+                      <span className="text-xs text-gray-600">Status: <span className="font-semibold text-purple-700">{selectedStatus}</span></span>
+                      <button onClick={() => setSelectedStatus('all')} className="text-purple-400 hover:text-purple-600">✕</button>
+                    </div>
+                  )}
+                  {dateFrom && (
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-white rounded-full border border-purple-200 shadow-sm">
+                      <span className="text-xs text-gray-600">From: <span className="font-semibold text-purple-700">{dateFrom}</span></span>
+                      <button onClick={() => setDateFrom('')} className="text-purple-400 hover:text-purple-600">✕</button>
+                    </div>
+                  )}
+                  {dateTo && (
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-white rounded-full border border-pink-200 shadow-sm">
+                      <span className="text-xs text-gray-600">To: <span className="font-semibold text-pink-700">{dateTo}</span></span>
+                      <button onClick={() => setDateTo('')} className="text-pink-400 hover:text-pink-600">✕</button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Clear Filters Button */}
-            {(searchTerm || selectedStatus !== 'all') && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedStatus('all');
-                }}
-                className="mt-4"
-              >
-                Clear Filters
-              </Button>
+            {(searchTerm || selectedStatus !== 'all' || dateFrom || dateTo) && (
+              <div className="flex justify-end mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedStatus('all');
+                    setDateFrom('');
+                    setDateTo('');
+                  }}
+                  className="border-purple-200 text-purple-700 hover:bg-purple-50 hover:text-purple-800"
+                >
+                  ✕ Clear All Filters
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -283,7 +349,7 @@ export default function MovieReleasesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredReleases.map((release) => {
-              const movie = getMovieById(release.movieId);
+              const movie = getMovieById(release.movieId, release);
               const status = getReleaseStatus(release);
               
               return (
@@ -336,7 +402,7 @@ export default function MovieReleasesPage() {
                             className="cursor-pointer"
                           >
                             <Pencil className="mr-2 h-4 w-4 text-blue-600" />
-                            <span>Edit Release</span>
+                            <span>Sửa phát hành</span>
                           </DropdownMenuItem>
                           
                           <DropdownMenuSub>
@@ -345,7 +411,7 @@ export default function MovieReleasesPage() {
                               disabled={getReleaseStatus(release) === 'ended'}
                             >
                               <Clock className="mr-2 h-4 w-4 text-purple-600" />
-                              <span>Showtimes</span>
+                              <span>Suất Chiếu</span>
                             </DropdownMenuSubTrigger>
                             <DropdownMenuSubContent>
                               <DropdownMenuItem
@@ -353,8 +419,8 @@ export default function MovieReleasesPage() {
                                   const status = getReleaseStatus(release);
                                   if (status === 'ended') {
                                     toast({
-                                      title: 'Cannot Add Showtime',
-                                      description: 'Cannot create showtime for ended release',
+                                      title: 'Không Thể Thêm Lịch Chiếu',
+                                      description: 'Không thể tạo lịch chiếu cho phát hành đã kết thúc',
                                       variant: 'destructive',
                                     });
                                     return;
@@ -365,15 +431,15 @@ export default function MovieReleasesPage() {
                                 className="cursor-pointer"
                               >
                                 <Clock className="mr-2 h-4 w-4 text-green-600" />
-                                <span>Single Showtime</span>
+                                <span>Lịch Chiếu Riêng</span>
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => {
                                   const status = getReleaseStatus(release);
                                   if (status === 'ended') {
                                     toast({
-                                      title: 'Cannot Create Batch',
-                                      description: 'Cannot create batch showtimes for ended release',
+                                      title: 'Không Thể Tạo Lịch Chiếu Hàng Loạt',
+                                      description: 'Không thể tạo lịch chiếu hàng loạt cho phát hành đã kết thúc',
                                       variant: 'destructive',
                                     });
                                     return;
@@ -384,18 +450,18 @@ export default function MovieReleasesPage() {
                                 className="cursor-pointer"
                               >
                                 <Zap className="mr-2 h-4 w-4 text-orange-600" />
-                                <span>Batch Showtimes</span>
+                                <span>Lịch Chiếu Hàng Loạt</span>
                               </DropdownMenuItem>
                             </DropdownMenuSubContent>
                           </DropdownMenuSub>
                           
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onClick={() => handleDelete(release.id)}
+                            onClick={() => handleDelete(release)}
                             className="cursor-pointer text-red-600 focus:text-red-600"
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            <span>Delete</span>
+                            <span>Xóa</span>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -444,7 +510,7 @@ export default function MovieReleasesPage() {
                     <div className="relative">
                       <div className="absolute -left-1 top-0 w-1 h-full bg-gradient-to-b from-purple-400 to-pink-400 rounded-full" />
                       <div className="pl-4">
-                        <p className="text-xs text-gray-500 font-medium mb-1">📝 DESCRIPTION</p>
+                        <p className="text-xs text-gray-500 font-medium mb-1">📝 MÔ TẢ</p>
                         <p className="text-sm text-gray-700 leading-relaxed line-clamp-2">
                           {release.note}
                         </p>
@@ -470,7 +536,7 @@ export default function MovieReleasesPage() {
         movies={movies}
         editingRelease={editingRelease}
         onSuccess={() => {
-          fetchData();
+          refetchReleases();
         }}
       />
 
@@ -490,11 +556,41 @@ export default function MovieReleasesPage() {
         preSelectedReleaseId={selectedReleaseForShowtime?.id}
         onSuccess={() => {
           toast({
-            title: 'Success',
-            description: 'Showtime created successfully',
+            title: 'Thành công',
+            description: 'Lịch chiếu được tạo thành công',
           });
+          refetchReleases();
         }}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Xác Nhận Xóa</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc muốn xóa phát hành &quot;{selectedReleaseForDelete?.note || 'N/A'}&quot;? Hành động này không thể hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setSelectedReleaseForDelete(null);
+              }}
+            >
+              Hủy Bỏ
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+            >
+              Xóa Phát Hành
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-import { useAuth } from '@clerk/nextjs';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import {
   getAllMoviesWithShowtimes,
@@ -10,16 +9,13 @@ import {
   GetShowtimesQuery,
   searchCinemas,
   ShowtimesFilterDTO,
+  getAllCinemas,
 } from '../libs/actions/cinemas/cinema-action';
 import {
   CinemaListResponse,
   CinemaLocationResponse,
 } from '../libs/types/cinema.type';
-import {
-  ApiResponse,
-  PaginationQuery,
-  ServiceResult,
-} from '@movie-hub/shared-types/common';
+import { PaginationQuery, ServiceResult } from '@movie-hub/shared-types/common';
 import { ShowtimeSummaryResponse } from '@movie-hub/shared-types';
 import { MovieWithShowtimeResponse } from '../libs/types/movie.type';
 
@@ -153,6 +149,16 @@ export const useGetAllMoviesWithShowtimes = (query: ShowtimesFilterDTO) => {
     queryKey: ['movies-with-showtimes', query],
     queryFn: async () => {
       const response = await getAllMoviesWithShowtimes(query);
+      return response.data;
+    },
+  });
+};
+
+export const useGetAllCinemas = () => {
+  return useQuery({
+    queryKey: ['cinemas', 'all'],
+    queryFn: async () => {
+      const response = await getAllCinemas();
       return response.data;
     },
   });

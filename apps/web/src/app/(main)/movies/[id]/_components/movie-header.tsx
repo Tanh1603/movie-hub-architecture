@@ -10,8 +10,7 @@ import {
   Globe2,
   Heart,
   PlayCircleIcon,
-  StarIcon,
-  User2
+  User2,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -20,9 +19,8 @@ import { useGetMovieDetail } from '@/hooks/movie-hooks';
 import { ErrorFallback } from '@/components/error-fallback';
 import { useTrailerModal } from '@/stores/trailer-modal-store';
 
-
 export const MovieHeader = ({ movieId }: { movieId: string }) => {
-  const { data , isLoading, isError, error} = useGetMovieDetail(movieId);
+  const { data, isLoading, isError, error } = useGetMovieDetail(movieId);
   const movieData: MovieDetailResponse | undefined = data?.data;
 
   const formattedDate = movieData?.releaseDate
@@ -32,7 +30,6 @@ export const MovieHeader = ({ movieId }: { movieId: string }) => {
         year: 'numeric',
       })
     : 'Chưa rõ ngày phát hành';
-
 
   const { openModal } = useTrailerModal();
 
@@ -73,7 +70,7 @@ export const MovieHeader = ({ movieId }: { movieId: string }) => {
             />
 
             <div className="flex flex-1 flex-col gap-3 text-white max-w-2xl">
-              <div className="flex items-center gap-2 text-sm text-rose-500 font-bold">
+              <div className="flex items-center gap-2 text-sm text-slate-100 font-bold">
                 <span>{movieData.languageType}</span>
                 <span>•</span>
                 <span>{movieData.ageRating}</span>
@@ -96,25 +93,25 @@ export const MovieHeader = ({ movieId }: { movieId: string }) => {
               </div> */}
 
               <div className="flex items-start gap-2 mt-3 text-gray-300">
-                <FileTextIcon className="w-4 h-4 flex-shrink-0 text-rose-500" />
+                <FileTextIcon className="w-4 h-4 flex-shrink-0 text-slate-100" />
                 <p className="text-sm">{movieData.overview}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-2 mt-4 text-sm text-gray-300">
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-rose-500" />
+                  <Clock className="w-4 h-4 text-slate-100" />
                   <span>{movieData.runtime} phút</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CalendarDays className="w-4 h-4 text-rose-500" />
+                  <CalendarDays className="w-4 h-4 text-slate-100" />
                   <span>{formattedDate}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <User2 className="w-4 h-4 text-rose-500" />
+                  <User2 className="w-4 h-4 text-slate-100" />
                   <span>{movieData.director}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Globe2 className="w-4 h-4 text-rose-500" />
+                  <Globe2 className="w-4 h-4 text-slate-100" />
                   <span>
                     {movieData.spokenLanguages?.length
                       ? movieData.spokenLanguages.join(', ')
@@ -126,7 +123,7 @@ export const MovieHeader = ({ movieId }: { movieId: string }) => {
               </div>
 
               <p className="text-sm text-gray-300">
-                <Film className="inline w-4 h-4 text-rose-500 mr-1" />
+                <Film className="inline w-4 h-4 text-slate-100 mr-1" />
                 {movieData.genre?.length
                   ? movieData.genre
                       .map((g: GenreResponse) => g.name)
@@ -167,7 +164,6 @@ export const MovieHeader = ({ movieId }: { movieId: string }) => {
     </>
   );
 };
-
 
 MovieHeader.Skeleton = function MovieHeaderSkeleton() {
   return (
@@ -227,4 +223,4 @@ MovieHeader.Skeleton = function MovieHeaderSkeleton() {
       </div>
     </div>
   );
-}
+};

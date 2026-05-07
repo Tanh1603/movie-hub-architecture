@@ -3,11 +3,12 @@ export const UserMessage = {
   GET_USERS: 'user.getAll',
   GET_USER_DETAIL: 'user.getDetail',
   STAFF: {
-    GET_LIST: 'movie.list',
-    CREATED: 'movie.created',
-    UPDATED: 'movie.updated',
-    GET_DETAIL: 'movie.detail',
-    DELETED: 'movie.deleted',
+    GET_LIST: 'staff.list',
+    CREATED: 'staff.created',
+    UPDATED: 'staff.updated',
+    GET_DETAIL: 'staff.detail',
+    DELETED: 'staff.deleted',
+    FIND_BY_EMAIL: 'staff.findByEmail',
   },
   CONFIG: {
     GET_LIST: 'config.list',
@@ -62,13 +63,14 @@ export const CinemaMessage = {
   HALL: {
     GET_DETAIL: 'hall.get_detail',
     GET_BY_CINEMA: 'hall.get_by_cinema',
+    GET_HALL_CAPACITIES: 'cinema.getHallCapacities',
     CREATE: 'hall.create',
     UPDATE: 'hall.update',
     DELETE: 'hall.delete',
     UPDATE_SEAT_STATUS: 'cinema.update_seat_status',
   },
   SHOWTIME: {
-    FILTER_SHOWTIME: ' showtime.filter',
+    FILTER_SHOWTIME: 'showtime.filter',
     CREATE_SHOWTIME: 'showtime.create_showtime',
     BATCH_CREATE_SHOWTIMES: 'showtime.batch_create_showtimes',
     UPDATE_SHOWTIME: 'showtime.update_showtime',
@@ -77,6 +79,9 @@ export const CinemaMessage = {
     GET_SHOWTIME_SEATS: 'showtime.get_showtime_seats',
     GET_SEATS_HELD_BY_USER: 'showtime.get_seats_held_by_user',
     GET_SESSION_TTL: 'showtime.get_session_ttl',
+    GET_SHOWTIMES_BY_IDS: 'showtime.get_showtimes_by_ids',
+    // Event-based seat release (for refunds)
+    RELEASE_SEATS: 'showtime.release_seats',
   },
   TICKET_PRICING: {
     GET_PRICING_FOR_HALL: 'ticket_pricing.get_pricing_for_hall',
@@ -115,6 +120,8 @@ export const BookingMessage = {
   // Statistics
   GET_STATISTICS: 'booking.getStatistics',
   GET_REVENUE_REPORT: 'booking.getRevenueReport',
+  GET_REVENUE_BY_MOVIE: 'booking.getRevenueByMovieId',
+  GET_REVENUE_BY_CINEMA: 'booking.getRevenueByCinemaId',
 };
 
 export const ConcessionMessage = {
@@ -182,4 +189,5 @@ export const RefundMessage = {
   PROCESS: 'refund.process',
   APPROVE: 'refund.approve',
   REJECT: 'refund.reject',
+  PROCESS_VOUCHER: 'refund.processVoucher',
 };

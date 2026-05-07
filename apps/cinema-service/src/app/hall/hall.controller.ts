@@ -61,4 +61,9 @@ export class HallController {
       updateSeatStatusRequest
     );
   }
+
+  @MessagePattern('cinema.getHallCapacities')
+  async getHallCapacities(@Payload() payload?: { cinemaIds?: string[] }) {
+    return this.hallService.getHallCapacities(payload?.cinemaIds);
+  }
 }

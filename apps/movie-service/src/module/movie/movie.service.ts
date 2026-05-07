@@ -37,7 +37,7 @@ export class MovieService {
 
     const where: any = {};
 
-    if (query.status === 'now_show') {
+    if (query.status === 'now_showing') {
       where.movieReleases = {
         some: {
           startDate: { lte: today },
@@ -70,7 +70,7 @@ export class MovieService {
         },
       },
       orderBy: {
-        [query.sortBy]: query.sortOrder,
+        [query.sortBy || 'createdAt']: query.sortOrder || 'desc',
       },
       skip,
       take: limit,
@@ -126,6 +126,10 @@ export class MovieService {
         },
       },
     });
+
+    if (!movie) {
+      throw new ResourceNotFoundException('Movie', 'id', id);
+    }
 
     const stats = await this.prismaService.review.aggregate({
       where: { movieId: movie.id },

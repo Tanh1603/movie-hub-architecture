@@ -8,10 +8,8 @@ import {
   ShowtimesFilterDTO,
   UpdateCinemaRequest,
 } from '@movie-hub/shared-types';
-import {
-  LoggingInterceptor,
-  PaginationQuery,
-} from '@movie-hub/shared-types/common';
+import { PaginationQuery } from '@movie-hub/shared-types/common';
+import { LoggingInterceptor } from '@movie-hub/shared-types/common/logging.interceptor';
 
 @Controller('cinema')
 @UseInterceptors(new LoggingInterceptor('Cinema-Service'))

@@ -59,9 +59,32 @@ export class UserService {
   }
 
   async findSettingVariables() {
-    return {
-      data: await this.prismaService.setting.findMany(),
-    };
+    try {
+      const settings = await this.prismaService.setting.findMany();
+
+      if (!settings || settings.length === 0) {
+        // Return default theme if no configuration exists
+        return {
+          data: [
+            {
+              key: 'theme',
+              value: {
+                theme: 'system',
+                radius: 0.5,
+              },
+              description: 'Default Theme Configuration',
+            },
+          ],
+        };
+      }
+
+      return {
+        data: settings,
+      };
+    } catch (error) {
+      console.error('Error finding setting variables:', error);
+      throw error;
+    }
   }
 
   async updateSettingVariable(dto: {
@@ -70,11 +93,16 @@ export class UserService {
     description?: string;
   }) {
     return {
-      data: await this.prismaService.setting.update({
+      data: await this.prismaService.setting.upsert({
         where: { key: dto.key },
-        data: {
+        update: {
           value: dto.value ?? undefined,
           description: dto.description ? dto.description : undefined,
+        },
+        create: {
+          key: dto.key,
+          value: dto.value ?? {},
+          description: dto.description || '',
         },
       }),
       message: 'Update setting variable successfully!',

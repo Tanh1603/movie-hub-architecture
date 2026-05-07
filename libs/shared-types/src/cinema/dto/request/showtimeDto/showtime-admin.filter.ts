@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ShowtimeStatusEnum } from '@movie-hub/shared-types/cinema/enum';
 
 const optionalStringFromQuery = z.preprocess((val) => {
   if (val === '' || val === null || val === undefined) return undefined;
@@ -13,6 +14,16 @@ export const AdminShowtimeFilterSchema = z.object({
   cinemaId: z.string().optional(),
   movieId: z.string().optional(),
   hallId: z.string().optional(),
+
+  status: z.preprocess(
+    (val) => {
+      if (val === '' || val === null || val === undefined) return undefined;
+      return String(val);
+    },
+    z
+      .enum(Object.values(ShowtimeStatusEnum) as [string, ...string[]])
+      .optional()
+  ),
 });
 
 /** Inferred TypeScript type */

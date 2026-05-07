@@ -10,6 +10,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "skipLibCheck": true,
     "lib": [
       "dom",
       "dom.iterable",
@@ -26,13 +27,33 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@movie-hub/shacdn-ui": ["../../libs/shacdn-ui/src/index.ts"],
-      "@movie-hub/shacdn-ui/*": ["../../libs/shacdn-ui/src/*"],
-      "@movie-hub/shacdn-utils": ["../../libs/shacdn-utils/src/index.ts"],
-      "@movie-hub/shacdn-utils/*": ["../../libs/shacdn-utils/src/*"],
-      "@movie-hub/shared-types": ["../../libs/shared-types/src/index.ts"],
-      "@movie-hub/shared-types/*": ["../../libs/shared-types/src/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@movie-hub/shacdn-ui": [
+        "../../libs/shacdn-ui/src/index.ts"
+      ],
+      "@movie-hub/shacdn-ui/*": [
+        "../../libs/shacdn-ui/src/*"
+      ],
+      "@movie-hub/shacdn-utils": [
+        "../../libs/shacdn-utils/src/index.ts"
+      ],
+      "@movie-hub/shacdn-utils/*": [
+        "../../libs/shacdn-utils/src/*"
+      ],
+      "@movie-hub/shared-redis": [
+        "../../libs/shared-redis/src/index.ts"
+      ],
+      "@movie-hub/shared-redis/*": [
+        "../../libs/shared-redis/src/*"
+      ],
+      "@movie-hub/shared-types": [
+        "../../libs/shared-types/src/index.ts"
+      ],
+      "@movie-hub/shared-types/*": [
+        "../../libs/shared-types/src/*"
+      ]
     }
   },
   "include": [
@@ -42,8 +63,9 @@
     "**/*.tsx",
     "../../apps/web/.next/types/**/*.ts",
     "../../dist/apps/web/.next/types/**/*.ts",
+    ".next/types/**/*.ts",
     "next-env.d.ts",
-    ".next/types/**/*.ts"
+    "../../apps/web/.next/.next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

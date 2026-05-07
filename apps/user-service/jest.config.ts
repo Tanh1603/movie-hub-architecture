@@ -6,5 +6,19 @@ export default {
     '^.+\\.[tj]s$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }],
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
-  coverageDirectory: '../../coverage/apps/user-service',
+  coverageDirectory: '../../test-results/coverage/apps/user-service',
+  reporters: [
+    'default',
+    [
+      'jest-junit',
+      {
+        outputDirectory: '../../test-results/junit',
+        outputName: 'user-service-junit.xml',
+        classNameTemplate: '{classname}',
+        titleTemplate: '{title}',
+        ancestorSeparator: ' › ',
+        usePathForSuiteName: true,
+      },
+    ],
+  ],
 };

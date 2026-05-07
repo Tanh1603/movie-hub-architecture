@@ -5,10 +5,14 @@ import {
   Get,
   Param,
   Query,
+  UseGuards,
   UseInterceptors,
+  Req,
+  ForbiddenException,
 } from '@nestjs/common';
 import { TransformInterceptor } from '../../../common/interceptor/transform.interceptor';
 import { ReviewService } from '../service/review.service';
+import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 
 @Controller({
   version: '1',
@@ -24,7 +28,12 @@ export class ReviewController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  @UseGuards(ClerkAuthGuard)
+  async remove(@Req() req: any, @Param('id') id: string) {
+    const userCinemaId = req.staffContext?.cinemaId;
+    if (userCinemaId) {
+      throw new ForbiddenException('Managers cannot delete reviews');
+    }
     return this.reviewService.remove(id);
   }
 }

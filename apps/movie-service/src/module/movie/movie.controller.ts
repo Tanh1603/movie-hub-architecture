@@ -18,7 +18,7 @@ import {
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { MovieService } from './movie.service';
 import { AllExceptionsFilter } from '../../filter/all-exceptions.filter';
-import { LoggingInterceptor } from '@movie-hub/shared-types/common';
+import { LoggingInterceptor } from '@movie-hub/shared-types/common/logging.interceptor';
 
 @Controller('movies')
 @UseFilters(new AllExceptionsFilter())

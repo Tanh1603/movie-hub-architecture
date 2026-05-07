@@ -1,10 +1,7 @@
 import { Controller, UseFilters, UseInterceptors } from '@nestjs/common';
 
-import {
-  LoggingInterceptor,
-  MovieQuery,
-  MovieServiceMessage,
-} from '@movie-hub/shared-types';
+import { MovieQuery, MovieServiceMessage } from '@movie-hub/shared-types';
+import { LoggingInterceptor } from '@movie-hub/shared-types/common/logging.interceptor';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AllExceptionsFilter } from '../../filter/all-exceptions.filter';
 import { ReviewService } from './review.service';

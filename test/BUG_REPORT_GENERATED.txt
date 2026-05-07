@@ -1,0 +1,147 @@
+==================================================
+BUG REPORTS
+Project: @movie-hub/source
+Reported by: Automated Jest Reporter
+Generated: 2026-01-06T17:10:01.351Z
+Total Defects: 3
+==================================================
+
+QUICK REFERENCE TABLE:
+--------------------------------------------------------------------------------
+Defect ID  | Test Case ID     | Status | Severity
+--------------------------------------------------------------------------------
+BUG-001    | UNKNOWN          | Open   | Critical (S1)
+BUG-002    | UNKNOWN          | Open   | Critical (S1)
+BUG-003    | UNKNOWN          | Open   | Critical (S1)
+--------------------------------------------------------------------------------
+
+--------------------------------------------------
+§  Bug Name: should filter showtimes by date
+Bug ID: BUG-001
+§  Test Case ID: UNKNOWN
+§  Date: 07-Jan-26
+§  Assigned to: Developer-TEAM1016
+§  Status: Open
+§  Summary/Description:
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+§  Environments (OS/Browser): win32 / Node v22.15.1
+§  Step to reproduce:
+    1. Run test file: test/integration/cinema-service/3.showtime-module.spec.ts
+    2. Test case failed: "should filter showtimes by date"
+§  Actual results:
+    Test failed with error:
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+Expected: [32m2[39m
+Received: [31m3[39m
+    at C:\Sem1_Year3_Projects\movie-hub\test\integration\cinema-service\3.showtime-module.spec.ts:243:36
+    at Generator.next (<anonymous>)
+    at fulfilled (C:\Sem1_Year3_Projects\movie-hub\node_modules\tslib\tslib.js:167:62)
+§  Expected results:
+    Test assertion should pass (Expected value should match received value).
+§  Severity: Critical (S1)
+Priority: High (P1)
+§  Attachment:
+    - See TEST_RESULTS_OUTPUT.csv for evidence
+    - See DEFECT_REGISTRY.csv for RTM mapping
+    - See coverage/ folder for technical logs
+--------------------------------------------------
+
+--------------------------------------------------
+§  Bug Name: should create showtime with calculated end_time
+Bug ID: BUG-002
+§  Test Case ID: UNKNOWN
+§  Date: 07-Jan-26
+§  Assigned to: Developer-TEAM1016
+§  Status: Open
+§  Summary/Description:
+    Error: 
+§  Environments (OS/Browser): win32 / Node v22.15.1
+§  Step to reproduce:
+    1. Run test file: test/integration/cinema-service/3.showtime-module.spec.ts
+    2. Test case failed: "should create showtime with calculated end_time"
+§  Actual results:
+    Test failed with error:
+    Error: 
+Invalid `this.prisma.showtimes.findFirst()` invocation in
+C:\Sem1_Year3_Projects\movie-hub\apps\cinema-service\src\app\showtime\showtime-command.service.ts:520:49
+
+  517 
+  518 private async checkHallConflict(hallId: string, start: Date, end: Date) {
+  519   console.log('Checking conflict for hall', hallId, start, end);
+→ 520   const overlap = await this.prisma.showtimes.findFirst({
+          where: {
+            hall_id: "5090973c-801e-4d21-8cc8-44e8f397a964",
+            start_time: {
+              lt: new Date("Invalid Date")
+                  ~~~~~~~~~~~~~~~~~~~~~~~~
+            },
+            end_time: {
+              gt: new Date("2026-01-08T07:00:00.000Z")
+            }
+          }
+        })
+
+Invalid value for argument `lt`: Provided Date object is invalid. Expected Date.
+    at ShowtimeCommandService.<anonymous> (C:\Sem1_Year3_Projects\movie-hub\apps\cinema-service\src\app\showtime\showtime-command.service.ts:128:13)
+    at Generator.throw (<anonymous>)
+    at rejected (C:\Sem1_Year3_Projects\movie-hub\node_modules\tslib\tslib.js:168:69)
+§  Expected results:
+    Test assertion should pass (Expected value should match received value).
+§  Severity: Critical (S1)
+Priority: High (P1)
+§  Attachment:
+    - See TEST_RESULTS_OUTPUT.csv for evidence
+    - See DEFECT_REGISTRY.csv for RTM mapping
+    - See coverage/ folder for technical logs
+--------------------------------------------------
+
+--------------------------------------------------
+§  Bug Name: should auto-set total_seats from hall capacity
+Bug ID: BUG-003
+§  Test Case ID: UNKNOWN
+§  Date: 07-Jan-26
+§  Assigned to: Developer-TEAM1016
+§  Status: Open
+§  Summary/Description:
+    Error: 
+§  Environments (OS/Browser): win32 / Node v22.15.1
+§  Step to reproduce:
+    1. Run test file: test/integration/cinema-service/3.showtime-module.spec.ts
+    2. Test case failed: "should auto-set total_seats from hall capacity"
+§  Actual results:
+    Test failed with error:
+    Error: 
+Invalid `this.prisma.showtimes.findFirst()` invocation in
+C:\Sem1_Year3_Projects\movie-hub\apps\cinema-service\src\app\showtime\showtime-command.service.ts:520:49
+
+  517 
+  518 private async checkHallConflict(hallId: string, start: Date, end: Date) {
+  519   console.log('Checking conflict for hall', hallId, start, end);
+→ 520   const overlap = await this.prisma.showtimes.findFirst({
+          where: {
+            hall_id: "4ef10d9f-039e-4eb7-8fda-bb59c73b4674",
+            start_time: {
+              lt: new Date("Invalid Date")
+                  ~~~~~~~~~~~~~~~~~~~~~~~~
+            },
+            end_time: {
+              gt: new Date("2026-01-09T11:00:00.000Z")
+            }
+          }
+        })
+
+Invalid value for argument `lt`: Provided Date object is invalid. Expected Date.
+    at ShowtimeCommandService.<anonymous> (C:\Sem1_Year3_Projects\movie-hub\apps\cinema-service\src\app\showtime\showtime-command.service.ts:128:13)
+    at Generator.throw (<anonymous>)
+    at rejected (C:\Sem1_Year3_Projects\movie-hub\node_modules\tslib\tslib.js:168:69)
+§  Expected results:
+    Test assertion should pass (Expected value should match received value).
+§  Severity: Critical (S1)
+Priority: High (P1)
+§  Attachment:
+    - See TEST_RESULTS_OUTPUT.csv for evidence
+    - See DEFECT_REGISTRY.csv for RTM mapping
+    - See coverage/ folder for technical logs
+--------------------------------------------------
+

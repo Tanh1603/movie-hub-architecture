@@ -28,6 +28,7 @@ tags:
   - name: Halls
   - name: Showtimes
   - name: Ticket Pricing
+  - name: Promotions
 
 paths:
   ## Movie Service Endpoints
@@ -666,7 +667,7 @@ paths:
                           type: object
                           example:
                             mode: dark
-                            primaryColor: "#0ea5e9"
+                            primaryColor: '#0ea5e9'
                         description:
                           type: string
                           example: Theme configuration
@@ -710,7 +711,7 @@ paths:
                   type: object
                   example:
                     mode: light
-                    primaryColor: "#22c55e"
+                    primaryColor: '#22c55e'
                 description:
                   type: string
                   example: Theme config for admin & user
@@ -732,7 +733,7 @@ paths:
                         type: object
                         example:
                           mode: light
-                          primaryColor: "#22c55e"
+                          primaryColor: '#22c55e'
                       description:
                         type: string
                         example: Theme config for admin & user
@@ -1548,6 +1549,258 @@ paths:
                         $ref: '#/components/schemas/TicketPricingResponse'
         '404':
           description: Pricing not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  # ----------------------
+  # PROMOTIONS endpoints
+  # ----------------------
+  /promotions:
+    get:
+      summary: Get all promotions
+      tags: [Promotions]
+      parameters:
+        - name: active
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [PERCENTAGE, FIXED_AMOUNT, FREE_ITEM, POINTS]
+      responses:
+        '200':
+          description: List of promotions
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PromotionResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    post:
+      summary: Create promotion
+      tags: [Promotions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePromotionDto'
+      responses:
+        '201':
+          description: Promotion created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PromotionResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /promotions/{id}:
+    get:
+      summary: Get promotion by ID
+      tags: [Promotions]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Promotion details
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PromotionResponse'
+        '404':
+          description: Promotion not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    put:
+      summary: Update promotion
+      tags: [Promotions]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePromotionDto'
+      responses:
+        '200':
+          description: Promotion updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PromotionResponse'
+        '404':
+          description: Promotion not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    delete:
+      summary: Delete promotion
+      tags: [Promotions]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Promotion deleted
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Promotion deleted successfully
+        '404':
+          description: Promotion not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /promotions/{id}/toggle-active:
+    patch:
+      summary: Toggle promotion active status
+      tags: [Promotions]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Promotion status toggled
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PromotionResponse'
+        '404':
+          description: Promotion not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /promotions/code/{code}:
+    get:
+      summary: Get promotion by code
+      tags: [Promotions]
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Promotion details
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PromotionResponse'
+        '404':
+          description: Promotion not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /promotions/validate/{code}:
+    post:
+      summary: Validate promotion code
+      tags: [Promotions]
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidatePromotionDto'
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ValidatePromotionResponse'
+        '400':
+          description: Invalid details
           content:
             application/json:
               schema:
@@ -2809,6 +3062,108 @@ components:
           enum: [WEEKDAY, WEEKEND, HOLIDAY]
         price:
           type: number
+
+    # ----------------------
+    # PROMOTIONS SCHEMAS
+    # ----------------------
+    CreatePromotionDto:
+      type: object
+      required: [code, name, type, value, validFrom, validTo]
+      properties:
+        code: { type: string }
+        name: { type: string }
+        description: { type: string }
+        type:
+          type: string
+          enum: [PERCENTAGE, FIXED_AMOUNT, FREE_ITEM, POINTS]
+        value: { type: number }
+        minPurchase: { type: number }
+        maxDiscount: { type: number }
+        validFrom: { type: string, format: date-time }
+        validTo: { type: string, format: date-time }
+        usageLimit: { type: number }
+        usagePerUser: { type: number }
+        applicableFor:
+          type: array
+          items: { type: string }
+        conditions: { type: object }
+        active: { type: boolean }
+
+    UpdatePromotionDto:
+      type: object
+      properties:
+        name: { type: string }
+        description: { type: string }
+        type:
+          type: string
+          enum: [PERCENTAGE, FIXED_AMOUNT, FREE_ITEM, POINTS]
+        value: { type: number }
+        minPurchase: { type: number }
+        maxDiscount: { type: number }
+        validFrom: { type: string, format: date-time }
+        validTo: { type: string, format: date-time }
+        usageLimit: { type: number }
+        usagePerUser: { type: number }
+        applicableFor:
+          type: array
+          items: { type: string }
+        conditions: { type: object }
+        active: { type: boolean }
+
+    PromotionResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+        description: { type: string }
+        type:
+          type: string
+          enum: [PERCENTAGE, FIXED_AMOUNT, FREE_ITEM, POINTS]
+        value: { type: number }
+        minPurchase: { type: number }
+        maxDiscount: { type: number }
+        validFrom: { type: string, format: date-time }
+        validTo: { type: string, format: date-time }
+        usageLimit: { type: number }
+        usagePerUser: { type: number }
+        currentUsage: { type: number }
+        applicableFor:
+          type: array
+          items: { type: string }
+        conditions: { type: object }
+        active: { type: boolean }
+
+    ValidatePromotionItemDto:
+      type: object
+      required: [type, id, quantity]
+      properties:
+        type:
+          type: string
+          enum: [ticket, concession]
+        id: { type: string }
+        quantity: { type: number }
+
+    ValidatePromotionDto:
+      type: object
+      required: [bookingAmount]
+      properties:
+        bookingAmount: { type: number }
+        userId: { type: string }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidatePromotionItemDto'
+
+    ValidatePromotionResponse:
+      type: object
+      properties:
+        valid: { type: boolean }
+        promotion:
+          $ref: '#/components/schemas/PromotionResponse'
+        discountAmount: { type: number }
+        finalAmount: { type: number }
+        message: { type: string }
 
   parameters:
     PageParameter:

@@ -38,14 +38,14 @@ export const useCreateGenre = (data: CreateGenreRequest) => {
       return await createGenre(data, token);
     },
     onMutate() {
-      toast.loading('Creating genre...');
+      toast.loading('Đang tạo thể loại...');
     },
     onSuccess: () => {
-      toast.success('Genre created successfully');
+      toast.success('Tạo thể loại thành công');
       queryClient.invalidateQueries({ queryKey: ['genres'] });
     },
     onError: (error) => {
-      toast.error(error?.message || 'Something went wrong. Please try again.');
+      toast.error(error?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
     },
   });
 };
@@ -61,15 +61,15 @@ export const useUpdateGenre = (id: string, genreData: CreateGenreRequest) => {
       return await updateGenre(id, genreData, token);
     },
     onMutate() {
-      toast.loading('Updating genre...');
+      toast.loading('Đang cập nhật thể loại...');
     },
     onSuccess: () => {
-      toast.success('Genre updated successfully');
+      toast.success('Cập nhật thể loại thành công');
       queryClient.invalidateQueries({ queryKey: ['genres'] });
       queryClient.invalidateQueries({ queryKey: ['genres', id] });
     },
     onError: (error) => {
-      toast.error(error?.message || 'Something went wrong. Please try again.');
+      toast.error(error?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
     },
   });
 };
@@ -85,15 +85,15 @@ export const useDeleteGenre = (id: string) => {
       // return await deleteGenre(id, token);
     },
     onMutate() {
-      toast.loading('Deleting genre...');
+      toast.loading('Đang xóa thể loại...');
     },
     onSuccess: () => {
-      toast.success('Genre deleted successfully');
+      toast.success('Xóa thể loại thành công');
       queryClient.invalidateQueries({ queryKey: ['genres'] });
       queryClient.invalidateQueries({ queryKey: ['genres', id] });
     },
     onError: (error) => {
-      toast.error(error?.message || 'Something went wrong. Please try again.');
+      toast.error(error?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
     },
   });
 };

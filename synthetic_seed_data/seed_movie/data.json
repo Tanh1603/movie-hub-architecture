@@ -1,0 +1,3238 @@
+{
+  "movies": [
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/9DYFYhmbXRGsMhfUgXM3VSP9uLX.jpg",
+      "genres": [
+        {
+          "id": 27,
+          "name": "Phim Kinh Dị"
+        }
+      ],
+      "id": 1038392,
+      "release_dates": ["2025-09-12"],
+      "original_language": "en",
+      "original_title": "The Conjuring: Last Rites",
+      "overview": "Hai nhà điều tra hiện tượng siêu nhiên Ed và Lorraine Warren đối mặt với một vụ án kinh hoàng cuối cùng — nơi họ buộc phải đối đầu với những thực thể bí ẩn đầy đe dọa, thách thức tất cả những gì họ từng tin tưởng.",
+      "poster_path": "https://image.tmdb.org/t/p/w500/sjvW985erG7NSKJScFNhLbjhyma.jpg",
+      "production_countries": "United States of America",
+      "release_date": "2025-09-03",
+      "runtime": 135,
+      "spoken_languages": "English",
+      "title": "Ám Ảnh Kinh Hoàng: Nghi Lễ Cuối Cùng",
+      "trailerUrl": "https://www.youtube.com/watch?v=bMgfsdYoEEo",
+      "director": "Michael Chaves",
+      "cast": [
+        {
+          "name": "Lorraine Warren",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/5Vs7huBmTKftwlsc2BPAntyaQYj.jpg"
+        },
+        {
+          "name": "Ed Warren",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/tc1ezEfIY8BhCy85svOUDtpBFPt.jpg"
+        },
+        {
+          "name": "Judy Warren",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/i8Kel9mWoL86UCKGGz3zf5Fza6y.jpg"
+        },
+        {
+          "name": "Tony Spera",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/s8UEIomgY5AaEmPHkcPAScp68Fw.jpg"
+        },
+        {
+          "name": "Janet Smurl",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/A43USnarLnfWXDvWimT24cPVfEm.jpg"
+        },
+        {
+          "name": "Carin Smurl",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/oiRyVNlrUHajGyT1d3Kqj4V6Bdf.jpg"
+        },
+        {
+          "name": "Jack Smurl",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/zxewsfDGYuCqV7gsZjMQct6BXMJ.jpg"
+        },
+        {
+          "name": "Drew Thomas",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/gBJmrtY2fBFfkQRfosLv2MNWx2J.jpg"
+        },
+        {
+          "name": "Father Gordon",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/ng01ren9pCYPIsIwRqC1xHzD5IG.jpg"
+        },
+        {
+          "name": "Heather Smurl",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/7vUPASAuPkgfXzS9DQhOo9uTLJc.jpg"
+        },
+        {
+          "name": "Dawn Smurl",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/bAM9QcpAvlXxhjSFCPfWz2SX4Fh.jpg"
+        },
+        {
+          "name": "Shannon Smurl",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/sOFf57RrJmbknX7wZhIbSnp5gac.jpg"
+        },
+        {
+          "name": "Abner",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/qelAC52aPC2DtvSIUGRoGifUNRk.jpg"
+        },
+        {
+          "name": "Brad Hamilton",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/9LX6rRtiCjkTMT30PJh1dg1jx56.jpg"
+        },
+        {
+          "name": "Grandpa Smurl",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/wE77RhCuPoE45LrqEfZuAg0KIIp.jpg"
+        },
+        {
+          "name": "Grandma Smurl",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/66yNJtngMwfhXFY8R0q9cMGFWg2.jpg"
+        },
+        {
+          "name": "Young Ed Warren",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/jliOoVAWHrcIVR47w9afcTiCQf6.jpg"
+        },
+        {
+          "name": "Young Lorraine Warren",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/sXeIgJQ590hLYgnu5z6NO3sKsYw.jpg"
+        },
+        {
+          "name": "Young Judy Warren",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/jYOHLmz7Q5R9heZzqq4znxOLut9.jpg"
+        },
+        {
+          "name": "Doctor",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Lecture Attendee #2",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Wedding Guest",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/q7C8VKaQMOgilncOc2gf1oMGBKE.jpg"
+        },
+        {
+          "name": "Wedding Guest",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/8RftlJWKL5ktLGDHADoAciZGNdP.jpg"
+        },
+        {
+          "name": "Wedding Guest",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/3luVtifpeQvF54jEf6NbK2Oz0dE.jpg"
+        },
+        {
+          "name": "Caroline Perron",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/vWcMUi3QyvCr3QuFbjtwyPx7WtU.jpg"
+        },
+        {
+          "name": "Cindy Perron",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/gW9BdiA9eooBWa5bzHWkV7rbTa8.jpg"
+        },
+        {
+          "name": "Peggy Hodgson",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/tWGMS7DciV43tlxA6UEc2UqxrhL.jpg"
+        },
+        {
+          "name": "Janet Hodgson",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/ir4dNcm1mmTuK4knqT8XivkwJPo.jpg"
+        },
+        {
+          "name": "David Glatzel",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/lp1IJliBZb9OFP5KK09HjSGOsau.jpg"
+        },
+        {
+          "name": "Wedding Guest",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/bNJccMIKzCtYnndcOKniSKCzo5Y.jpg"
+        },
+        {
+          "name": "Party Guest",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/r2VrHSz8PBD9yShYaLANgccVM5F.jpg"
+        },
+        {
+          "name": "Party Guest",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/xH7QsF8NMnbVDn4B4C41G6vDV1Q.jpg"
+        },
+        {
+          "name": "Self (archive footage)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/5GlgF1UbfmWwfk6A3bVQINWFbu1.jpg"
+        },
+        {
+          "name": "Self (archive footage)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/tz4MjdJNJC0S4oHAsGT0rMUmIL9.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/bg68ukcSn5HcMSX48NwcdNM8wNk.jpg",
+      "genres": [
+        {
+          "id": 28,
+          "name": "Phim Hành Động"
+        },
+        {
+          "id": 53,
+          "name": "Phim Gây Cấn"
+        },
+        {
+          "id": 80,
+          "name": "Phim Hình Sự"
+        }
+      ],
+      "id": 1054867,
+      "release_dates": ["2025-09-26"],
+      "original_language": "en",
+      "original_title": "One Battle After Another",
+      "overview": "Mười sáu năm sau ngày kẻ thù tàn bạo bị xóa sổ, nhóm cựu chiến sĩ cách mạng buộc phải tái hợp để giải cứu con gái của một đồng đội thân thiết trong nhóm, đối mặt với hiểm nguy mới để bảo vệ di sản tình nghĩa và lý tưởng của họ.",
+      "poster_path": "https://image.tmdb.org/t/p/w500/wQ0IDT8rXOvCt6LflxcMEOUNBUS.jpg",
+      "production_countries": "United States of America",
+      "release_date": "2025-09-23",
+      "runtime": 162,
+      "spoken_languages": "English",
+      "title": "Trận Chiến Sau Trận Chiến",
+      "trailerUrl": "https://www.youtube.com/watch?v=hg8AGTyYMBA",
+      "director": "Paul Thomas Anderson",
+      "cast": [
+        {
+          "name": "Bob",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/wo2hJpn04vbtmh0B9utCFdsQhxM.jpg"
+        },
+        {
+          "name": "Col. Steven J. Lockjaw",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/9glqNTVpFpdN1nFklKaHPUyCwR6.jpg"
+        },
+        {
+          "name": "Willa",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/2goENGgg9OCz7qjMmm0HNxV9Kjj.jpg"
+        },
+        {
+          "name": "Sensei Sergio St. Carlos",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/cVh4UgCMu6aAkZ2BqymTLV86FzZ.jpg"
+        },
+        {
+          "name": "Deandra",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/jiFZ4xNrvUUZLBHnJu71CvdN4kj.jpg"
+        },
+        {
+          "name": "Perfidia",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/wVHbluUvjKl0NucSeuAhAJAr2oc.jpg"
+        },
+        {
+          "name": "Laredo",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/v3puIl2KncqUd6amDyD1Y0crzkF.jpg"
+        },
+        {
+          "name": "Virgil Throckmorton",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/A3hXimbzDtFxQ1PXNo8gG7RZeN4.jpg"
+        },
+        {
+          "name": "Bill Desmond",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/7lcIxTqarAgkdLiNlc7Ad57vcP1.jpg"
+        },
+        {
+          "name": "Sommerville",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/maPuaFdSLnz3br46Ar2GptK4okK.jpg"
+        },
+        {
+          "name": "Talleyrand",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/pcGrPow62Sjkxn6BBZoylcLjOhd.jpg"
+        },
+        {
+          "name": "Roy More",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/t4LMNB2Rhu9SLbr64gOW5V4sW96.jpg"
+        },
+        {
+          "name": "Tim Smith",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/wjA5d3Mcv0uqwQqKqEKbQtF7BuH.jpg"
+        },
+        {
+          "name": "Avanti",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/z4mA3Lz5iZVqZDZom4ItBxM8eQN.jpg"
+        },
+        {
+          "name": "Sister Rochelle",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/nV8nnymN0ClT3xppwhlAtUnjSxa.jpg"
+        },
+        {
+          "name": "Sandy Irvine",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/A4kNt6XU9HcoRKCD1e8RQLIn2IK.jpg"
+        },
+        {
+          "name": "Mae West",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/uOU4uueRxH5BYhzNjzPxJOxZStJ.jpg"
+        },
+        {
+          "name": "Junglepussy",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/548343QgpjThfYDxXEmtC0RvcH9.jpg"
+        },
+        {
+          "name": "Sober Rick",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/uC4BsTVhN7iSKp3RF8108KxWWMO.jpg"
+        },
+        {
+          "name": "R.A. Rippey",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sylvia",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Grandma Minnie",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/pRa261QaUrK03ERYG26QHYCRP0n.jpg"
+        },
+        {
+          "name": "Momma Sandrae",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Newborn Baby Charlene",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Baby Charlene",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Bank Security Guard",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sgt. Joe",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Official Lockjaw Award",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Witness Protection Officer",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Willa's Teacher",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Snap Crackle Pop Kid",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Snap Crackle Pop Kid",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Alice More",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Christmas Ted",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "CAC Security",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Danvers",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Billy Toejam",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Soldier",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Soldier",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Soldier",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Soldier",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Soldier",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Soldier",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Soldier",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Soldier",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Military Man",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/apYgeBsdykZkKwn2TMPO4zUUF0F.jpg"
+        },
+        {
+          "name": "Military Man",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Military Man",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Military Man",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Military Man",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Military Man",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Bluto",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Bobo",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "RiRi",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Autumn",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Deandra's Van Driver",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/pKeZNewK7yJvOV4feKUXZcD8LMa.jpg"
+        },
+        {
+          "name": "Principal",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Bathroom Girl",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Bathroom Girl",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Bathroom Girl",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Bathroom Girl",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Bathroom Girl",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Greeting Code (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/1qmkanVCFr3ZaXcxSXVDO8andb0.jpg"
+        },
+        {
+          "name": "Comrade Josh",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Reina",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Marisela",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Primo Derrick",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Esperanza",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sacred Heart",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "BeeGee",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Luis",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Julian",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Latino Heat",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sister Vox",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sister Coco",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sister",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sister",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sister",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sister",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sister",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sister",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sister",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sister",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sister",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sister",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sister",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sister",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sister",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sister",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Paddy Wagon Cop",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Police Station Nurse",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Hospital Nurse",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Tacos T-Shirt",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Fruit Stand Tio",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Fruit Stand Primo",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Fruit Stand Primo",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sensei Sheriff",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sensei Sheriff",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "1776 Relentless",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "1776 James",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/kUrejsnBmD5eUSm4ftapOiFUqML.jpg"
+        },
+        {
+          "name": "CB Radio",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Twink (background)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/pUNfHmVqfwRdILhCkU8TdysVOXo.jpg",
+      "genres": [
+        {
+          "id": 878,
+          "name": "Phim Khoa Học Viễn Tưởng"
+        },
+        {
+          "id": 12,
+          "name": "Phim Phiêu Lưu"
+        },
+        {
+          "id": 28,
+          "name": "Phim Hành Động"
+        }
+      ],
+      "id": 533533,
+      "release_dates": ["2025-10-09"],
+      "original_language": "en",
+      "original_title": "TRON: Ares",
+      "overview": "Một chương trình trí tuệ nhân tạo siêu việt mang tên Ares được gửi từ thế giới số vào thế giới thực trong một nhiệm vụ đầy nguy hiểm — đánh dấu lần đầu tiên nhân loại tiếp xúc trực tiếp với một thực thể A.I. sống động.",
+      "poster_path": "https://image.tmdb.org/t/p/w500/lj7imLGAzI3zKvbJtPH01aYW9lU.jpg",
+      "production_countries": "United States of America",
+      "release_date": "2025-10-08",
+      "runtime": 119,
+      "spoken_languages": "English",
+      "title": "Trò Chơi Ảo Giác: Ares",
+      "trailerUrl": "https://www.youtube.com/watch?v=YShVEXb7-ic",
+      "director": "Joachim Rønning",
+      "cast": [
+        {
+          "name": "Ares",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/ca3x0OfIKbJppZh8S1Alx3GfUZO.jpg"
+        },
+        {
+          "name": "Eve Kim",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/6SydTis4XUcovlwIGskT59JowLX.jpg"
+        },
+        {
+          "name": "Julian Dillinger",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/82yu3I5vSoEqnIL3GE8oB5DHehI.jpg"
+        },
+        {
+          "name": "Elisabeth Dillinger",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/60fOJNhmfEmyskQDmHStSMHRjgK.jpg"
+        },
+        {
+          "name": "Athena",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/801hOIFSiYfakVDkX0U3vEAHAMt.jpg"
+        },
+        {
+          "name": "Kevin Flynn",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/xms1RAY6q7Lzp7wNeRCB0kzhucn.jpg"
+        },
+        {
+          "name": "Ajay Singh",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/6vHHhLnbKBCPmYc90qAV2Cde95F.jpg"
+        },
+        {
+          "name": "Seth Flores",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/pbLoDCfjm3fLtGHVqQcnbM2d0cu.jpg"
+        },
+        {
+          "name": "Caius",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/gegD6j2xaDCTFByssg8PDbuUbjR.jpg"
+        },
+        {
+          "name": "Erin",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/cj9Ztgkc45lUB83u7iK3mvq5G3q.jpg"
+        },
+        {
+          "name": "Cyber Security Pete",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/2rDEXAjJj9LTLi337qdpVlqLXKx.jpg"
+        },
+        {
+          "name": "Cross",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/gLbHM7JH2nWCeEzSjzAYBUOSkT8.jpg"
+        },
+        {
+          "name": "General McGrath",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/8BbDBMItIx5OFD1YVmQeSALWQqq.jpg"
+        },
+        {
+          "name": "Marcia Lee Hadlow",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/hX6i25ieoEJEZ1jV81qob2Na0su.jpg"
+        },
+        {
+          "name": "Stuart Roche",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/wXzjDHOXsxo3YcLmA6f7rbbuqAD.jpg"
+        },
+        {
+          "name": "Silvio",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/34xshC6FVZMfbKIocnBLjqQSLPw.jpg"
+        },
+        {
+          "name": "Robin Roberts",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/46AIzt0T5klz2a37adyScGcs6oO.jpg"
+        },
+        {
+          "name": "Kara Swisher",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/oueBX3TwOKDgONPOgRwHyW9mlna.jpg"
+        },
+        {
+          "name": "Ajay's Driver",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/9EztCZQ4nZmBxCAKvdgYjTCVyF1.jpg"
+        },
+        {
+          "name": "Encom Engineer #1",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/4DJiXoajamPT3i3VkRyD2CogNZR.jpg"
+        },
+        {
+          "name": "Encom Engineer #2",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/Ad4xkuWPy3Vmbeox04C0Plec5Co.jpg"
+        },
+        {
+          "name": "Encom Engineer #3",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Athena's Red Guard #1",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/8tKVgcgrNqHo7LuKlA4RguGRVmc.jpg"
+        },
+        {
+          "name": "F-35 Pilot #1",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/v6DcTfFqFTFaR8gqMK6sOODKS0T.jpg"
+        },
+        {
+          "name": "F-35 Pilot #2",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/q9FkywKCRqe3pNnhTApHYfnwMiC.jpg"
+        },
+        {
+          "name": "Pizza Parlor Patron",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/rjOMLSLPuD92Uerv3YqztcGm8DH.jpg"
+        },
+        {
+          "name": "Tess Kim",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Tess Kim (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/uXqd6dR0GC0ffjqAHrvaBY0UcCY.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/dh0dLVLDLqUKhtytCFjkf3EHeJI.jpg",
+      "genres": [
+        {
+          "id": 16,
+          "name": "Phim Hoạt Hình"
+        },
+        {
+          "id": 28,
+          "name": "Phim Hành Động"
+        },
+        {
+          "id": 14,
+          "name": "Phim Giả Tượng"
+        }
+      ],
+      "id": 1218925,
+      "original_language": "ja",
+      "original_title": "チェンソーマン レゼ篇",
+      "overview": "",
+      "release_dates": ["2025-09-26"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/kywH6s7qTa64i0drx3pNvpQufWR.jpg",
+      "production_countries": "Japan",
+      "release_date": "2025-09-19",
+      "runtime": 100,
+      "spoken_languages": "日本語",
+      "title": "Chainsaw Man - The Movie: Chương Reze",
+      "trailerUrl": "https://www.youtube.com/watch?v=tAzAhDNdehs",
+      "director": "吉原達矢",
+      "cast": [
+        {
+          "name": "Denji (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/tSAHe7tjN7luUD1Tx5yPSCuCnuD.jpg"
+        },
+        {
+          "name": "Reze (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/hlzrvBzeSYejeaTSZDvEWE44Qjj.jpg"
+        },
+        {
+          "name": "Pochita (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/f9V38OeDvRGevWuKc4dN6LB62TH.jpg"
+        },
+        {
+          "name": "Makima (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/t5aBzyYiJZDE6DWeTcGMrcQpiI5.jpg"
+        },
+        {
+          "name": "Aki (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/fRRPNBz3OCNRdmLdUTdpq7dGqxM.jpg"
+        },
+        {
+          "name": "Power (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/coFu6WOVBZvqd1fw89vbHkiC0zB.jpg"
+        },
+        {
+          "name": "Kobeni (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/40eynav2SoYcfd0McfiF46Hu16o.jpg"
+        },
+        {
+          "name": "Beam (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/alTb0DlcPIbcwM08WSmxFai58sd.jpg"
+        },
+        {
+          "name": "The Violence Fiend (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/4xLLQGEDWtmLWUapo0UnfvCdsXp.jpg"
+        },
+        {
+          "name": "Angel Devil (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/rq4glg2SZwGyt3TIxR3ElalKmhH.jpg"
+        },
+        {
+          "name": "Kishibe (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/yBlT8FzQqZYbDcJlnCEayNQHrzS.jpg"
+        },
+        {
+          "name": "Vice Captain (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/uwtvViVOTBpqjgv90YSls2xoQy7.jpg"
+        },
+        {
+          "name": "Nomo (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/sBduxft8NwdbASvtL14bMx86cPq.jpg"
+        },
+        {
+          "name": "Mysterious Man (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/rmTziYxlPje4PiKhPgqMEHu9Axd.jpg"
+        },
+        {
+          "name": "Typhoon Devil (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/9WWqr734lWfs6YOQikkBBs7Rgo4.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/eQV9rSQ6S1ja4lGTwHTnQuVhoG.jpg",
+      "genres": [
+        {
+          "id": 27,
+          "name": "Phim Kinh Dị"
+        },
+        {
+          "id": 35,
+          "name": "Phim Hài"
+        },
+        {
+          "id": 14,
+          "name": "Phim Giả Tượng"
+        },
+        {
+          "id": 18,
+          "name": "Phim Chính Kịch"
+        }
+      ],
+      "id": 1284120,
+      "release_dates": ["2025-09-19"],
+      "original_language": "no",
+      "original_title": "Den stygge stesøsteren",
+      "overview": "Phim xoay quanh Elvira, cô gái luôn bị xem là xấu xí và sống dưới cái bóng của người chị kế xinh đẹp Agnes. Khi mẹ kế Rebekka tìm cách lợi dụng con gái để đạt được quyền lực, Elvira bị ép phải thay đổi ngoại hình bằng những phương pháp tàn nhẫn. Trong cuộc đấu tranh giành sự chú ý của Hoàng tử Julian, cô trở nên ám ảnh với sắc đẹp, dần mất đi bản chất và bị cuốn vào những góc khuất của tham vọng.",
+      "poster_path": "https://image.tmdb.org/t/p/w500/vKAExpWQWlQjsMdBUnJUAeUaQGe.jpg",
+      "production_countries": "Denmark",
+      "release_date": "2025-03-07",
+      "runtime": 109,
+      "spoken_languages": "Norsk",
+      "title": "Cắt Ngón Thử Hài",
+      "trailerUrl": "https://www.youtube.com/watch?v=5vZ1_Yxjwzs",
+      "director": "Emilie Blichfeldt",
+      "cast": [
+        {
+          "name": "Elvira",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/wRsFFN1lhGcVM5kQFnLRW0wlQXR.jpg"
+        },
+        {
+          "name": "Rebekka",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/t3hvq05o8oz9qJSI3KelxSkGXXO.jpg"
+        },
+        {
+          "name": "Agnes",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/fzd0RI8Vnsw1LoG81YthvdnaeJD.jpg"
+        },
+        {
+          "name": "Alma",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/yem43JCCG9xpjTT1IuosGtmZVNA.jpg"
+        },
+        {
+          "name": "Prince Julian",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/doyeUwvMsSkNuNzak9kBt26fNuP.jpg"
+        },
+        {
+          "name": "Isak",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/vDtILRvipBzF2bVqZBiqMQ1HehP.jpg"
+        },
+        {
+          "name": "Otto",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/iTvT8uyyVrWbyczhSGRYHeOmb9Z.jpg"
+        },
+        {
+          "name": "Sophie von Kronenberg",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/mutGaRS2YbySqxyUvGQNYWLeJKX.jpg"
+        },
+        {
+          "name": "Madam Vanja",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/yD23VXf4IGH89jSBrOfJYY4Q7GW.jpg"
+        },
+        {
+          "name": "Dr. Esthétique",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/hB62780sPK5HpHBylShEsrtfIh1.jpg"
+        },
+        {
+          "name": "Frederik von Bluckfish",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/wxBH04VtvbWt2mB2O9kz5E7f0oV.jpg"
+        },
+        {
+          "name": "Jan",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/pFhPPKfngoI6D08aUm5c8dKgV7h.jpg"
+        },
+        {
+          "name": "Finsmakeren",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/eL16agzse7z78mMzGpJSNb7yDkK.jpg"
+        },
+        {
+          "name": "Alteteren",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/y3jUFUHgc8DVYlWgcw2TONcGHE4.jpg"
+        },
+        {
+          "name": "Kokk",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/y2bmkGPKRnonXIClDxH8ew69dlz.jpg"
+        },
+        {
+          "name": "Hovmester",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/aoZ4qgn6LaMwZRnGfWngN3rlugP.jpg"
+        },
+        {
+          "name": "Bankmann",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/3I6wbyBPvX40taQWjS7KghvZ7NG.jpg"
+        },
+        {
+          "name": "Grensevankt",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Agnes's Mother",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/4rvcJMkl1Test5C6DFFpqJY2CrJ.jpg"
+        },
+        {
+          "name": "Budbringer",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/srGgXVoyQZ42vrcXuCymcteUy9V.jpg"
+        },
+        {
+          "name": "Baron Von Bluckfish",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/1XXxBOgGrtRyUQahEb0CjTQBv0x.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/28zX1DO1NJWeS1e573lSJQ9kiVh.jpg",
+      "genres": [
+        {
+          "id": 27,
+          "name": "Phim Kinh Dị"
+        },
+        {
+          "id": 53,
+          "name": "Phim Gây Cấn"
+        }
+      ],
+      "id": 604079,
+      "release_dates": ["2025-09-19"],
+      "original_language": "en",
+      "original_title": "The Long Walk",
+      "overview": "Mỗi năm, năm mươi thiếu niên nam được chọn tham gia một sự kiện được cả đất nước biết đến với cái tên “Trăm Dặm Tử Thần.” Trong nhóm năm nay có Ray Garraty, 16 tuổi. Cậu biết rõ luật chơi: nếu đi dưới tốc độ quy định, vấp ngã hay ngồi xuống sẽ bị cảnh cáo. Sau ba lần cảnh cáo… bạn sẽ nhận “vé” của mình. Và điều xảy ra sau đó là lời nhắc nhở rùng rợn rằng trong cuộc thi này — chỉ có một người chiến thắng: người duy nhất còn sống.",
+      "poster_path": "https://image.tmdb.org/t/p/w500/lW4uZnHTqUDTmHiaElnMON47JOd.jpg",
+      "production_countries": "United States of America",
+      "release_date": "2025-09-10",
+      "runtime": 109,
+      "spoken_languages": "English",
+      "title": "Trăm Dặm Tử Thần",
+      "trailerUrl": "https://www.youtube.com/watch?v=vAtUHeMQ1F8",
+      "director": "Francis Lawrence",
+      "cast": [
+        {
+          "name": "Raymond Garraty / #47",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/8Y0AfdcpgzL4SHpKjspkDFBd6zN.jpg"
+        },
+        {
+          "name": "Peter McVries / #23",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/2ZZNGZw57KKMrVIr27g7W16G0jV.jpg"
+        },
+        {
+          "name": "Stebbins / #38",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/fGitxzQzJWgWqEYiDECJIB8pavW.jpg"
+        },
+        {
+          "name": "Arthur Baker / #6",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/nnQCY629iCcf5veJ7pJVG6onMgC.jpg"
+        },
+        {
+          "name": "Gary Barkovitch / #5",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/u2ig0kkgxq36BMbFQ4DEWfu5G3A.jpg"
+        },
+        {
+          "name": "Hank Olson / #46",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/5A6JgNR9nlFVjuzJ1oOXyj2hfJo.jpg"
+        },
+        {
+          "name": "Richard Harkness / #49",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/moEGDOzrAkWs9W5C25RlxirroTq.jpg"
+        },
+        {
+          "name": "Collie Parker / #48",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/7z9RXNGcxTaZc1jZlk6uszvktkX.jpg"
+        },
+        {
+          "name": "The Major",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/2ZulC2Ccq1yv3pemusks6Zlfy2s.jpg"
+        },
+        {
+          "name": "Curley / #7",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/jEox6Bq4TlINrnp5EUjqSlDK3eP.jpg"
+        },
+        {
+          "name": "Ginnie Garraty",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/qiwvGgbbgwiE8gA4oBQpFnTNzl2.jpg"
+        },
+        {
+          "name": "William Garraty",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/7nuAUPd7E8iOE5lhUcNpogS2akP.jpg"
+        },
+        {
+          "name": "Rank",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/qkzzGph0v2Ii9REzxEhxoTavTbY.jpg"
+        },
+        {
+          "name": "Tressler",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Larson",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/92KAc2QvH9qEBQKyLqFbdkWrZck.jpg"
+        },
+        {
+          "name": "Ewing",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Ronald",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Smith",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/u8uFQql0v0jJrEKd4sDNsoXRxxK.jpg"
+        },
+        {
+          "name": "Lady in Black Dress",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/sLEOfwtdFCzpemIhOmpB1xpz6p0.jpg"
+        },
+        {
+          "name": "Garraty's Fan",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Percy",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Pearson",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/vhZCpcgYzPlBajzJZia8Ap3uzy0.jpg"
+        },
+        {
+          "name": "Zuck",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Police Officer",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/sJ0RxYecZCJ5zybOsQjTedhMwp.jpg"
+        },
+        {
+          "name": "Police Officer",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/8YBvF1cwjKn5XFu3lHOb8Kar4ht.jpg"
+        },
+        {
+          "name": "Entry Gate Soldier",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/vt5CVhvj5TcCmBwYM6nZHwAh54N.jpg"
+        },
+        {
+          "name": "Percy’s Mum",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/viQhoTBI9ugYbTr7vNAaaBWIRKz.jpg"
+        },
+        {
+          "name": "Small Boy on Bike",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Small Boy on Bike",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Loud Speaker Voice",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/sIqdonn5NvUvJoWQbTWO7NDCgE3.jpg"
+        },
+        {
+          "name": "Singer",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/mhkp5KusO9WjA4DHjjLFOiP6Sic.jpg"
+        },
+        {
+          "name": "BG Spectator (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/DPsSeSkCPaKHX7I2IRFga7WuZH.jpg"
+        },
+        {
+          "name": "BG Spectator (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "BG Spectator (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "BG Spectator (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Derrick #12",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/d33Ch4BGhIAsvk3Qm6EhxQSGr73.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/MrcSSzWGsXf2IUJpjPPFLlNbjX.jpg",
+      "genres": [
+        {
+          "id": 10751,
+          "name": "Phim Gia Đình"
+        },
+        {
+          "id": 35,
+          "name": "Phim Hài"
+        },
+        {
+          "id": 12,
+          "name": "Phim Phiêu Lưu"
+        },
+        {
+          "id": 16,
+          "name": "Phim Hoạt Hình"
+        }
+      ],
+      "id": 1280282,
+      "release_dates": ["2025-09-26"],
+      "original_language": "en",
+      "original_title": "Gabby's Dollhouse: The Movie",
+      "overview": "Gabby cùng bà ngoại Gigi lên đường cho một chuyến đi thú vị đến thành phố mèo rực rỡ Cat Francisco. Nhưng rắc rối ập đến khi ngôi nhà búp bê — vật báu quý giá nhất của Gabby — rơi vào tay Vera, một bà cô kỳ quặc mê mèo. Quyết tâm giành lại, Gabby bước vào cuộc phiêu lưu xuyên thế giới thực, tập hợp lại những chú mèo Gabby Cats và cứu ngôi nhà búp bê trước khi quá muộn.",
+      "poster_path": "https://image.tmdb.org/t/p/w500/84jekc5IPMAWZcof5BQGXl2dgQD.jpg",
+      "production_countries": "United States of America",
+      "release_date": "2025-09-13",
+      "runtime": 98,
+      "spoken_languages": "English",
+      "title": "Nhà Búp Bê Của Gabby: Phim Điện Ảnh",
+      "trailerUrl": "https://www.youtube.com/watch?v=S-GFCPEWqe4",
+      "director": "Ryan Crego",
+      "cast": [
+        {
+          "name": "Gabby",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/3hGsO4pNH9UfuPvmo2nHbWqCUVl.jpg"
+        },
+        {
+          "name": "Grandma Gigi",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/alS75LDLaXopWcWxUVZ2Q70Mlm5.jpg"
+        },
+        {
+          "name": "Vera",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/N517EQh7j4mNl3BStMmjMN6hId.jpg"
+        },
+        {
+          "name": "Pandy Paws (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Daniel James 'DJ' Catnip (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/mbGv6DB2JR4DbmoTwfvy5wKToRo.jpg"
+        },
+        {
+          "name": "Cakey (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/sogJreLmv2bjJhouyRWuYQpTCys.jpg"
+        },
+        {
+          "name": "CatRat (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/nxhYW1Q3I4EjsKymgZnqTInf5gi.jpg"
+        },
+        {
+          "name": "Pillow Cat (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/7XklsT4fkiBOOIUjUb09OZUNjJT.jpg"
+        },
+        {
+          "name": "Baby Box (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/pptRjIdZVdmy4CRn3fkESdBqULk.jpg"
+        },
+        {
+          "name": "Carlita (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/j9fVEGQp65vXGKhlXQyyfRMzXWO.jpg"
+        },
+        {
+          "name": "Kitty Fairy / Mama Box (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/8Z86FfWbnUJnyFTcLa9MpVVFhMh.jpg"
+        },
+        {
+          "name": "Dragonfly (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/rFzyzGJ56x9l4mh17zahNJx7aXf.jpg"
+        },
+        {
+          "name": "MerCat (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/8V3XYgtnB8nFrMnUqxk5o1Vba8H.jpg"
+        },
+        {
+          "name": "Matthew (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/s8pw7BfuMxN7P0p5XJ9POfod7zW.jpg"
+        },
+        {
+          "name": "Chumsley (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/vv6ULb4DMMctAWBAWguwvDgzi7Q.jpg"
+        },
+        {
+          "name": "Cookie Bobby (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/zKUWYrROoa9RvxAggbolQRaSLVG.jpg"
+        },
+        {
+          "name": "Twiggy (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/1vpud1BpXvbJUy0OO3B8Vl24nlp.jpg"
+        },
+        {
+          "name": "Sunflower (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/144VoO4M5sU0Mn4lpTOYQFAgNVO.jpg"
+        },
+        {
+          "name": "Kitty Fridge (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/aCV6S7Tuh9iUmF9on6EwaXC3rCI.jpg"
+        },
+        {
+          "name": "Existential Gnome (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/xywmFOt1OkUGa2Ex2YnmjI6gyd7.jpg"
+        },
+        {
+          "name": "Kitty Ranger #1",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/58gZlw6bhyFaehUM1QuUCg9lSWb.jpg"
+        },
+        {
+          "name": "Kitty Ranger #2",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Kitty Ranger #3",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/dqxG8BNxmqJFQhlG9sORz0cXK5A.jpg"
+        },
+        {
+          "name": "Young Vera",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Teenage Vera",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/v6xYhLuY7SJIGUwOjDJ96y3U7bv.jpg"
+        },
+        {
+          "name": "Young Gabby",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Crosswalk Voice (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/oh4VeJpkORXoGJdIohNpXJyO3kt.jpg"
+        },
+        {
+          "name": "Marlena Purrkins",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Spatula (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/vrUHaXe1pG56yZkgH7Hs3LGRLTT.jpg"
+        },
+        {
+          "name": "GPS (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/r9ddS7WpHoLLb0KMEeRE3QSECnW.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/2ha0wAOqrUcLScStWQcgeOOXapQ.jpg",
+      "genres": [
+        {
+          "id": 10749,
+          "name": "Phim Lãng Mạn"
+        },
+        {
+          "id": 14,
+          "name": "Phim Giả Tượng"
+        },
+        {
+          "id": 18,
+          "name": "Phim Chính Kịch"
+        }
+      ],
+      "id": 1241921,
+      "original_language": "en",
+      "original_title": "A Big Bold Beautiful Journey",
+      "overview": "Một câu chuyện giàu tưởng tượng về hai con người xa lạ và hành trình khó tin kết nối họ với nhau.",
+      "release_dates": ["2025-09-19"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/kLj4YkiFUzdXyjPFURMUPZsQWuj.jpg",
+      "production_countries": "United States of America",
+      "release_date": "2025-09-17",
+      "runtime": 109,
+      "spoken_languages": "English",
+      "title": "Hành Trình Rực Rỡ Ta Đã Yêu",
+      "trailerUrl": "https://www.youtube.com/watch?v=7t9cPtA9St0",
+      "director": "코고나다",
+      "cast": [
+        {
+          "name": "David",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/lZ3dU4uFEV4BccAEvjJUBIY2OaB.jpg"
+        },
+        {
+          "name": "Sarah",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/euDPyqLnuwaWMHajcU3oZ9uZezR.jpg"
+        },
+        {
+          "name": "David's Mother",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/yC5EggWQNsP2QzG4goe0Izj7YIo.jpg"
+        },
+        {
+          "name": "David's Father",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/hByas1g3htnZFWIbCBdbxC7vGeS.jpg"
+        },
+        {
+          "name": "Female Cashier",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/ppRIfUYcl0RWlxp5gSmdzIFFLAS.jpg"
+        },
+        {
+          "name": "The Mechanic",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/ArH5dACd9AmWNNMnI6bGEkiFYIM.jpg"
+        },
+        {
+          "name": "GPS (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/801hOIFSiYfakVDkX0U3vEAHAMt.jpg"
+        },
+        {
+          "name": "Sarah's Mother",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/u54mVF2vcjymvLhyImxzInq4Y3o.jpg"
+        },
+        {
+          "name": "The Man",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/ugyx7Wn2uAWsNlR5eX4yWFsGV2Y.jpg"
+        },
+        {
+          "name": "Cheryl",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/yAJZ883uLsfY4yHncUC9rTvKVQ9.jpg"
+        },
+        {
+          "name": "Amanda",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "The Woman",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/r0WjZpOuIjF9BRP8y0MDkZ4j1x9.jpg"
+        },
+        {
+          "name": "Mike",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/hEzljVgsho0Uwd8tg7AGB5Uy3Lr.jpg"
+        },
+        {
+          "name": "Sarah's Groomsman",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/ut5os4iils00EoxadyHm8dDqt1h.jpg"
+        },
+        {
+          "name": "Stacy Dunn",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/hmvxEkSMM6qaw651xsgBI5F7XfS.jpg"
+        },
+        {
+          "name": "Smitty",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/59OPKUdFv7vfg7T8CePmmqXQTip.jpg"
+        },
+        {
+          "name": "Mr. Nelson",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/kTaZGtOP3SR6kosdRLyeQayfjcF.jpg"
+        },
+        {
+          "name": "Stage Manager",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/vwcI9rewcPbesjs21zl0d8lobZO.jpg"
+        },
+        {
+          "name": "Tate Chandler",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/r1XuXZF4AqXJSkoHYijuToMZGok.jpg"
+        },
+        {
+          "name": "Young David",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Father of the Bride",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/jXo9TFBX13WTLg1qheVWoTeN37o.jpg"
+        },
+        {
+          "name": "Vincent",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/88xwpfbck9vqpOs2BTtvB5Pl1NG.jpg"
+        },
+        {
+          "name": "Choreographer",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/pHCa12C16fKYhUwELLLYetivXpS.jpg"
+        },
+        {
+          "name": "Amy Moore",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/elBjSiMwnYgrqcyTm4R2BoDOJ8w.jpg"
+        },
+        {
+          "name": "Eddie Bora",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/v1tALQYJr5oeC0bpduz2ITV6iDp.jpg"
+        },
+        {
+          "name": "Another Mother",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/z3E0H9S0Jqe4xQX81AudS1w85on.jpg"
+        },
+        {
+          "name": "Miss Jones",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/8lqhkUTeHKjzaMPM4ehIqfqt8qA.jpg"
+        },
+        {
+          "name": "Doctor Vernon",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/ArOb98OvWTZo89ieOzPfNH5aWPH.jpg"
+        },
+        {
+          "name": "Nurse",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Hotel Receptionist",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Student Performer",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Student Performer",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Student Performer",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Student Performer",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Student Performer",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Student Performer",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Student Performer",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Old Woman (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/lNRtMdZfKhbmZUkuFuNDjYrW1DK.jpg"
+        },
+        {
+          "name": "Officiant (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Nan (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/uWoTTmucusEQMYCvVql9ctDboJZ.jpg"
+        },
+        {
+          "name": "Groomsman (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Clarinet Player (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Parent (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Student (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Wedding Guest (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Student (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Concerned Parent (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Groomsman Girl (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Dr. Johnson (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Student (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Theatre Audience (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Bridesmaid (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Concert Guest (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/p8DeHncPtEkoRV99wwX1UR01C57.jpg"
+        },
+        {
+          "name": "Student (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Parent (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Parent (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Wedding Guest (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Parent (uncredited)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/b2CI72tIGLCgg5uzmP4d1q24w0i.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/f5csnjqQj5qdqc0EZchon94hXZ6.jpg",
+      "genres": [
+        {
+          "id": 27,
+          "name": "Phim Kinh Dị"
+        },
+        {
+          "id": 9648,
+          "name": "Phim Bí Ẩn"
+        },
+        {
+          "id": 53,
+          "name": "Phim Gây Cấn"
+        }
+      ],
+      "id": 1408208,
+      "original_language": "ja",
+      "original_title": "８番出口",
+      "release_dates": ["2025-09-26"],
+      "overview": "Bộ phim xoay quanh một chàng trai trẻ bị mắc kẹt trong một hành lang tàu điện ngầm vô tận và lạnh lẽo. Tại đây, anh chàng bất đắc dĩ phải tham gia vào một trò chơi tìm kiếm “lối ra số 8”. Vòng đầu tiên sẽ bắt đầu từ “lối ra số 0”, luật chơi tưởng chừng rất đơn giản: Đừng bỏ qua bất kỳ điều gì bất thường ở hành lang của mỗi lối ra. Nếu phát hiện điều gì sai, hãy lập tức quay đầu. Nếu không thấy gì thay đổi, cứ đi tiếp. Nhưng chỉ một lần lơ là, người chơi lập tức trở về điểm xuất phát. Giữa mê cung vô tận với những cơn ảo giác ập đến, liệu anh chàng có thể giành chiến thắng và trở về với thực tại?",
+      "poster_path": "https://image.tmdb.org/t/p/w500/AdqhED7D1k2QnzTqDiPTI9UTzfr.jpg",
+      "production_countries": "Japan",
+      "release_date": "2025-08-28",
+      "runtime": 95,
+      "spoken_languages": "日本語",
+      "title": "Exit 8: Ga Tàu Vô Tận",
+      "trailerUrl": "https://www.youtube.com/watch?v=emZZexEJO8c",
+      "director": "川村元気",
+      "cast": [
+        {
+          "name": "The Lost Man",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/4mxogZeEPZiVrnJ4L8ICvOJONfs.jpg"
+        },
+        {
+          "name": "The Walking Man",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/8CUS41LVMlBH5Am2uZC3F44yyDw.jpg"
+        },
+        {
+          "name": "The Boy",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/orV4an2sD7PgLpHCulgCBDgs1bl.jpg"
+        },
+        {
+          "name": "The Schoolgirl",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/xSimDM5cdwBtVAa7FJ36gFyMC0p.jpg"
+        },
+        {
+          "name": "The Woman",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/sBVCeJ9hLDCdOenLzwzmVtFfws6.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/y3JwJgHVy9njw8t4mw56Kl891Hp.jpg",
+      "genres": [
+        {
+          "id": 10749,
+          "name": "Phim Lãng Mạn"
+        },
+        {
+          "id": 35,
+          "name": "Phim Hài"
+        },
+        {
+          "id": 9648,
+          "name": "Phim Bí Ẩn"
+        }
+      ],
+      "id": 873797,
+      "original_language": "ko",
+      "original_title": "악마가 이사왔다",
+      "overview": "",
+      "release_dates": ["2025-09-05"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/wjh29GaJPKF1J0nLdpXuExncQ8U.jpg",
+      "production_countries": "South Korea",
+      "release_date": "2025-08-13",
+      "runtime": 113,
+      "spoken_languages": "한국어/조선말",
+      "title": "악마가 이사왔다",
+      "trailerUrl": "https://www.youtube.com/watch?v=_vGaldDcj-k",
+      "director": "이상근",
+      "cast": [
+        {
+          "name": "Seon-ji",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/JzAuAv17bWkLxVtfi9YJvQJhZl.jpg"
+        },
+        {
+          "name": "Gil-gu",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/2pNNCnjI1TwxjyP3Y4cJln1wOKE.jpg"
+        },
+        {
+          "name": "Jang-su",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/9VLRIvOyQSHkpJaeaBcmHzcEUQn.jpg"
+        },
+        {
+          "name": "Ah-ra",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/mOI26FtPFBfFn49MikjfaY4a3NU.jpg"
+        },
+        {
+          "name": "Yeong-sik",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/fjLjcvy0K27IZM8frGn8mhjjkds.jpg"
+        },
+        {
+          "name": "Hee-bum",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/x9wPSUH71He1brPS4dsrcfN9flo.jpg"
+        },
+        {
+          "name": "Young Jang-su",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/ioVlXXrahe7hI8lWt0BwXdvZc6U.jpg"
+        },
+        {
+          "name": "8-year-old Seon-ji",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/sqvxZG5Cm8kepvddVNdsxx8l5kD.jpg"
+        },
+        {
+          "name": "Convenience store part-timer",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/j2z1DbZDeEq3ZW4uWFsGoRMGnB5.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/wduUhYLGaYSD2mSu7YHd09l1N6j.jpg",
+      "genres": [
+        {
+          "id": 9648,
+          "name": "Phim Bí Ẩn"
+        },
+        {
+          "id": 53,
+          "name": "Phim Gây Cấn"
+        }
+      ],
+      "id": 1316719,
+      "original_language": "ko",
+      "original_title": "얼굴",
+      "overview": "",
+      "release_dates": ["2025-10-03"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/horybPDulhrSqAVXRyac4zjFAx5.jpg",
+      "production_countries": "South Korea",
+      "release_date": "2025-09-11",
+      "runtime": 102,
+      "spoken_languages": "한국어/조선말",
+      "title": "얼굴",
+      "trailerUrl": "https://www.youtube.com/watch?v=6PQosjn-bnQ",
+      "director": "연상호",
+      "cast": [
+        {
+          "name": "Lim Dong-hwan / Young Lim Yeoung-gyu",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/o0IKTRpUgNILXzWtskyMJM1NG4j.jpg"
+        },
+        {
+          "name": "Lim Yeong-gyu",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/3sCMSQVdY2mqYYq3jj4u9JWRoTt.jpg"
+        },
+        {
+          "name": "Jung Young-hee",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/lU0yMFh5KgOEWZRThLYbB6ZI1hE.jpg"
+        },
+        {
+          "name": "Kim Su-jin",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/vtcti64Em6Gc9tDLsLNbeB4Mwds.jpg"
+        },
+        {
+          "name": "Young Baek Ju-sang",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/6MScMAcMvhKQWTuEfX78pWuqaD9.jpg"
+        },
+        {
+          "name": "Baek Ju-sang",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/esGLG5p5tlnP7VNFSRyertWeMVS.jpg"
+        },
+        {
+          "name": "Lee Jin-suk",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/e1iTjY1FitE4vMu6s25Qmrf6qXc.jpg"
+        },
+        {
+          "name": "Young Lee Jin-suk",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/wmXhbxqC19yMwoexjC9bKfeTdtb.jpg"
+        },
+        {
+          "name": "Aunt",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/bN1a8P9GCWy2fqDPz4TFchX4d6w.jpg"
+        },
+        {
+          "name": "Aunt",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/4VXJXafwdzVMugBeTtTHf6RtDKS.jpg"
+        },
+        {
+          "name": "40s man",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/hxKnznyiPGFM7AuXwCcWBdORLBo.jpg"
+        },
+        {
+          "name": "40s woman",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/nJSugSQsuPirOBgXoZPUDNaaiHW.jpg"
+        },
+        {
+          "name": "Old man 1",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/4J2ABHz5WzyUckPg3UTWAv5Fi6s.jpg"
+        },
+        {
+          "name": "Old man 2",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/1O0sbxChkk24Oefnl4MUGSZaeud.jpg"
+        },
+        {
+          "name": "Old woman",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/6EkUfBktoQXfE6T29Ys5yaBD5wv.jpg"
+        },
+        {
+          "name": "Tailor",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/7Y7fZru4944rwZA4V3C4JJ6Y6ud.jpg"
+        },
+        {
+          "name": "Jin-suk's son",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/1oz795HpTYrf8AZ7QxAys1zz7zV.jpg"
+        },
+        {
+          "name": "Jin-suk's daughter-in-law",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/3XptMMwfDETqXw7UsnhjN92GrwT.jpg"
+        },
+        {
+          "name": "한상철",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/omYkeI5tYVFAYRVWTnsx1xRre30.jpg"
+        },
+        {
+          "name": "오창경",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/fYNUv8dKK9gv9Li39Kfa2m935F9.jpg"
+        },
+        {
+          "name": "전운종",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/wDaXO21iy635GI9o2VZIH0afZPS.jpg"
+        },
+        {
+          "name": "백성철",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/b0AsYLQZhYVoTNQRT19QhXWKNcR.jpg"
+        },
+        {
+          "name": "최환이",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/dLJoVlLJp86flc5CpDgRnNk3qwg.jpg"
+        },
+        {
+          "name": "안현빈",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/auh0OCetibqrqzuxFkaxQtpGT4R.jpg"
+        },
+        {
+          "name": "강전영",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "진용욱",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/23hUazk6qPiIXwjXm8CUYj9J7Mb.jpg"
+        },
+        {
+          "name": "조승구",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/o3ORxe4Mask9hRyODPDCk84ESSI.jpg"
+        },
+        {
+          "name": "임정선",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "한동원",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/zCPth4QgKpqkcTRBCTTHjv3giQk.jpg"
+        },
+        {
+          "name": "Oh Chi-woon",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/hfMFX4OtB3VzFRWqtwAOV8iZ0fG.jpg"
+        },
+        {
+          "name": "함은우",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "김환영",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/h8fnivzgUOAFcwR9UPHfZlkPMSf.jpg"
+        },
+        {
+          "name": "서문호",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/6DbzN1s0WVhliTbcvivSRASx0p.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/nOEIe9E5rj372Y7Ct0Kx3FJ9tLV.jpg",
+      "genres": [
+        {
+          "id": 16,
+          "name": "Phim Hoạt Hình"
+        },
+        {
+          "id": 12,
+          "name": "Phim Phiêu Lưu"
+        },
+        {
+          "id": 35,
+          "name": "Phim Hài"
+        },
+        {
+          "id": 10751,
+          "name": "Phim Gia Đình"
+        }
+      ],
+      "id": 1154304,
+      "original_language": "es",
+      "original_title": "Buffalo Kids",
+      "overview": "",
+      "release_dates": ["2025-09-12"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/tm36PGNHvYMyZyO1kH7il3OVEXS.jpg",
+      "production_countries": "Spain",
+      "release_date": "2024-08-14",
+      "runtime": 83,
+      "spoken_languages": "Español",
+      "title": "Bộ Ba Sửu Nhi Đại Náo Mỏ Vàng",
+      "trailerUrl": "https://www.youtube.com/watch?v=B0OsdEnkFnw",
+      "director": "Pedro Solís",
+      "cast": [
+        {
+          "name": "Mary (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Tom (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/pBn8JYg71xL4F20aVDHtd7BcAnW.jpg"
+        },
+        {
+          "name": "Nick (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Nick (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Eleanor (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Wilson (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Niall (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/3Knf7YGrqS8sfXNPo7k15TIJe92.jpg"
+        },
+        {
+          "name": "Dudley (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Lobo amarillo (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/8wggOdgxvFHFojdz6WcrSddXSEC.jpg"
+        },
+        {
+          "name": "Luna roja (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Inspector Walker (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Mr. Wayne (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Sarah (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Annie (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Additional Voices (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Additional Voices (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Additional Voices (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Additional Voices (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Additional Voices (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Additional Voices (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Additional Voices (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Additional Voices (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Additional Voices (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Additional Voices (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Additional Voices (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Additional Voices (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Additional Voices (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Additional Voices (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Additional Voices (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Additional Voices (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Additional Voices (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        }
+      ]
+    },
+    {
+      "backdrop_path": null,
+      "genres": [
+        {
+          "id": 10749,
+          "name": "Phim Lãng Mạn"
+        },
+        {
+          "id": 35,
+          "name": "Phim Hài"
+        }
+      ],
+      "id": 1326886,
+      "original_language": "ko",
+      "original_title": "나혼자 프린스",
+      "release_dates": ["2025-10-02", "2025-10-03"],
+      "overview": "Siêu sao Kang Jun Woo – “Hoàng tử Châu Á” – rơi vào tình cảnh “mắc kẹt” tại Việt Nam sau một loạt sự cố dở khóc dở cười, nơi anh gặp Thảo – một cô gái bán cà phê đầy đam mê, quyết tâm theo đuổi ước mơ của mình.",
+      "poster_path": "https://image.tmdb.org/t/p/w500/1mqJZHJ4KQNduyWsc3EFzfRj6Kg.jpg",
+      "production_countries": "South Korea",
+      "release_date": "2025-10-03",
+      "runtime": 100,
+      "spoken_languages": "Tiếng Việt",
+      "title": "Tay Anh Giữ Một Vì Sao",
+      "trailerUrl": "https://www.youtube.com/watch?v=hbm5gW3q35I",
+      "director": "김성훈",
+      "cast": [
+        {
+          "name": "Kang Jun-woo",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/eqjZXCV4EutnoVxZwOveK6Nl5W9.jpg"
+        },
+        {
+          "name": "Tao",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/wy27mGYEkyEiV5qrCAw9vD4FcXL.jpg"
+        },
+        {
+          "name": "Duy Khánh Zhou Zhou",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/2gaeaSDvsVgUnQDBrh79s3r36nm.jpg"
+        },
+        {
+          "name": "Cù Thị Trà",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/rBdEEjWMLI4YGqCm3dH0xlUDmYT.jpg"
+        },
+        {
+          "name": "음문석",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/niV5OXu1cgKnlIU1Iamp1BVeCdT.jpg"
+        },
+        {
+          "name": "Lam Thanh My",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/be3nDi7ZV0FPAjblGmf93tus4VC.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/thsAU92Ei2Nbm38ZdkvHI8xLaSc.jpg",
+      "genres": [
+        {
+          "id": 16,
+          "name": "Phim Hoạt Hình"
+        },
+        {
+          "id": 18,
+          "name": "Phim Chính Kịch"
+        },
+        {
+          "id": 9648,
+          "name": "Phim Bí Ẩn"
+        },
+        {
+          "id": 12,
+          "name": "Phim Phiêu Lưu"
+        }
+      ],
+      "id": 717787,
+      "original_language": "ko",
+      "original_title": "연의 편지",
+      "overview": "",
+      "release_dates": ["2025-10-10"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/nbm36xsDILraKIphEag1kqVKHV6.jpg",
+      "production_countries": "South Korea",
+      "release_date": "2025-10-01",
+      "runtime": 97,
+      "spoken_languages": "한국어/조선말",
+      "title": "Những Lá Thư Của Yeon",
+      "trailerUrl": "https://www.youtube.com/watch?v=XhY-EFVYIw4",
+      "director": "김용환",
+      "cast": [
+        {
+          "name": "Lee So-ri (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/7LlUeXjot9QCfjBgvW2XjIJbEcz.jpg"
+        },
+        {
+          "name": "Park Dong-soon (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/e2Xfk09GaRE73U8oozf7aQaLkZY.jpg"
+        },
+        {
+          "name": "Jung Ho-yeon (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/sUDbIMX5XfAcYck4Qe2tjJZrHv4.jpg"
+        },
+        {
+          "name": "Ahn Seung-kyu (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/jUqgi8MdAFWIZffk7iIgjRcdLb1.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/9kseUDLgtWpUlfGzHr3heYOSBb6.jpg",
+      "genres": [
+        {
+          "id": 27,
+          "name": "Phim Kinh Dị"
+        }
+      ],
+      "id": 1527179,
+      "original_language": "vi",
+      "original_title": "Khế Ước Bán Dâu",
+      "overview": "",
+      "release_dates": ["2025-09-12"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/6Qs7vV8eJKYnO9ys3j1n1wC2Orx.jpg",
+      "production_countries": "Vietnam",
+      "release_date": "2025-09-12",
+      "runtime": 114,
+      "spoken_languages": "Tiếng Việt",
+      "title": "Khế Ước Bán Dâu",
+      "trailerUrl": "https://www.youtube.com/watch?v=fIRCSWunw-8",
+      "director": "Le Van Kiet",
+      "cast": [
+        {
+          "name": "Lam Thanh My",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/be3nDi7ZV0FPAjblGmf93tus4VC.jpg"
+        },
+        {
+          "name": "Hữu Vi",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/8W0qJQ1LeAuNSGYUnDcQ6v3xKZU.jpg"
+        },
+        {
+          "name": "Lãnh Thanh",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/tK4oyJlIivbvFu82CYOQ4hZVDxb.jpg"
+        },
+        {
+          "name": "Trung Anh",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/cym0fxJHkOqzptsLERmYgvAGajf.jpg"
+        },
+        {
+          "name": "Minh Châu",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/95grEJDTkChT5QiEDvi0RpVW5wO.jpg"
+        },
+        {
+          "name": "Phương Trà My",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Lê Tuyết Anh",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        }
+      ]
+    },
+    {
+      "backdrop_path": null,
+      "genres": [
+        {
+          "id": 27,
+          "name": "Phim Kinh Dị"
+        }
+      ],
+      "id": 1352034,
+      "original_language": "th",
+      "original_title": "Cô Dâu Ma",
+      "overview": "",
+      "release_dates": ["2025-09-05"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/dD1tDdBfnoCTpBSqpXV1w4SQ7A6.jpg",
+      "production_countries": "Vietnam",
+      "release_date": "2025-09-05",
+      "runtime": 96,
+      "spoken_languages": "ภาษาไทย",
+      "title": "Cô Dâu Ma",
+      "trailerUrl": "https://www.youtube.com/watch?v=Y5VoyFmjCUc",
+      "director": "Lee Thongkham",
+      "cast": [
+        {
+          "name": "Bank",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/tnEJH2CAXwxdrhjtTN7FJcY475V.jpg"
+        },
+        {
+          "name": "Yến",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/A060BOu1KYfXpLMbZ8EFLUr9fLk.jpg"
+        },
+        {
+          "name": "Karnpicha Pongpanit",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/AeOS3dQFQiSnqqhnZxKBpbYNlXF.jpg"
+        },
+        {
+          "name": "Narupornkamol Chaisang",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/aw7u7wnAG7xWpA1XV1kxQG48BNg.jpg"
+        },
+        {
+          "name": "Công Dương",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/nMO5Btt1SE70CRDB7al4VU8wrr0.jpg"
+        },
+        {
+          "name": "Jun Vũ",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/sVahWPH9MdHXOkdWW5ZQRhrV6L6.jpg"
+        },
+        {
+          "name": "ดวงใจ หิรัญศรี",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/iU2Rh0bpbRfbeF1o1ZmVS9yW0Rt.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": null,
+      "genres": [
+        {
+          "id": 16,
+          "name": "Phim Hoạt Hình"
+        }
+      ],
+      "id": 1450374,
+      "original_language": "ru",
+      "original_title": "Мальчик-дельфин 2",
+      "overview": "",
+      "release_dates": ["2025-10-03"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/rhgCJq2bgKhGQbxwSkKeYLlHdO8.jpg",
+      "production_countries": "Russia",
+      "release_date": "2025-05-08",
+      "runtime": 91,
+      "spoken_languages": "Pусский",
+      "title": "Cậu Bé Cá Heo: Bí Mật 7 Đại Dương",
+      "trailerUrl": "https://www.youtube.com/watch?v=T4E3UQYbu-4",
+      "director": "Яна Кузьмина",
+      "cast": [
+        {
+          "name": "Dolphin Boy (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Dolphin / Kids (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/2dvgiq2xJCJEqRxsHVuU9fqjReB.jpg"
+        },
+        {
+          "name": "Grandma Zar / Captain’s wife / Fat boy / Whale (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/qcmrEi1kL7LD4f9sIr3AAYhK1JS.jpg"
+        },
+        {
+          "name": "Lucky / Sailor / Timur / Seagull / Shark (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/u6kBxO0PaHfptoL0oeNmyelVS1B.jpg"
+        },
+        {
+          "name": "Big Crab / Majed (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/eYQNsteZNMDepktNkhdXi0YW1zM.jpg"
+        },
+        {
+          "name": "Fish / Captain (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Baby / Pirate girl / Leila / Jasem (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Baker Ahmad / Sailor / Parviz / Crab (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/4gVlgEYAYMUzatGeEI78MZAaA0B.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/gtsvQF57fRxyet2MOZQgsAWwo0L.jpg",
+      "genres": [
+        {
+          "id": 53,
+          "name": "Phim Gây Cấn"
+        },
+        {
+          "id": 28,
+          "name": "Phim Hành Động"
+        },
+        {
+          "id": 80,
+          "name": "Phim Hình Sự"
+        }
+      ],
+      "id": 1479953,
+      "original_language": "vi",
+      "original_title": "Tử Chiến Trên Không",
+      "overview": "",
+      "release_dates": ["2025-09-19"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/elhC01GA3etoh6X9zj5QwZq20Js.jpg",
+      "production_countries": "Vietnam",
+      "release_date": "2025-09-19",
+      "runtime": 118,
+      "spoken_languages": "Tiếng Việt",
+      "title": "Tử Chiến Trên Không",
+      "trailerUrl": "https://www.youtube.com/watch?v=rI61ackTCfM",
+      "director": "Ham Tran",
+      "cast": [
+        {
+          "name": "Long",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/1WUpCLAEOAXgTRWrtAJmIX0S9Yh.jpg"
+        },
+        {
+          "name": "Trinh",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/n78QM4icCLlhWLBn1eXhRSX21Lg.jpg"
+        },
+        {
+          "name": "Bình",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/mEJ0mPUFNUG3D8F8o8FeVhFpUdB.jpg"
+        },
+        {
+          "name": "Sơn",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/n2v7odHpsyTa5i5X5fUR6qhlV7r.jpg"
+        },
+        {
+          "name": "Hải",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/1KBnwPkewDs8vqvItd7Z6Po9eSh.jpg"
+        },
+        {
+          "name": "Sửu",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/wQKJB90EnWjMAHawQtAgLnRxVsp.jpg"
+        },
+        {
+          "name": "Phương",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Dần",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Khanh",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/nyVfnTYxJxJJGaNlIJGXWw6jVHo.jpg"
+        },
+        {
+          "name": "Nhàn",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Tí",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/8O9OoNJu10nS1kN54gFT0M65AaT.jpg"
+        },
+        {
+          "name": "Mèo",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/fdXoOJGzgVygTBysC91jMr3Vct6.jpg"
+        },
+        {
+          "name": "Hạnh",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/10RDmAiG5E86313G2wBb5K1HX4H.jpg"
+        },
+        {
+          "name": "Hiếu Nguyễn",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Chuột",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Phong",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/7kfPyLrsD6RTBv0ZreosN59LlB1.jpg"
+        },
+        {
+          "name": "Đình Khang",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/1yXcUw1bRQ21DvSeIyq6VYRbpFz.jpg"
+        },
+        {
+          "name": "Quyền",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/cnSUTx2YwPgeEILn3LyEqFueFDD.jpg"
+        },
+        {
+          "name": "Minh",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Gi A Nguyen",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/xlVgA1WZSOLWwKMiKXon1v6T1Z3.jpg",
+      "genres": [
+        {
+          "id": 10751,
+          "name": "Phim Gia Đình"
+        },
+        {
+          "id": 35,
+          "name": "Phim Hài"
+        },
+        {
+          "id": 18,
+          "name": "Phim Chính Kịch"
+        }
+      ],
+      "id": 1554020,
+      "original_language": "vi",
+      "original_title": "Chị Ngã Em Nâng",
+      "release_dates": ["2025-10-03"],
+      "overview": "Chị Ngã Em Nâng là câu chuyện cảm động xoay quanh hai chị em Thương và Lực – lớn lên trong một gia đình gắn bó với nghề làm nhang truyền thống. Biến cố xảy ra từ sớm khiến Thương trở thành chỗ dựa duy nhất cho em trai, vừa làm chị, vừa gánh vai trò của cha mẹ. Lớn lên trong điều kiện không đủ đầy, nhưng với bản lĩnh cùng những lời dạy ăn sâu vào tâm thức mà cha mẹ dành cho Thương, cô đã kiên trì đầy nghị lực để quyết tâm thay đổi cuộc sống. Thương thành công và kỳ vọng em trai đi theo con đường mình đã lựa chọn. Tuy nhiên, sự áp đặt vô tình tạo nên rạn nứt, đẩy hai chị em vào những mâu thuẫn sâu sắc – thậm chí đến mức đối mặt sinh tử.",
+      "poster_path": "https://image.tmdb.org/t/p/w500/fzPkMCbhSy3SFINP3yQQbjh3PqO.jpg",
+      "production_countries": "Vietnam",
+      "release_date": "2025-10-03",
+      "runtime": 122,
+      "spoken_languages": "Tiếng Việt",
+      "title": "Chị Ngã Em Nâng",
+      "trailerUrl": "https://www.youtube.com/watch?v=JqkSf-E9bsA",
+      "director": "NSƯT Vũ Thành Vinh",
+      "cast": [
+        {
+          "name": "Hai Thương",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/wTyWQIs57ZJYhZomV9kpO5Cw3OZ.jpg"
+        },
+        {
+          "name": "Lực",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/dCiGaNQpfs3JJqQLCjSYAQ1d2Hd.jpg"
+        },
+        {
+          "name": "Trường",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/84CVxTuN8wTLdPP7STg9VsvnRbN.jpg"
+        },
+        {
+          "name": "Hải Âu",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/vOgAPBWOVGYop90Bm4RWuMP7cQC.jpg"
+        },
+        {
+          "name": "Ông Nội",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/sUTrL2w0i1ctXc8LNZnmetQz8e4.jpg"
+        },
+        {
+          "name": "Bà Hương",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/aCI6xFetNad1Qt2W3IEeWmZZ2Pk.jpg"
+        },
+        {
+          "name": "Ông Cường",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/cuTHlOn8roR1XefO27mmcgjWFDS.jpg"
+        },
+        {
+          "name": "Chị Bảy",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/82FUQLbYWUW3gphTyNjuyiWYtzn.jpg"
+        },
+        {
+          "name": "Thư Ký Xuân",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/m3M2Z2uJHHz98SylKlwsHVjrlLh.jpg"
+        },
+        {
+          "name": "Lan",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/j0RGjVXbqMMqgGdJsGjewfLjhwa.jpg"
+        },
+        {
+          "name": "Đào",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/sUPJiHGXVTw0DYq3hHqn1XzLCrx.jpg"
+        },
+        {
+          "name": "Nữ Đại Gia",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Lê Bi",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        }
+      ]
+    },
+    {
+      "backdrop_path": null,
+      "genres": [
+        {
+          "id": 16,
+          "name": "Phim Hoạt Hình"
+        },
+        {
+          "id": 10751,
+          "name": "Phim Gia Đình"
+        },
+        {
+          "id": 14,
+          "name": "Phim Giả Tượng"
+        },
+        {
+          "id": 12,
+          "name": "Phim Phiêu Lưu"
+        }
+      ],
+      "id": 1484919,
+      "original_language": "ko",
+      "original_title": "베베핀 극장판: 사라진 베베핀과 핑크퐁 대모험",
+      "overview": "",
+      "release_dates": ["2025-09-05"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/i8TgnFOnrdh4O7DJPaNLmyo0njj.jpg",
+      "production_countries": "South Korea",
+      "release_date": "2025-07-24",
+      "runtime": 65,
+      "spoken_languages": "한국어/조선말",
+      "title": "베베핀 극장판: 사라진 베베핀과 핑크퐁 대모험",
+      "trailerUrl": "https://www.youtube.com/watch?v=IYI97GcCJBs",
+      "director": "Byeon Hee-sun",
+      "cast": [
+        {
+          "name": "Pinkfong (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/bHUickQMtHFlSlzTj6fU3goXM5F.jpg"
+        },
+        {
+          "name": "Bebefinn (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Bora (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Brody (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Baby Shark (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/otrQfVKKNFheFyjq9rmrbJDmADF.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/9cYjbmA7u6tMNPFPsXCBp5jT2gz.jpg",
+      "genres": [
+        {
+          "id": 10751,
+          "name": "Phim Gia Đình"
+        },
+        {
+          "id": 18,
+          "name": "Phim Chính Kịch"
+        },
+        {
+          "id": 53,
+          "name": "Phim Gây Cấn"
+        },
+        {
+          "id": 10402,
+          "name": "Phim Nhạc"
+        }
+      ],
+      "id": 1522609,
+      "original_language": "vi",
+      "original_title": "Tiệm Cầm Đồ: Có Chơi Có Chịu",
+      "overview": "",
+      "release_dates": ["2025-09-12"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/lAQwMd1ObDU2ScBFXbv4LFODc6U.jpg",
+      "production_countries": "Vietnam",
+      "release_date": "2025-09-12",
+      "runtime": 98,
+      "spoken_languages": "Tiếng Việt",
+      "title": "Tiệm Cầm Đồ: Có Chơi Có Chịu",
+      "trailerUrl": "https://www.youtube.com/watch?v=uaQHLq9VvwQ",
+      "director": "Hoàng Anh Duy",
+      "cast": [
+        {
+          "name": "Cát Phượng",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/upEwqbgL12LRywLaAKAmAYqoiiq.jpg"
+        },
+        {
+          "name": "Hiếu Hiền",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/wMaTO0ONwAk6UQSjaRJ2DuAMFQx.jpg"
+        },
+        {
+          "name": "Trương Minh Cường",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/nHC1IYBon4jGyXBWSBeXiVBObV1.jpg"
+        },
+        {
+          "name": "Lê Quốc Nam",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/oXmKr93y1AXcbmZpCz77rQkMbPS.jpg"
+        },
+        {
+          "name": "Tiểu Bảo Quốc",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Mỹ Duyên",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/xGKRSIDlgzrnhzpq0sQvNrKWu9R.jpg"
+        },
+        {
+          "name": "Ngọc Ánh",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Ngọc Nga",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Lộ Lộ",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Hoàng Anh Duy",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Trung Nguyên",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Phúc Zelo",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        }
+      ]
+    },
+    {
+      "backdrop_path": null,
+      "genres": [
+        {
+          "id": 27,
+          "name": "Phim Kinh Dị"
+        }
+      ],
+      "id": 1540364,
+      "original_language": "vi",
+      "original_title": "Đồi Hành Xác: Tà Thuyết Đen Trở Lại",
+      "overview": "",
+      "release_dates": ["2025-09-26"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/sD2ywvwCD5XOAMgqxBRSQPjrL8F.jpg",
+      "production_countries": "Vietnam",
+      "release_date": "2025-09-26",
+      "runtime": 99,
+      "spoken_languages": "Tiếng Việt",
+      "title": "Đồi Hành Xác: Tà Thuyết Đen Trở Lại",
+      "trailerUrl": "https://www.youtube.com/watch?v=3eKtsErqQZA",
+      "director": "Lương Đình Dũng",
+      "cast": [
+        {
+          "name": "Hứa Vĩ Văn",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/kX5YSIonNV4nj97MVmSGf8ZR1nF.jpg"
+        },
+        {
+          "name": "Yu Dương",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/xOTf2Tncz5HXsuqPCV3ho41qXWE.jpg"
+        },
+        {
+          "name": "Nguyễn Xuân Thắng",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Trần Thị Bé Quyên",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Đặng Trung Tuấn",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/7HegXCtNSuqSYgpuoR46gtQvw2V.jpg",
+      "genres": [
+        {
+          "id": 27,
+          "name": "Phim Kinh Dị"
+        },
+        {
+          "id": 53,
+          "name": "Phim Gây Cấn"
+        }
+      ],
+      "id": 1422096,
+      "original_language": "en",
+      "original_title": "Good Boy",
+      "release_dates": ["2025-10-24"],
+      "overview": "Một ngôi nhà cũ, một khởi đầu tưởng như bình yên - cho đến khi Indy, chú chó trung thành, nhận ra có thứ gì đó đang dõi theo chủ của mình",
+      "poster_path": "https://image.tmdb.org/t/p/w500/6W3VeKTpuSK34pQ6z62eisFwg7u.jpg",
+      "production_countries": "United States of America",
+      "release_date": "2025-10-01",
+      "runtime": 73,
+      "spoken_languages": "English",
+      "title": "Chó Cưng Đừng Sợ",
+      "trailerUrl": "https://www.youtube.com/watch?v=q4-CRkd_74g",
+      "director": "Ben Leonberg",
+      "cast": [
+        {
+          "name": "Indy",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/pLuhIFBlhkEjfl8AZKroGbs5AdT.jpg"
+        },
+        {
+          "name": "Todd",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Grandpa",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/imQGskBT7IjqHLVJDQFLR1h1UPH.jpg"
+        },
+        {
+          "name": "Vera",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Richard",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/2jhEJ2zLnRL0iuG5i3fYw4FObgl.jpg"
+        },
+        {
+          "name": "Doctor",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/ffP9mfsovkmgqnsUYKwbVejtG5q.jpg"
+        },
+        {
+          "name": "Bandit",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Weatherman / Narrator",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Mikey",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/72X2vD3v3tjAvmtyjjglbTnMuxS.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/GNeuKnbZRZj5JhKfnJOPyKJuVA.jpg",
+      "genres": [
+        {
+          "id": 27,
+          "name": "Phim Kinh Dị"
+        },
+        {
+          "id": 53,
+          "name": "Phim Gây Cấn"
+        }
+      ],
+      "id": 1197137,
+      "original_language": "en",
+      "original_title": "Black Phone 2",
+      "overview": "",
+      "release_dates": ["2025-10-31"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/vF36Yjxu6kmXOc7bcvzU3A2gs85.jpg",
+      "production_countries": "United States of America",
+      "release_date": "2025-10-15",
+      "runtime": 114,
+      "spoken_languages": "English",
+      "title": "Điện Thoại Đen 2",
+      "trailerUrl": "https://www.youtube.com/watch?v=FCHsEEen4HM",
+      "director": "Scott Derrickson",
+      "cast": [
+        {
+          "name": "Finney Blake",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/iTGIj516E2tHB44lmjAS6nNMNU1.jpg"
+        },
+        {
+          "name": "Gwen Blake",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/y8BJm6csWWfMH2qsaTV192ZFICK.jpg"
+        },
+        {
+          "name": "The Grabber",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/2LoTr6x0TEM7L5em4kSx1VmGDgG.jpg"
+        },
+        {
+          "name": "Armando",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/dur9tX8tbDDJE5mSOZkuW2VDGz4.jpg"
+        },
+        {
+          "name": "Ernesto Arellano",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/yVjtjXQ4WWlN8XiDYsHKdwcBRXU.jpg"
+        },
+        {
+          "name": "Mustang",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/a4dRvxh2csK8pnMVz5Xrh8MrE8X.jpg"
+        },
+        {
+          "name": "Hope",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/zNurGVtAxvVGnpgyG9kvBUG4nVf.jpg"
+        },
+        {
+          "name": "Terrence Blake",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/tNtcpQnMxzl0OqVDsyA63oAgPbI.jpg"
+        },
+        {
+          "name": "Barbara",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/xu1NcOTmT3gNPgjcIu1UJxLaNPD.jpg"
+        },
+        {
+          "name": "Kenneth",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/6xLpD2Ap69mphaqCKPirRLNPf1l.jpg"
+        },
+        {
+          "name": "Simon Webster",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/8K8D5ZQIb4fDSGxTKL2FVjFloWW.jpg"
+        },
+        {
+          "name": "Chase B. Robertson",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/9uEEXlrnGdPU6YnHAkzQDSMOxwl.jpg"
+        },
+        {
+          "name": "Cal",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/fvIRwPz0uFRGjzSGkHLMy8TchcO.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/938lqhAQaO3hmLg44VbUR7OqlMs.jpg",
+      "genres": [
+        {
+          "id": 18,
+          "name": "Phim Chính Kịch"
+        },
+        {
+          "id": 16,
+          "name": "Phim Hoạt Hình"
+        },
+        {
+          "id": 10749,
+          "name": "Phim Lãng Mạn"
+        },
+        {
+          "id": 10752,
+          "name": "Phim Chiến Tranh"
+        },
+        {
+          "id": 36,
+          "name": "Phim Lịch Sử"
+        }
+      ],
+      "id": 149870,
+      "original_language": "ja",
+      "original_title": "風立ちぬ",
+      "release_dates": ["2025-10-17"],
+      "overview": "Nhà làm phim hoạt hình Miyazaki Hayao dệt lên câu chuyện kéo dài nhiều thập kỉ lấy cảm hứng từ cuộc đời Horikoshi Jirô – cha đẻ của máy bay chiến đấu Zero ở Thế chiến II.",
+      "poster_path": "https://image.tmdb.org/t/p/w500/b6DNmz3sZCPv18s2uzvpmFFvMS8.jpg",
+      "production_countries": "Japan",
+      "release_date": "2013-07-20",
+      "runtime": 126,
+      "spoken_languages": "Français",
+      "title": "Gió Vẫn Thổi",
+      "trailerUrl": "https://www.youtube.com/watch?v=RzSpDgiF5y8",
+      "director": "宮崎駿",
+      "cast": [
+        {
+          "name": "Jiro Horikoshi (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/AfV9h1RW6uALpx751APdUoX8ONc.jpg"
+        },
+        {
+          "name": "Honjô (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/3FBdbeMMWfyKmHS5j8IECwsZWcY.jpg"
+        },
+        {
+          "name": "Naoko Satomi (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/wosPsgZwQ9l15yHjrhsHhUTJah9.jpg"
+        },
+        {
+          "name": "Kurokawa (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/2fXvxAI4KySYgp9KZMzkK4q2TkY.jpg"
+        },
+        {
+          "name": "Castorp (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/qGjXKt9E6lTpeMG82tp37yh6QET.jpg"
+        },
+        {
+          "name": "Giovanni Battista (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/2ckdbJKCF7hE1rE2J4364gdklOh.jpg"
+        },
+        {
+          "name": "Hattori (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/zC0GbuXQGPur7i8AkdPUWedmDKz.jpg"
+        },
+        {
+          "name": "Kayo Horikoshi (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/wfacZjLuVkaiW32ZNZqdjfLFNxC.jpg"
+        },
+        {
+          "name": "Mrs. Kurokawa (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/az5hCPy37MFM9EH2f3gn1cTBhA6.jpg"
+        },
+        {
+          "name": "Satomi (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/x0DzJzdivusbFzNs0KNPXqhiH3M.jpg"
+        },
+        {
+          "name": "Jirô's mother (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/eEZHjyUzzoI1DKxeAennDJKUgWh.jpg"
+        },
+        {
+          "name": "German Security Guard / Flight Engineer (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/asFMgaDnpQvDzWYY5ixYQbIq9YS.jpg"
+        },
+        {
+          "name": "Young Jiro Horikoshi (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/1AfxmaRdKzf1nlckR8ofPpeOvsl.jpg"
+        },
+        {
+          "name": "Young Kayo Horikoshi (voice)",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/yJP54N5x45pbcFAx16OrHyPrm7U.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": null,
+      "genres": [
+        {
+          "id": 10751,
+          "name": "Phim Gia Đình"
+        },
+        {
+          "id": 18,
+          "name": "Phim Chính Kịch"
+        }
+      ],
+      "id": 1531601,
+      "original_language": "vi",
+      "original_title": "Cục Vàng Của Ngoại",
+      "overview": "",
+      "release_dates": ["2025-10-17"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/jv2bu10yEL3UgBqdULUahMDemh.jpg",
+      "production_countries": "Viet Name",
+      "release_date": "2025-10-17",
+      "runtime": 119,
+      "spoken_languages": "Tiếng Việt",
+      "title": "Cục Vàng Của Ngoại",
+      "trailerUrl": "https://www.youtube.com/watch?v=YPCtgD0KnGk",
+      "director": "Khương Ngọc",
+      "cast": [
+        {
+          "name": "Việt Hương",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/9v9E5OM91kILN7zkkE2pBSRNHbZ.jpg"
+        },
+        {
+          "name": "Hồng Đào",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/pQJYetiMP21NBQaMdeO6MgP7D12.jpg"
+        },
+        {
+          "name": "Lê Khánh",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/wTyWQIs57ZJYhZomV9kpO5Cw3OZ.jpg"
+        },
+        {
+          "name": "Hữu Châu",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/caVtPnyYY2vg32XyVYl2yKxwEcK.jpg"
+        },
+        {
+          "name": "Băng Di",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/Olu6EW9lcEcPdLcIqQdfgNqdXN.jpg"
+        },
+        {
+          "name": "Gia Yến",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Lam Thanh My",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/be3nDi7ZV0FPAjblGmf93tus4VC.jpg"
+        },
+        {
+          "name": "Thư Đan",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Hoang Anh Panda",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        }
+      ]
+    },
+    {
+      "backdrop_path": null,
+      "genres": [
+        {
+          "id": 10751,
+          "name": "Phim Gia Đình"
+        },
+        {
+          "id": 18,
+          "name": "Phim Chính Kịch"
+        },
+        {
+          "id": 53,
+          "name": "Phim Gây Cấn"
+        }
+      ],
+      "id": 1518519,
+      "original_language": "vi",
+      "original_title": "Phá Đám: Sinh Nhật Mẹ",
+      "overview": "",
+      "release_dates": ["2025-10-30"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/w0AotXbNb0gKdEPvf2XzOKpzXgh.jpg",
+      "production_countries": "Vietnam",
+      "release_date": "2025-10-30",
+      "runtime": 120,
+      "spoken_languages": "Tiếng Việt",
+      "title": "Phá Đám: Sinh Nhật Mẹ",
+      "trailerUrl": "https://www.youtube.com/watch?v=XQrG8Zq0Hh4",
+      "director": "Bình Bồng Bột",
+      "cast": [
+        {
+          "name": "Tín Nguyễn",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/g3wYpq0M6QCw4i5Pj53oNaMQlGb.jpg"
+        },
+        {
+          "name": "Kim Hải",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/pt1MMKGYOfyTuO3EjZ0RhcAVTDs.jpg"
+        },
+        {
+          "name": "Hồng Ánh",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/g9MsEJKKrRSZp5UR6XIuj6KAzFo.jpg"
+        },
+        {
+          "name": "Samuel An",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/rBewE0MzwlZjRVW1AzF3nxzWY0Z.jpg"
+        },
+        {
+          "name": "Hoàng Phi",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/6eYYsnwt628UyUj26jiuRVSvf8F.jpg"
+        },
+        {
+          "name": "Ái Như",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Thành Hội",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Bé Sam",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        }
+      ]
+    },
+    {
+      "backdrop_path": null,
+      "genres": [
+        {
+          "id": 27,
+          "name": "Phim Kinh Dị"
+        }
+      ],
+      "id": 1559846,
+      "original_language": "vi",
+      "original_title": "Cải Mã",
+      "overview": "",
+      "release_dates": ["2025-10-31"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/qxQEzKp5WI5Ra9joAt4KVv4LdM7.jpg",
+      "production_countries": "Vietnam",
+      "release_date": "2025-10-31",
+      "runtime": 99,
+      "spoken_languages": "Tiếng Việt",
+      "title": "Cải Mã",
+      "trailerUrl": "https://www.youtube.com/watch?v=KxvLXJqFCPY",
+      "director": "Thắng Vũ",
+      "cast": [
+        {
+          "name": "Kim Hải",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/pt1MMKGYOfyTuO3EjZ0RhcAVTDs.jpg"
+        },
+        {
+          "name": "Rima Thanh Vy",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/A060BOu1KYfXpLMbZ8EFLUr9fLk.jpg"
+        },
+        {
+          "name": "Hoàng Mèo",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/nB9GkTMSqkndDu2VpaWeUp6XCG8.jpg"
+        },
+        {
+          "name": "Kiều Trinh",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/1Q1jmnSKP3GfajpVPfDL4Fd3Y9L.jpg"
+        },
+        {
+          "name": "Lương Anh Vũ",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/sz7cKfPcBqpLIBGvs0HHvt2HRCw.jpg"
+        },
+        {
+          "name": "Lý Hồng Ân",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/q7iaQl361awj6cXXfUawhIul9Gu.jpg"
+        },
+        {
+          "name": "Thuý Hạnh",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Lâm Thanh Nhã",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/uSazGFk8bVxk0TBaK3qh5Nr4OiJ.jpg"
+        },
+        {
+          "name": "Thạch Kim Long",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/6NQHEtDthsWoxC44eV4XtiZndnj.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": null,
+      "genres": [
+        {
+          "id": 53,
+          "name": "Phim Gây Cấn"
+        },
+        {
+          "id": 18,
+          "name": "Phim Chính Kịch"
+        }
+      ],
+      "id": 1559853,
+      "original_language": "vi",
+      "original_title": "Bịt Mắt Bắt Nai",
+      "overview": "",
+      "release_dates": ["2025-10-31"],
+      "poster_path": "https://image.tmdb.org/t/p/w500/b2Oofn1Ey1IXfPr8Q1x4uqq34lQ.jpg",
+      "production_countries": "Vietnam",
+      "release_date": "2025-10-31",
+      "runtime": 92,
+      "spoken_languages": "Tiếng Việt",
+      "title": "Bịt Mắt Bắt Nai",
+      "trailerUrl": "https://www.youtube.com/watch?v=AVm6gVRaOQE",
+      "director": "Hoàng Thơ",
+      "cast": [
+        {
+          "name": "Lương Gia Huy",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Thái Trà My",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Dũng Bino",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Bích Ngọc",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/f3HYFgMIW5LZ2OCq5slY7WbyYdt.jpg"
+        }
+      ]
+    },
+    {
+      "backdrop_path": "https://image.tmdb.org/t/p/w500/1pd0TziZ01JNU3eOomanHnwwpzX.jpg",
+      "genres": [
+        {
+          "id": 10751,
+          "name": "Phim Gia Đình"
+        },
+        {
+          "id": 9648,
+          "name": "Phim Bí Ẩn"
+        }
+      ],
+      "id": 1558497,
+      "original_language": "vi",
+      "original_title": "Nhà Ma Xó",
+      "release_dates": ["2025-10-24"],
+      "overview": "Nhà Ma Xó xoay quanh câu chuyện về bà Hiền, người phụ nữ một mình nuôi 3 người con sau tai nạn chồng qua đời. Mọi chuyện bắt đầu khi người con trai giữa trong một lần thả lưới bắt cá vớt được một cái khạp bằng sành, nắp đậy kín. Từ đó, những hiện tượng kỳ quái liên tiếp xảy ra trong gia đình.",
+      "poster_path": "https://image.tmdb.org/t/p/w500/arBGWfEXenEpfjM2NNT5SxQv4J4.jpg",
+      "production_countries": "Vietnam",
+      "release_date": "2025-10-24",
+      "runtime": 108,
+      "spoken_languages": "Tiếng Việt",
+      "title": "Nhà Ma Xó",
+      "trailerUrl": "https://www.youtube.com/watch?v=DUMiVY9jOls",
+      "director": "Trương Dũng",
+      "cast": [
+        {
+          "name": "Ngô Quang Tuấn",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/tLDkipEkbLGerUoJOEZDZMlYtrP.jpg"
+        },
+        {
+          "name": "Huỳnh Đông",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/lkfTtGRfBcVy6sODPPIX8NWSIRi.jpg"
+        },
+        {
+          "name": "Vân Trang",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/bkNkbvoTdqMY36kcWx6l7cyXZuO.jpg"
+        },
+        {
+          "name": "Hoàng Kim Ngọc",
+          "profileUrl": "https://image.tmdb.org/t/p/w500null"
+        },
+        {
+          "name": "Lâm Thanh Nhã",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/uSazGFk8bVxk0TBaK3qh5Nr4OiJ.jpg"
+        },
+        {
+          "name": "Thạch Kim Long",
+          "profileUrl": "https://image.tmdb.org/t/p/w500/6NQHEtDthsWoxC44eV4XtiZndnj.jpg"
+        }
+      ]
+    }
+  ],
+  "genres": [
+    {
+      "id": 28,
+      "name": "Phim Hành Động"
+    },
+    {
+      "id": 12,
+      "name": "Phim Phiêu Lưu"
+    },
+    {
+      "id": 16,
+      "name": "Phim Hoạt Hình"
+    },
+    {
+      "id": 35,
+      "name": "Phim Hài"
+    },
+    {
+      "id": 80,
+      "name": "Phim Hình Sự"
+    },
+    {
+      "id": 99,
+      "name": "Phim Tài Liệu"
+    },
+    {
+      "id": 18,
+      "name": "Phim Chính Kịch"
+    },
+    {
+      "id": 10751,
+      "name": "Phim Gia Đình"
+    },
+    {
+      "id": 14,
+      "name": "Phim Giả Tượng"
+    },
+    {
+      "id": 36,
+      "name": "Phim Lịch Sử"
+    },
+    {
+      "id": 27,
+      "name": "Phim Kinh Dị"
+    },
+    {
+      "id": 10402,
+      "name": "Phim Nhạc"
+    },
+    {
+      "id": 9648,
+      "name": "Phim Bí Ẩn"
+    },
+    {
+      "id": 10749,
+      "name": "Phim Lãng Mạn"
+    },
+    {
+      "id": 878,
+      "name": "Phim Khoa Học Viễn Tưởng"
+    },
+    {
+      "id": 10770,
+      "name": "Chương Trình Truyền Hình"
+    },
+    {
+      "id": 53,
+      "name": "Phim Gây Cấn"
+    },
+    {
+      "id": 10752,
+      "name": "Phim Chiến Tranh"
+    },
+    {
+      "id": 37,
+      "name": "Phim Miền Tây"
+    }
+  ]
+}

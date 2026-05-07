@@ -1,0 +1,98 @@
+Category,Test Case ID,Test Case Description,PreRequisites,Steps to Perform,Step Expected Result,Test Case Expected Result,Actual Result,Status,Note
+User Management,TC-UM-01-01,Verify user authentication flow,None,"1. Send GET /v1/users/me without Authorization header.
+2. Login via Clerk Frontend to get JWT.
+3. Send GET /v1/users/me with 'Authorization: Bearer <token>'",1. 401 Unauthorized. 2. Token received. 3. 200 OK with user profile.,HTTP 200 OK and User Profile returned,,,
+User Management,TC-UM-04-01,Verify Staff creation,Authenticated as Admin,"1. POST /v1/staffs with payload:
+{
+  ""cinemaId"": ""<VALID_CINEMA_UUID>"",
+  ""fullName"": ""Nguyen Van A"",
+  ""email"": ""staff_test@example.com"",
+  ""phone"": ""0901234567"",
+  ""gender"": ""MALE"",
+  ""dob"": ""1990-01-01"",
+  ""position"": ""TICKET_CLERK"",
+  ""status"": ""ACTIVE"",
+  ""workType"": ""FULL_TIME"",
+  ""shiftType"": ""MORNING"",
+  ""salary"": 5000000,
+  ""hireDate"": ""2023-01-01""
+}",1. Response 201 Created. 2. Record exists in 'staffs' table.,Staff member created successfully,,,
+Cinema Management,TC-CM-02-01,Verify Create Cinema,Authenticated as Admin,"1. POST /v1/cinemas/cinema with payload:
+{
+  ""name"": ""CGV Vincom Dong Khoi"",
+  ""address"": ""72 Le Thanh Ton"",
+  ""city"": ""Ho Chi Minh"",
+  ""district"": ""District 1"",
+  ""latitude"": 10.7769,
+  ""longitude"": 106.7009,
+  ""timezone"": ""Asia/Ho_Chi_Minh""
+}",1. Response 201 Created. 2. Record exists in 'Cinemas' table.,Cinema created successfully,,,
+Cinema Management,TC-CM-06-01,Verify Search Cinemas Nearby,None,"1. GET /v1/cinemas/nearby?lat=10.7769&lng=106.7009&distance=5",1. List of cinemas within 5km radius.,Correct cinemas returned based on Haversine formula,,,
+Movie Management,TC-MV-04-01,Verify Create Movie,Authenticated as Admin,"1. POST /v1/movies with payload:
+{
+  ""title"": ""Mai"",
+  ""originalTitle"": ""Mai"",
+  ""overview"": ""A touching story..."",
+  ""posterUrl"": ""https://example.com/poster.jpg"",
+  ""trailerUrl"": ""https://example.com/trailer.mp4"",
+  ""backdropUrl"": ""https://example.com/backdrop.jpg"",
+  ""runtime"": 131,
+  ""releaseDate"": ""2024-02-10"",
+  ""ageRating"": ""T18"",
+  ""originalLanguage"": ""vi"",
+  ""spokenLanguages"": [""vi""],
+  ""languageType"": ""ORIGINAL"",
+  ""productionCountry"": ""Vietnam"",
+  ""director"": ""Tran Thanh"",
+  ""cast"": [{""name"": ""Phuong Anh Dao"", ""character"": ""Mai""}],
+  ""genreIds"": [""<VALID_GENRE_UUID>""]
+}",1. Response 201 Created. 2. Record exists in 'movies' table.,Movie created successfully,,,
+Review Management,TC-RV-03-01,Verify Review Submission,Authenticated as Member,"1. POST /v1/movies/<MOVIE_ID>/reviews with payload:
+{
+  ""movieId"": ""<MOVIE_ID>"",
+  ""userId"": ""<USER_ID>"",
+  ""rating"": 5,
+  ""content"": ""Great movie!""
+}",1. Response 201 Created. 2. Record exists in 'reviews' table.,Review created successfully,,,
+Review Management,TC-RV-03-02-NEG,Verify Duplicate Review,Authenticated as Member who already reviewed,"1. POST /v1/movies/<MOVIE_ID>/reviews with same payload as TC-RV-03-01",1. Response 400/409 Conflict. 2. Error message about duplicate review.,System prevents duplicate reviews,,,
+Showtime Management,TC-ST-03-01,Verify Create Showtime,Authenticated as Admin,"1. POST /v1/showtimes/showtime with payload:
+{
+  ""movieId"": ""<MOVIE_UUID>"",
+  ""movieReleaseId"": ""<RELEASE_UUID>"",
+  ""cinemaId"": ""<CINEMA_UUID>"",
+  ""hallId"": ""<HALL_UUID>"",
+  ""startTime"": ""2025-12-25 18:30:00"",
+  ""format"": ""TWO_D"",
+  ""language"": ""Vietnamese""
+}",1. Response 201 Created. 2. Record in 'Showtimes' table with status SCHEDULED.,Showtime created successfully,,,
+Booking Operations,TC-RT-01-01,Verify Seat Holding (Real-time),Authenticated as Member,"1. Connect to WebSocket.
+2. Emit 'gateway.hold_seat' with payload: { showtimeId: ""..."", seatId: ""..."" }
+3. Verify Redis Key 'hold:showtime:...' exists.",1. Receive 'cinema.seat_held' event. 2. Redis key created with 600s TTL.,Seat successfully held in Redis,,,
+Booking Operations,TC-BK-01-01,Verify Booking Creation,Authenticated as Member with held seats,"1. Ensure seats are held (TC-RT-01-01).
+2. POST /v1/bookings with payload:
+{
+  ""showtimeId"": ""<SHOWTIME_UUID>"",
+  ""seats"": [{""seatId"": ""<SEAT_UUID>"", ""ticketType"": ""STANDARD""}]
+}",1. Response 201 Created. 2. Booking status PENDING in DB. 3. 15-minute expiry timer started.,Booking created in PENDING state,,,
+Booking Operations,TC-BK-02-NEG,Verify Booking Without Holding Seats,Authenticated as Member,"1. POST /v1/bookings without holding seats first.
+{
+  ""showtimeId"": ""<SHOWTIME_UUID>"",
+  ""seats"": [{""seatId"": ""<SEAT_UUID>"", ""ticketType"": ""STANDARD""}]
+}",1. Response 400 Bad Request. 2. Error message 'Seats not held'.,Booking rejected,,,
+Payment,TC-PY-01-01,Verify Payment Creation,Authenticated as Member with PENDING booking,"1. POST /v1/payments/bookings/<BOOKING_ID> with payload:
+{
+  ""paymentMethod"": ""VNPAY"",
+  ""amount"": 100000,
+  ""returnUrl"": ""http://localhost:4200/payment/return""
+}",1. Response 201 Created. 2. Payment URL returned (VNPay sandbox).,Payment URL generated successfully,,,
+Payment,TC-PY-04-01,Verify VNPay IPN Processing,None (Public Endpoint),"1. Send GET /v1/payments/vnpay/ipn?vnp_ResponseCode=00&vnp_TxnRef=<BOOKING_CODE>&...",1. Response code '00'. 2. Booking status changes to CONFIRMED. 3. Tickets generated.,Booking confirmed upon successful IPN,,,
+Refund,TC-BK-09-01,Verify Cancel with Refund,Authenticated as Member with CONFIRMED booking,"1. POST /v1/bookings/<BOOKING_ID>/cancel-with-refund",1. Response 200 OK. 2. Booking status CANCELLED. 3. Refund record created with 70% amount.,Refund processed correctly,,,
+Loyalty,TC-LY-03-01,Verify Earn Points,Authenticated as Member,"1. Complete a booking payment (TC-PY-04-01).
+2. Check Loyalty Balance via GET /v1/loyalty/balance",1. Points increased by (Total Amount / 1000).,Points earned correctly,,,
+Loyalty,TC-LY-04-NEG,Verify Redeem More Points Than Balance,Authenticated as Member,"1. Create Booking.
+2. Payload with usePoints > currentBalance.",1. Response 400 Bad Request.,System prevents overdraft of points,,,
+Promotion,TC-PM-04-01,Verify Promotion Validation,Authenticated as Member,"1. POST /v1/promotions/validate/<CODE> with payload:
+{
+  ""amount"": 200000,
+  ""items"": [...]
+}",1. Response 200 OK with discount amount.,Promotion validated successfully,,,

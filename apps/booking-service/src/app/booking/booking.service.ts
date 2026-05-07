@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, Inject, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Inject,
+  Logger,
+} from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { PrismaService } from '../prisma.service';
@@ -12,7 +17,6 @@ import {
   PaymentStatus,
   TicketStatus,
   CinemaMessage,
-  UserMessage,
   ShowtimeSeatResponse,
   SeatItemDto,
   SeatRowDto,
@@ -28,11 +32,14 @@ import {
   CancelBookingWithRefundDto,
   ServiceResult,
   AdminFindAllBookingsDto,
-  UserDetailDto,
   SERVICE_NAME,
 } from '@movie-hub/shared-types';
-import { Prisma, Concessions, Tickets, PromotionType } from '../../../generated/prisma';
-import { th } from 'zod/v4/locales';
+import {
+  Prisma,
+  Concessions,
+  Tickets,
+  PromotionType,
+} from '../../../generated/prisma';
 
 // Type for booking with full relations using Prisma's generated types
 type BookingWithRelations = Prisma.BookingsGetPayload<{
@@ -165,7 +172,9 @@ export class BookingService {
     const totalPages = Math.ceil(total / limit);
 
     return {
-      data: bookings.map((b, index) => this.mapToSummaryDto(b, showtimeDataArray[index])),
+      data: bookings.map((b, index) =>
+        this.mapToSummaryDto(b, showtimeDataArray[index])
+      ),
       meta: {
         page,
         limit,
@@ -177,7 +186,10 @@ export class BookingService {
     };
   }
 
-  async findOne(id: string, userId: string): Promise<ServiceResult<BookingDetailDto>> {
+  async findOne(
+    id: string,
+    userId: string
+  ): Promise<ServiceResult<BookingDetailDto>> {
     const booking = await this.prisma.bookings.findFirst({
       where: { id, user_id: userId },
       include: {
@@ -203,13 +215,38 @@ export class BookingService {
       showtimeData = null;
     }
 
-    return { data: this.mapToDetailDto(booking, showtimeData) };
+    // Fetch refund voucher code if booking is REFUNDED
+    let refundVoucherCode: string | undefined;
+    if (booking.status === BookingStatus.REFUNDED) {
+      try {
+        const refundPromotion = await this.prisma.promotions.findFirst({
+          where: {
+            conditions: {
+              path: ['originalBookingId'],
+              equals: id,
+            },
+          },
+        });
+        if (refundPromotion) {
+          refundVoucherCode = refundPromotion.code;
+        }
+      } catch (error) {
+        this.logger.warn(
+          `Failed to fetch refund voucher for booking ${id}`,
+          error
+        );
+      }
+    }
+
+    const detailDto = this.mapToDetailDto(booking, showtimeData);
+    return { data: { ...detailDto, refundVoucherCode } };
   }
 
   async cancelBooking(
     id: string,
     userId: string,
-    reason?: string
+    reason?: string,
+    refundAmount?: number
   ): Promise<ServiceResult<BookingDetailDto>> {
     const booking = await this.prisma.bookings.findFirst({
       where: { id, user_id: userId },
@@ -252,7 +289,47 @@ export class BookingService {
       showtimeData = null;
     }
 
-    return { data: this.mapToDetailDto(updated, showtimeData), message: 'Booking cancelled successfully' };
+    // Send cancellation email
+    this.sendCancellationEmail(updated, showtimeData, refundAmount);
+
+    return {
+      data: this.mapToDetailDto(updated, showtimeData),
+      message: 'Booking cancelled successfully',
+    };
+  }
+
+  // Define private helper to send cancellation email
+  private async sendCancellationEmail(
+    booking: any, // or BookingWithRelations
+    showtimeData: ShowtimeSeatResponse | null,
+    refundAmount?: number
+  ) {
+    if (!showtimeData || !showtimeData.showtime) return;
+
+    try {
+      const emailBookingDto: any = {
+        bookingCode: booking.booking_code,
+        movieTitle: showtimeData.showtime.movieTitle,
+        cinemaName: showtimeData.cinemaName,
+        hallName: showtimeData.hallName,
+        startTime: new Date(showtimeData.showtime.start_time),
+        endTime: new Date(showtimeData.showtime.end_time),
+        customerEmail: booking.customer_email,
+        customerName: booking.customer_name,
+        cancelledAt: booking.cancelled_at,
+        cancellationReason: booking.cancellation_reason,
+      };
+
+      await this.notificationService.sendBookingCancellation(
+        emailBookingDto,
+        refundAmount
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to send cancellation email for booking ${booking.id}`,
+        error
+      );
+    }
   }
 
   // Helper methods
@@ -314,9 +391,7 @@ export class BookingService {
     const ticketPrices: Array<{ seatId: string; price: number }> = [];
 
     // Create a map of pricing by seat ID from SeatPricingDto
-    const priceMap = new Map(
-      heldSeatsWithPricing.map((s) => [s.id, s.price])
-    );
+    const priceMap = new Map(heldSeatsWithPricing.map((s) => [s.id, s.price]));
 
     for (const seat of heldSeatsDetails) {
       // Get price from SeatPricingDto (based on seat_type and day_type)
@@ -352,7 +427,10 @@ export class BookingService {
     }
 
     // Check usage limits
-    if (promotion.usage_limit && promotion.current_usage >= promotion.usage_limit) {
+    if (
+      promotion.usage_limit &&
+      promotion.current_usage >= promotion.usage_limit
+    ) {
       throw new BadRequestException('Promotion code usage limit reached');
     }
 
@@ -411,10 +489,9 @@ export class BookingService {
       id: booking.id,
       bookingCode: booking.booking_code,
       showtimeId: booking.showtime_id,
-      // Cinema service returns cinemaName as string directly
-      movieTitle: 'Movie', // TODO: Need to fetch from movie service separately
+      movieTitle: showtimeData?.showtime?.movieTitle || 'Movie',
       cinemaName: showtimeData?.cinemaName || 'Cinema',
-      hallName: 'Hall', // TODO: Need to fetch from cinema service separately
+      hallName: showtimeData?.hallName || 'Hall',
       startTime: showtimeData?.showtime?.start_time || new Date(),
       seatCount: booking.tickets?.length || 0,
       totalAmount: Number(booking.final_amount),
@@ -430,16 +507,18 @@ export class BookingService {
     // Create a map of seat details from showtime data
     // Cinema service always returns seat_map, not seats
     const seatsArray: SeatDetail[] = showtimeData?.seat_map
-      ? showtimeData.seat_map.flatMap((row: SeatRowDto) => 
-          (row.seats || []).map((s: SeatItemDto) => ({ 
-            ...s, 
-            row: row.row,  // Preserve row from parent
-            type: s.seatType || s.seatType 
+      ? showtimeData.seat_map.flatMap((row: SeatRowDto) =>
+          (row.seats || []).map((s: SeatItemDto) => ({
+            ...s,
+            row: row.row, // Preserve row from parent
+            type: s.seatType || s.seatType,
           }))
         )
       : [];
 
-    const seatMap = new Map((seatsArray || []).map((s: SeatDetail) => [s.id, s]));
+    const seatMap = new Map(
+      (seatsArray || []).map((s: SeatDetail) => [s.id, s])
+    );
 
     return {
       ...this.mapToSummaryDto(booking, showtimeData),
@@ -489,10 +568,10 @@ export class BookingService {
   ): Promise<SeatPricingWithTtlDto> {
     try {
       const heldSeatsData = await firstValueFrom(
-        this.cinemaClient.send(
-          CinemaMessage.SHOWTIME.GET_SEATS_HELD_BY_USER,
-          { showtimeId, userId }
-        )
+        this.cinemaClient.send(CinemaMessage.SHOWTIME.GET_SEATS_HELD_BY_USER, {
+          showtimeId,
+          userId,
+        })
       );
       return heldSeatsData as SeatPricingWithTtlDto;
     } catch {
@@ -542,7 +621,7 @@ export class BookingService {
       ? showtimeData.seat_map.flatMap((row: SeatRowDto) =>
           (row.seats || []).map((s: SeatItemDto) => ({
             ...s,
-            row: row.row,  // Preserve row from parent
+            row: row.row, // Preserve row from parent
             type: s.seatType, // Use seatType from SeatItemDto
           }))
         )
@@ -556,7 +635,10 @@ export class BookingService {
     const ticketGroups = this.groupTicketsByType(booking.tickets, seatMap);
 
     // Calculate ticket subtotal
-    const ticketsSubtotal = ticketGroups.reduce((sum, g) => sum + g.subtotal, 0);
+    const ticketsSubtotal = ticketGroups.reduce(
+      (sum, g) => sum + g.subtotal,
+      0
+    );
 
     // Format concessions
     const concessions = (booking.booking_concessions || []).map((bc) => ({
@@ -574,8 +656,9 @@ export class BookingService {
 
     // Calculate pricing breakdown
     const subtotal = Number(booking.subtotal);
-    const totalDiscount = Number(booking.discount) + Number(booking.points_discount);
-    
+    const totalDiscount =
+      Number(booking.discount) + Number(booking.points_discount);
+
     // Calculate tax (reverse calculation from final amount)
     const totalBeforeTax = subtotal - totalDiscount;
     const VAT_RATE = 10;
@@ -616,7 +699,9 @@ export class BookingService {
             willEarn: pointsEarned,
             currentBalance: loyaltyAccount.current_points,
             newBalance:
-              loyaltyAccount.current_points - booking.points_used + pointsEarned,
+              loyaltyAccount.current_points -
+              booking.points_used +
+              pointsEarned,
           };
         }
       } catch {
@@ -655,17 +740,17 @@ export class BookingService {
     const summary: BookingCalculationDto = {
       bookingId: booking.id,
       movie: {
-        id: '', // TODO: Fetch from movie service
-        title: 'Movie', // TODO: Fetch from movie service
+        id: showtimeData?.showtime?.movieId || '',
+        title: showtimeData?.showtime?.movieTitle || 'Movie',
         posterUrl: undefined,
         duration: 0,
         rating: 'N/A',
       },
       cinema: {
-        id: '', // TODO: Fetch from cinema service
+        id: showtimeData?.cinemaId || '',
         name: showtimeData?.cinemaName || 'Cinema',
         address: '',
-        hallName: 'Hall', // TODO: Fetch from cinema service
+        hallName: showtimeData?.hallName || 'Hall',
       },
       showtime: {
         id: booking.showtime_id,
@@ -762,7 +847,7 @@ export class BookingService {
    * Admin: Find all bookings with comprehensive filters
    */
   async adminFindAllBookings(
-    filters: AdminFindAllBookingsDto = {}
+    filters: AdminFindAllBookingsDto & { cinemaId?: string } = {}
   ): Promise<ServiceResult<BookingSummaryDto[]>> {
     const page = filters?.page || 1;
     const limit = filters?.limit || 10;
@@ -774,6 +859,43 @@ export class BookingService {
     if (filters?.showtimeId) where.showtime_id = filters.showtimeId;
     if (filters?.status) where.status = filters.status;
     if (filters?.paymentStatus) where.payment_status = filters.paymentStatus;
+
+    if (filters?.cinemaId) {
+      const showtimeIds = await this.getShowtimeIdsForCinema(filters.cinemaId);
+      if (showtimeIds.length === 0) {
+        // No showtimes for this cinema -> No bookings
+        return {
+          data: [],
+          meta: {
+            page,
+            limit,
+            totalRecords: 0,
+            totalPages: 0,
+            hasPrev: false,
+            hasNext: false,
+          },
+        };
+      }
+      // If filtering by showtimeId AND cinemaId, ensure intersection (or just prioritize cinemaId list check)
+      if (where.showtime_id) {
+        // Trying to specific showtime which must belong to cinema
+        if (!showtimeIds.includes(where.showtime_id as string)) {
+          return {
+            data: [],
+            meta: {
+              page,
+              limit,
+              totalRecords: 0,
+              totalPages: 0,
+              hasPrev: false,
+              hasNext: false,
+            },
+          };
+        }
+      } else {
+        where.showtime_id = { in: showtimeIds };
+      }
+    }
 
     if (filters?.startDate || filters?.endDate) {
       where.created_at = {};
@@ -818,7 +940,9 @@ export class BookingService {
     const totalPages = Math.ceil(total / limit);
 
     return {
-      data: bookings.map((b, index) => this.mapToSummaryDto(b, showtimeDataArray[index])),
+      data: bookings.map((b, index) =>
+        this.mapToSummaryDto(b, showtimeDataArray[index])
+      ),
       meta: {
         page,
         limit,
@@ -867,13 +991,16 @@ export class BookingService {
   /**
    * Find bookings by date range
    */
-  async findBookingsByDateRange(filters: {
-    startDate?: Date;
-    endDate?: Date;
-    status?: BookingStatus;
-    page?: number;
-    limit?: number;
-  } = {}): Promise<ServiceResult<BookingSummaryDto[]>> {
+  async findBookingsByDateRange(
+    filters: {
+      startDate?: Date;
+      endDate?: Date;
+      status?: BookingStatus;
+      page?: number;
+      limit?: number;
+      cinemaId?: string;
+    } = {}
+  ): Promise<ServiceResult<BookingSummaryDto[]>> {
     const page = filters?.page || 1;
     const limit = filters?.limit || 10;
     const skip = (page - 1) * limit;
@@ -884,6 +1011,24 @@ export class BookingService {
       where.created_at = {};
       if (filters.startDate) where.created_at.gte = filters.startDate;
       if (filters.endDate) where.created_at.lte = filters.endDate;
+    }
+
+    if (filters?.cinemaId) {
+      const showtimeIds = await this.getShowtimeIdsForCinema(filters.cinemaId);
+      if (showtimeIds.length === 0) {
+        return {
+          data: [],
+          meta: {
+            page,
+            limit,
+            totalRecords: 0,
+            totalPages: 0,
+            hasPrev: false,
+            hasNext: false,
+          },
+        };
+      }
+      where.showtime_id = { in: showtimeIds };
     }
 
     if (filters?.status) where.status = filters.status;
@@ -920,7 +1065,9 @@ export class BookingService {
     const totalPages = Math.ceil(total / limit);
 
     return {
-      data: bookings.map((b, index) => this.mapToSummaryDto(b, showtimeDataArray[index])),
+      data: bookings.map((b, index) =>
+        this.mapToSummaryDto(b, showtimeDataArray[index])
+      ),
       meta: {
         page,
         limit,
@@ -976,28 +1123,41 @@ export class BookingService {
       showtimeData = null;
     }
 
-    return { data: this.mapToDetailDto(updated, showtimeData), message: `Booking status updated to ${status}` };
+    return {
+      data: this.mapToDetailDto(updated, showtimeData),
+      message: `Booking status updated to ${status}`,
+    };
   }
 
   /**
    * Confirm booking (after successful payment)
    */
-  async confirmBooking(bookingId: string): Promise<ServiceResult<BookingDetailDto>> {
+  async confirmBooking(
+    bookingId: string
+  ): Promise<ServiceResult<BookingDetailDto>> {
     return this.updateBookingStatus(bookingId, BookingStatus.CONFIRMED);
   }
 
   /**
    * Complete booking (after showtime ends)
    */
-  async completeBooking(bookingId: string): Promise<ServiceResult<BookingDetailDto>> {
+  async completeBooking(
+    bookingId: string
+  ): Promise<ServiceResult<BookingDetailDto>> {
     return this.updateBookingStatus(bookingId, BookingStatus.COMPLETED);
   }
 
   /**
    * Expire booking (auto-expiration of pending bookings)
    */
-  async expireBooking(bookingId: string): Promise<ServiceResult<BookingDetailDto>> {
-    return this.updateBookingStatus(bookingId, BookingStatus.EXPIRED, 'Payment timeout');
+  async expireBooking(
+    bookingId: string
+  ): Promise<ServiceResult<BookingDetailDto>> {
+    return this.updateBookingStatus(
+      bookingId,
+      BookingStatus.EXPIRED,
+      'Payment timeout'
+    );
   }
 
   // ==================== STATISTICS & REPORTS ====================
@@ -1005,12 +1165,18 @@ export class BookingService {
   /**
    * Get comprehensive booking statistics
    */
-  async getBookingStatistics(filters: {
-    startDate?: Date;
-    endDate?: Date;
-    cinemaId?: string;
-    showtimeId?: string;
-  } = {}): Promise<any> {
+  async getBookingStatistics(
+    filters: {
+      startDate?: Date;
+      endDate?: Date;
+      cinemaId?: string;
+      showtimeId?: string;
+    } = {}
+  ): Promise<any> {
+    console.log(
+      `[BookingService] getBookingStatistics called with filters:`,
+      filters
+    );
     const where: Prisma.BookingsWhereInput = {};
 
     if (filters?.startDate || filters?.endDate) {
@@ -1022,7 +1188,12 @@ export class BookingService {
     if (filters?.showtimeId) where.showtime_id = filters.showtimeId;
 
     const bookings = await this.prisma.bookings.findMany({
-      where,
+      where: {
+        ...where,
+        status: {
+          in: [BookingStatus.CONFIRMED, BookingStatus.COMPLETED],
+        },
+      },
       include: {
         tickets: true,
         booking_concessions: {
@@ -1033,9 +1204,17 @@ export class BookingService {
       },
     });
 
+    console.log(
+      `[BookingService] Found ${bookings.length} raw bookings in DB.`
+    );
+
     const totalBookings = bookings.length;
-    const totalRevenue = bookings.reduce((sum, b) => sum + Number(b.final_amount), 0);
-    const averageBookingValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
+    const totalRevenue = bookings.reduce(
+      (sum, b) => sum + Number(b.final_amount),
+      0
+    );
+    const averageBookingValue =
+      totalBookings > 0 ? totalRevenue / totalBookings : 0;
 
     // Group by status
     const bookingsByStatus = Object.values(BookingStatus).map((status) => {
@@ -1043,19 +1222,29 @@ export class BookingService {
       return {
         status,
         count: statusBookings.length,
-        revenue: statusBookings.reduce((sum, b) => sum + Number(b.final_amount), 0),
+        revenue: statusBookings.reduce(
+          (sum, b) => sum + Number(b.final_amount),
+          0
+        ),
       };
     });
 
     // Group by payment status
-    const bookingsByPaymentStatus = Object.values(PaymentStatus).map((status) => {
-      const count = bookings.filter((b) => b.payment_status === status).length;
-      return { status, count };
-    });
+    const bookingsByPaymentStatus = Object.values(PaymentStatus).map(
+      (status) => {
+        const count = bookings.filter(
+          (b) => b.payment_status === status
+        ).length;
+        return { status, count };
+      }
+    );
 
     // Top concessions
-    const concessionStats = new Map<string, { name: string; quantity: number; revenue: number }>();
-    
+    const concessionStats = new Map<
+      string,
+      { name: string; quantity: number; revenue: number }
+    >();
+
     bookings.forEach((booking) => {
       booking.booking_concessions?.forEach((bc) => {
         const key = bc.concession_id;
@@ -1078,8 +1267,11 @@ export class BookingService {
       .slice(0, 10);
 
     // Top promotions
-    const promotionStats = new Map<string, { usageCount: number; totalDiscount: number }>();
-    
+    const promotionStats = new Map<
+      string,
+      { usageCount: number; totalDiscount: number }
+    >();
+
     bookings.forEach((booking) => {
       if (booking.promotion_code) {
         if (!promotionStats.has(booking.promotion_code)) {
@@ -1108,10 +1300,13 @@ export class BookingService {
         bookingsByPaymentStatus,
         topConcessions,
         topPromotions,
-        period: filters.startDate && filters.endDate ? {
-          startDate: filters.startDate,
-          endDate: filters.endDate,
-        } : undefined,
+        period:
+          filters.startDate && filters.endDate
+            ? {
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+              }
+            : undefined,
       },
     };
   }
@@ -1119,14 +1314,16 @@ export class BookingService {
   /**
    * Get revenue report
    */
-  async getRevenueReport(filters: {
-    startDate?: Date;
-    endDate?: Date;
-    cinemaId?: string;
-    groupBy?: 'day' | 'week' | 'month' | 'cinema';
-  } = {}): Promise<any> {
+  async getRevenueReport(
+    filters: {
+      startDate?: Date;
+      endDate?: Date;
+      cinemaId?: string;
+      groupBy?: 'day' | 'week' | 'month' | 'cinema';
+    } = {}
+  ): Promise<any> {
     const where: Prisma.BookingsWhereInput = {
-      status: BookingStatus.CONFIRMED, // Only confirmed bookings count towards revenue
+      status: { in: [BookingStatus.CONFIRMED, BookingStatus.COMPLETED] }, // Include confirmed and completed bookings
     };
 
     if (filters?.startDate || filters?.endDate) {
@@ -1153,18 +1350,23 @@ export class BookingService {
     });
 
     // Calculate totals
-    const totalRevenue = bookings.reduce((sum, b) => sum + Number(b.final_amount), 0);
-    
+    const totalRevenue = bookings.reduce(
+      (sum, b) => sum + Number(b.final_amount),
+      0
+    );
+
     const totalTicketRevenue = bookings.reduce((sum, b) => {
-      const ticketTotal = b.tickets?.reduce((tSum, t) => tSum + Number(t.price), 0) || 0;
+      const ticketTotal =
+        b.tickets?.reduce((tSum, t) => tSum + Number(t.price), 0) || 0;
       return sum + ticketTotal;
     }, 0);
 
     const totalConcessionRevenue = bookings.reduce((sum, b) => {
-      const concessionTotal = b.booking_concessions?.reduce(
-        (cSum, bc) => cSum + Number(bc.total_price),
-        0
-      ) || 0;
+      const concessionTotal =
+        b.booking_concessions?.reduce(
+          (cSum, bc) => cSum + Number(bc.total_price),
+          0
+        ) || 0;
       return sum + concessionTotal;
     }, 0);
 
@@ -1188,14 +1390,15 @@ export class BookingService {
 
     const netRevenue = totalRevenue - totalRefund;
     const bookingCount = bookings.length;
-    const averageBookingValue = bookingCount > 0 ? totalRevenue / bookingCount : 0;
+    const averageBookingValue =
+      bookingCount > 0 ? totalRevenue / bookingCount : 0;
 
     // Revenue by period (simplified - just daily for now)
     const revenueByPeriod: any[] = [];
-    
+
     if (filters.groupBy === 'day' || !filters.groupBy) {
       const dateMap = new Map<string, { revenue: number; count: number }>();
-      
+
       bookings.forEach((booking) => {
         const date = booking.created_at.toISOString().split('T')[0];
         if (!dateMap.has(date)) {
@@ -1236,13 +1439,248 @@ export class BookingService {
     };
   }
 
+  /**
+   * Get revenue grouped by movie ID (for dashboard)
+   * Fetches showtime details to get movieId, then aggregates
+   */
+  async getRevenueGroupedByMovieId(
+    filters: {
+      startDate?: Date;
+      endDate?: Date;
+      cinemaId?: string;
+    } = {}
+  ): Promise<Array<{ movieId: string; revenue: number; bookings: number }>> {
+    const where: Prisma.BookingsWhereInput = {
+      status: { in: [BookingStatus.CONFIRMED, BookingStatus.COMPLETED] },
+    };
+
+    if (filters?.startDate || filters?.endDate) {
+      where.created_at = {};
+      if (filters.startDate) where.created_at.gte = filters.startDate;
+      if (filters.endDate) where.created_at.lte = filters.endDate;
+    }
+
+    const bookings = await this.prisma.bookings.findMany({
+      where,
+      select: {
+        showtime_id: true,
+        final_amount: true,
+      },
+    });
+
+    if (bookings.length === 0) {
+      return [];
+    }
+
+    // Get unique showtime IDs
+    const showtimeIds = [...new Set(bookings.map((b) => b.showtime_id))];
+
+    // 🚀 Batch fetch showtime details from Cinema service (single RPC call instead of N+1)
+    const showtimeMap = new Map<
+      string,
+      { movieId: string; cinemaId: string }
+    >();
+
+    try {
+      const showtimeResult = await firstValueFrom(
+        this.cinemaClient.send(CinemaMessage.SHOWTIME.GET_SHOWTIMES_BY_IDS, {
+          showtimeIds,
+        })
+      );
+      const showtimes = showtimeResult?.data || [];
+      for (const st of showtimes) {
+        if (st.movieId) {
+          showtimeMap.set(st.showtimeId, {
+            movieId: st.movieId,
+            cinemaId: st.cinemaId,
+          });
+        }
+      }
+    } catch (error) {
+      this.logger.warn(
+        'Failed to batch fetch showtimes for movie aggregation',
+        error
+      );
+    }
+
+    // Aggregate by movieId
+    const movieStats = new Map<string, { revenue: number; bookings: number }>();
+
+    for (const booking of bookings) {
+      const showtime = showtimeMap.get(booking.showtime_id);
+      if (!showtime) continue;
+
+      // Filter by cinemaId if provided
+      if (filters.cinemaId && showtime.cinemaId !== filters.cinemaId) {
+        continue;
+      }
+
+      const movieId = showtime.movieId;
+
+      if (!movieStats.has(movieId)) {
+        movieStats.set(movieId, { revenue: 0, bookings: 0 });
+      }
+      const stats = movieStats.get(movieId);
+      if (stats) {
+        stats.revenue += Number(booking.final_amount);
+        stats.bookings++;
+      }
+    }
+
+    // Convert to array and sort by revenue descending
+    return Array.from(movieStats.entries())
+      .map(([movieId, stats]) => ({
+        movieId,
+        revenue: stats.revenue,
+        bookings: stats.bookings,
+      }))
+      .sort((a, b) => b.revenue - a.revenue);
+  }
+
+  /**
+   * Get revenue grouped by cinema ID (for dashboard)
+   * Fetches showtime details to get cinemaId, then aggregates
+   * Also calculates occupancy rate using hall capacities
+   */
+  async getRevenueGroupedByCinemaId(
+    filters: {
+      startDate?: Date;
+      endDate?: Date;
+      cinemaId?: string;
+    } = {}
+  ): Promise<
+    Array<{
+      cinemaId: string;
+      revenue: number;
+      bookings: number;
+      occupancyRate: number;
+    }>
+  > {
+    const where: Prisma.BookingsWhereInput = {
+      status: { in: [BookingStatus.CONFIRMED, BookingStatus.COMPLETED] },
+    };
+
+    if (filters?.startDate || filters?.endDate) {
+      where.created_at = {};
+      if (filters.startDate) where.created_at.gte = filters.startDate;
+      if (filters.endDate) where.created_at.lte = filters.endDate;
+    }
+
+    // Fetch bookings with ticket count for occupancy calculation
+    const bookings = await this.prisma.bookings.findMany({
+      where,
+      select: {
+        showtime_id: true,
+        final_amount: true,
+        tickets: {
+          select: { id: true },
+        },
+      },
+    });
+
+    if (bookings.length === 0) {
+      return [];
+    }
+
+    // Get unique showtime IDs
+    const showtimeIds = [...new Set(bookings.map((b) => b.showtime_id))];
+
+    // 🚀 Batch fetch showtime details from Cinema service (single RPC call instead of N+1)
+    const showtimeMap = new Map<string, string>(); // showtimeId -> cinemaId
+
+    try {
+      const showtimeResult = await firstValueFrom(
+        this.cinemaClient.send(CinemaMessage.SHOWTIME.GET_SHOWTIMES_BY_IDS, {
+          showtimeIds,
+        })
+      );
+      const showtimes = showtimeResult?.data || [];
+      for (const st of showtimes) {
+        if (st.cinemaId) {
+          showtimeMap.set(st.showtimeId, st.cinemaId);
+        }
+      }
+    } catch (error) {
+      this.logger.warn(
+        'Failed to batch fetch showtimes for cinema aggregation',
+        error
+      );
+    }
+
+    // Fetch hall capacities for occupancy calculation
+    const capacityMap = new Map<string, number>(); // cinemaId -> total capacity
+    try {
+      const capacitiesResult = await firstValueFrom(
+        this.cinemaClient.send(CinemaMessage.HALL.GET_HALL_CAPACITIES, {})
+      );
+      const capacities = capacitiesResult?.data || capacitiesResult || [];
+      for (const cap of capacities) {
+        if (cap.cinemaId) {
+          const current = capacityMap.get(cap.cinemaId) || 0;
+          capacityMap.set(cap.cinemaId, current + (cap.capacity || 0));
+        }
+      }
+    } catch (error) {
+      this.logger.warn(
+        'Failed to fetch hall capacities for occupancy calculation',
+        error
+      );
+    }
+
+    // Aggregate by cinemaId
+    const cinemaStats = new Map<
+      string,
+      { revenue: number; bookings: number; soldSeats: number }
+    >();
+
+    for (const booking of bookings) {
+      const cinemaId = showtimeMap.get(booking.showtime_id);
+      if (!cinemaId) continue;
+
+      // Filter by cinemaId if provided
+      if (filters.cinemaId && cinemaId !== filters.cinemaId) {
+        continue;
+      }
+
+      if (!cinemaStats.has(cinemaId)) {
+        cinemaStats.set(cinemaId, { revenue: 0, bookings: 0, soldSeats: 0 });
+      }
+      const stats = cinemaStats.get(cinemaId);
+      if (stats) {
+        stats.revenue += Number(booking.final_amount);
+        stats.bookings++;
+        stats.soldSeats += booking.tickets?.length || 0;
+      }
+    }
+
+    // Convert to array and sort by revenue descending
+    return Array.from(cinemaStats.entries())
+      .map(([cinemaId, stats]) => {
+        const totalCapacity = capacityMap.get(cinemaId) || 0;
+        const occupancyRate =
+          totalCapacity > 0
+            ? Math.round((stats.soldSeats / totalCapacity) * 100)
+            : 0;
+        return {
+          cinemaId,
+          revenue: stats.revenue,
+          bookings: stats.bookings,
+          occupancyRate,
+        };
+      })
+      .sort((a, b) => b.revenue - a.revenue);
+  }
+
   // ==================== NEW FEATURES ====================
 
   /**
    * Calculate refund amount based on cancellation policy
    * Policy: Cancel before 2 hours → 70% refund on tickets only
    */
-  async calculateRefund(bookingId: string, userId: string): Promise<ServiceResult<RefundCalculationDto>> {
+  async calculateRefund(
+    bookingId: string,
+    userId: string
+  ): Promise<ServiceResult<RefundCalculationDto>> {
     const booking = await this.prisma.bookings.findFirst({
       where: { id: bookingId, user_id: userId },
       include: {
@@ -1265,7 +1703,8 @@ export class BookingService {
 
     const showtimeStart = new Date(showtimeData.showtime.start_time);
     const now = new Date();
-    const hoursUntilShowtime = (showtimeStart.getTime() - now.getTime()) / (1000 * 60 * 60);
+    const hoursUntilShowtime =
+      (showtimeStart.getTime() - now.getTime()) / (1000 * 60 * 60);
 
     // Check if booking can be cancelled
     if (hoursUntilShowtime < this.CANCELLATION_HOURS_BEFORE) {
@@ -1277,7 +1716,10 @@ export class BookingService {
           ticketAmount: 0,
           concessionsAmount: 0,
           reason: `Cancellation must be made at least ${this.CANCELLATION_HOURS_BEFORE} hours before showtime`,
-          deadline: new Date(showtimeStart.getTime() - this.CANCELLATION_HOURS_BEFORE * 60 * 60 * 1000),
+          deadline: new Date(
+            showtimeStart.getTime() -
+              this.CANCELLATION_HOURS_BEFORE * 60 * 60 * 1000
+          ),
         },
       };
     }
@@ -1297,16 +1739,20 @@ export class BookingService {
     }
 
     // Calculate ticket amount (from actual tickets, not subtotal)
-    const ticketAmount = booking.tickets?.reduce((sum, t) => sum + Number(t.price), 0) || 0;
-    
+    const ticketAmount =
+      booking.tickets?.reduce((sum, t) => sum + Number(t.price), 0) || 0;
+
     // Concessions are NOT refundable
-    const concessionsAmount = booking.booking_concessions?.reduce(
-      (sum, bc) => sum + Number(bc.total_price),
-      0
-    ) || 0;
+    const concessionsAmount =
+      booking.booking_concessions?.reduce(
+        (sum, bc) => sum + Number(bc.total_price),
+        0
+      ) || 0;
 
     // Calculate refund: 70% of ticket price only
-    const refundAmount = Math.round((ticketAmount * this.REFUND_PERCENTAGE) / 100);
+    const refundAmount = Math.round(
+      (ticketAmount * this.REFUND_PERCENTAGE) / 100
+    );
 
     return {
       data: {
@@ -1316,7 +1762,10 @@ export class BookingService {
         ticketAmount,
         concessionsAmount,
         reason: `Refund ${this.REFUND_PERCENTAGE}% of ticket price. Concessions are non-refundable.`,
-        deadline: new Date(showtimeStart.getTime() - this.CANCELLATION_HOURS_BEFORE * 60 * 60 * 1000),
+        deadline: new Date(
+          showtimeStart.getTime() -
+            this.CANCELLATION_HOURS_BEFORE * 60 * 60 * 1000
+        ),
       },
     };
   }
@@ -1328,20 +1777,24 @@ export class BookingService {
     id: string,
     userId: string,
     dto: CancelBookingWithRefundDto
-  ): Promise<ServiceResult<{ booking: BookingDetailDto; refund?: RefundCalculationDto }>> {
+  ): Promise<
+    ServiceResult<{ booking: BookingDetailDto; refund?: RefundCalculationDto }>
+  > {
     // Calculate refund eligibility
     const refundCalcResult = await this.calculateRefund(id, userId);
 
-    // Cancel the booking
-    const bookingResult = await this.cancelBooking(id, userId, dto.reason);
+    // Cancel the booking (email will be sent by cancelBooking)
+    const refundAmount =
+      dto.requestRefund && refundCalcResult.data.canRefund
+        ? refundCalcResult.data.refundAmount
+        : undefined;
 
-    // Send notification ASYNC (fire-and-forget, don't block cancellation)
-    this.notificationService.sendBookingCancellation(
-      bookingResult.data,
-      dto.requestRefund && refundCalcResult.data.canRefund ? refundCalcResult.data.refundAmount : undefined
-    ).catch(error => {
-      console.error('[Booking] Failed to send cancellation email (async):', error);
-    });
+    const bookingResult = await this.cancelBooking(
+      id,
+      userId,
+      dto.reason,
+      refundAmount
+    );
 
     return {
       data: {
@@ -1375,101 +1828,106 @@ export class BookingService {
       throw new BadRequestException('Booking not found');
     }
 
-    this.logger.log(`Booking status: ${booking.status}, expires at: ${booking.expires_at}`);
+    this.logger.log(
+      `Booking status: ${booking.status}, expires at: ${booking.expires_at}`
+    );
     if (booking.status !== BookingStatus.PENDING) {
       throw new BadRequestException('Can only update pending bookings');
     }
 
-
     // ✅ STEP 1: Handle seats update (the actual booking logic)
-   
-      // Get seats currently held by user from Cinema Service (Redis)
-      
-      const heldSeatsData = await this.getSeatsHeldByUser(booking.showtime_id, userId);
-      const { seats: heldSeatsWithPricing, lockTtl: sessionTTL } = heldSeatsData;
-      this.logger.log(`Held seats retrieved: ${heldSeatsWithPricing.length} seats, TTL: ${sessionTTL}s`);
 
-      if (heldSeatsWithPricing.length === 0) {
-        throw new BadRequestException(
-          'No seats are currently held by this user. Please hold seats via WebSocket first.'
-        );
-      }
+    // Get seats currently held by user from Cinema Service (Redis)
 
-      // Validate seat lock TTL
-      if (sessionTTL <= 0) {
-        throw new BadRequestException(
-          'Seat lock has expired. Please hold seats again via WebSocket.'
-        );
-      }
+    const heldSeatsData = await this.getSeatsHeldByUser(
+      booking.showtime_id,
+      userId
+    );
+    const { seats: heldSeatsWithPricing, lockTtl: sessionTTL } = heldSeatsData;
+    this.logger.log(
+      `Held seats retrieved: ${heldSeatsWithPricing.length} seats, TTL: ${sessionTTL}s`
+    );
 
-      // Check if any of the held seats already have VALID tickets
-      const seatIds = heldSeatsWithPricing.map((seat) => seat.id);
-      const existingValidTickets = await this.prisma.tickets.findMany({
-        where: {
-          seat_id: { in: seatIds },
-          booking: {
-            showtime_id: booking.showtime_id,
-          },
-          status: TicketStatus.VALID,
-        },
-      });
-
-      if (existingValidTickets.length > 0) {
-        const bookedSeatIds = existingValidTickets.map((t) => t.seat_id);
-        throw new BadRequestException(
-          `Cannot update booking. The following seats already have valid tickets: ${bookedSeatIds.join(', ')}`
-        );
-      }
-
-      // Build seat details from held seats
-      const heldSeatsDetails: SeatDetail[] = heldSeatsWithPricing.map((seat) => ({
-        id: seat.id,
-        row: seat.rowLetter,
-        number: seat.seatNumber,
-        type: seat.type,
-        seatType: seat.type,
-        seatStatus: SeatStatusEnum.ACTIVE,
-        reservationStatus: ReservationStatusEnum.HELD,
-        isHeldByCurrentUser: true,
-      }));
-
-      // Calculate pricing
-      const ticketPrices = await this.calculateTicketPrices(
-        heldSeatsDetails,
-        heldSeatsWithPricing
+    if (heldSeatsWithPricing.length === 0) {
+      throw new BadRequestException(
+        'No seats are currently held by this user. Please hold seats via WebSocket first.'
       );
+    }
 
-      const seatTypeMap = new Map(
-        heldSeatsDetails.map((s) => [s.id, s.type])
+    // Validate seat lock TTL
+    if (sessionTTL <= 0) {
+      throw new BadRequestException(
+        'Seat lock has expired. Please hold seats again via WebSocket.'
       );
+    }
 
-      // Delete existing tickets
-      await this.prisma.tickets.deleteMany({
-        where: { booking_id: id },
-      });
-
-      // Create new tickets with pricing
-      const newTickets = ticketPrices.map((ticket) => ({
-        booking_id: id,
-        seat_id: ticket.seatId,
-        ticket_code: this.generateTicketCode(),
-        ticket_type: seatTypeMap.get(ticket.seatId) || 'STANDARD',
-        price: ticket.price,
-        status: TicketStatus.CANCELLED, // Will become VALID after payment
-      }));
-
-      await this.prisma.tickets.createMany({
-        data: newTickets,
-      });
-
-      // Update booking expiration to match seat lock TTL
-      await this.prisma.bookings.update({
-        where: { id },
-        data: {
-          expires_at: new Date(Date.now() + sessionTTL * 1000),
+    // Check if any of the held seats already have VALID tickets
+    const seatIds = heldSeatsWithPricing.map((seat) => seat.id);
+    const existingValidTickets = await this.prisma.tickets.findMany({
+      where: {
+        seat_id: { in: seatIds },
+        booking: {
+          showtime_id: booking.showtime_id,
         },
-      });
-    
+        status: TicketStatus.VALID,
+      },
+    });
+
+    if (existingValidTickets.length > 0) {
+      const bookedSeatIds = existingValidTickets.map((t) => t.seat_id);
+      throw new BadRequestException(
+        `Cannot update booking. The following seats already have valid tickets: ${bookedSeatIds.join(
+          ', '
+        )}`
+      );
+    }
+
+    // Build seat details from held seats
+    const heldSeatsDetails: SeatDetail[] = heldSeatsWithPricing.map((seat) => ({
+      id: seat.id,
+      row: seat.rowLetter,
+      number: seat.seatNumber,
+      type: seat.type,
+      seatType: seat.type,
+      seatStatus: SeatStatusEnum.ACTIVE,
+      reservationStatus: ReservationStatusEnum.HELD,
+      isHeldByCurrentUser: true,
+    }));
+
+    // Calculate pricing
+    const ticketPrices = await this.calculateTicketPrices(
+      heldSeatsDetails,
+      heldSeatsWithPricing
+    );
+
+    const seatTypeMap = new Map(heldSeatsDetails.map((s) => [s.id, s.type]));
+
+    // Delete existing tickets
+    await this.prisma.tickets.deleteMany({
+      where: { booking_id: id },
+    });
+
+    // Create new tickets with pricing
+    const newTickets = ticketPrices.map((ticket) => ({
+      booking_id: id,
+      seat_id: ticket.seatId,
+      ticket_code: this.generateTicketCode(),
+      ticket_type: seatTypeMap.get(ticket.seatId) || 'STANDARD',
+      price: ticket.price,
+      status: TicketStatus.CANCELLED, // Will become VALID after payment
+    }));
+
+    await this.prisma.tickets.createMany({
+      data: newTickets,
+    });
+
+    // Update booking expiration to match seat lock TTL
+    await this.prisma.bookings.update({
+      where: { id },
+      data: {
+        expires_at: new Date(Date.now() + sessionTTL * 1000),
+      },
+    });
 
     // ✅ STEP 2: Handle concessions update
     if (dto.concessions !== undefined) {
@@ -1480,16 +1938,22 @@ export class BookingService {
 
       if (dto.concessions.length > 0) {
         const concessionData = await this.getConcessionDetails(
-          dto.concessions.map(c => c.concessionId)
+          dto.concessions.map((c) => c.concessionId)
         );
 
-        const newConcessions = dto.concessions.map(item => {
-          const concession = concessionData.find(c => c.id === item.concessionId);
+        const newConcessions = dto.concessions.map((item) => {
+          const concession = concessionData.find(
+            (c) => c.id === item.concessionId
+          );
           if (!concession) {
-            throw new BadRequestException(`Concession ${item.concessionId} not found`);
+            throw new BadRequestException(
+              `Concession ${item.concessionId} not found`
+            );
           }
           if (!concession.available) {
-            throw new BadRequestException(`Concession ${concession.name} is not available`);
+            throw new BadRequestException(
+              `Concession ${concession.name} is not available`
+            );
           }
 
           const totalPrice = Number(concession.price) * item.quantity;
@@ -1523,26 +1987,29 @@ export class BookingService {
       throw new BadRequestException('Failed to retrieve updated booking');
     }
 
-    const ticketsSubtotal = updatedBooking.tickets?.reduce(
-      (sum, t) => sum + Number(t.price),
-      0
-    ) || 0;
-    const concessionsSubtotal = updatedBooking.booking_concessions?.reduce(
-      (sum, bc) => sum + Number(bc.total_price),
-      0
-    ) || 0;
+    const ticketsSubtotal =
+      updatedBooking.tickets?.reduce((sum, t) => sum + Number(t.price), 0) || 0;
+    const concessionsSubtotal =
+      updatedBooking.booking_concessions?.reduce(
+        (sum, bc) => sum + Number(bc.total_price),
+        0
+      ) || 0;
     const subtotal = ticketsSubtotal + concessionsSubtotal;
 
     // ✅ STEP 4: Apply promotions and loyalty points
     let discount = 0;
     let pointsDiscount = 0;
 
-    const promotionCode = dto.promotionCode !== undefined ? dto.promotionCode : booking.promotion_code;
+    const promotionCode =
+      dto.promotionCode !== undefined
+        ? dto.promotionCode
+        : booking.promotion_code;
     if (promotionCode) {
       discount = await this.calculatePromotion(promotionCode, subtotal);
     }
 
-    const usePoints = dto.usePoints !== undefined ? dto.usePoints : booking.points_used;
+    const usePoints =
+      dto.usePoints !== undefined ? dto.usePoints : booking.points_used;
     if (usePoints > 0) {
       pointsDiscount = await this.calculatePointsDiscount(usePoints, userId);
     }
@@ -1596,24 +2063,38 @@ export class BookingService {
 
     // Check reschedule count (using cancellation_reason as metadata for now)
     // TODO: Add a proper 'reschedule_count' field to schema
-    const rescheduleCount = (booking.cancellation_reason || '').includes('Rescheduled') ? 1 : 0;
-    
+    const rescheduleCount = (booking.cancellation_reason || '').includes(
+      'Rescheduled'
+    )
+      ? 1
+      : 0;
+
     if (rescheduleCount >= this.MAX_RESCHEDULES) {
-      throw new BadRequestException(`Maximum ${this.MAX_RESCHEDULES} reschedule allowed per booking`);
+      throw new BadRequestException(
+        `Maximum ${this.MAX_RESCHEDULES} reschedule allowed per booking`
+      );
     }
 
     // Get old showtime details
     let oldShowtimeData;
     try {
-      oldShowtimeData = await this.getShowtimeDetails(booking.showtime_id, userId);
+      oldShowtimeData = await this.getShowtimeDetails(
+        booking.showtime_id,
+        userId
+      );
     } catch {
-      throw new BadRequestException('Cannot fetch current showtime information');
+      throw new BadRequestException(
+        'Cannot fetch current showtime information'
+      );
     }
 
     // Validate new showtime
     let newShowtimeData;
     try {
-      newShowtimeData = await this.getShowtimeDetails(dto.newShowtimeId, userId);
+      newShowtimeData = await this.getShowtimeDetails(
+        dto.newShowtimeId,
+        userId
+      );
     } catch {
       throw new BadRequestException('Invalid new showtime');
     }
@@ -1621,7 +2102,8 @@ export class BookingService {
     // Check timing - cannot reschedule if current showtime is less than 2 hours away
     const oldShowtimeStart = new Date(oldShowtimeData.showtime.start_time);
     const now = new Date();
-    const hoursUntilOldShowtime = (oldShowtimeStart.getTime() - now.getTime()) / (1000 * 60 * 60);
+    const hoursUntilOldShowtime =
+      (oldShowtimeStart.getTime() - now.getTime()) / (1000 * 60 * 60);
 
     if (hoursUntilOldShowtime < this.CANCELLATION_HOURS_BEFORE) {
       throw new BadRequestException(
@@ -1638,9 +2120,10 @@ export class BookingService {
       where: { id },
       data: {
         showtime_id: dto.newShowtimeId,
-        cancellation_reason: rescheduleCount > 0 
-          ? `Rescheduled ${rescheduleCount + 1} times`
-          : 'Rescheduled from previous showtime',
+        cancellation_reason:
+          rescheduleCount > 0
+            ? `Rescheduled ${rescheduleCount + 1} times`
+            : 'Rescheduled from previous showtime',
         updated_at: new Date(),
       },
     });
@@ -1651,9 +2134,17 @@ export class BookingService {
     const newBookingDetailResult = await this.findOne(id, userId);
 
     // Send notification ASYNC (fire-and-forget, don't block reschedule)
-    this.notificationService.sendBookingReschedule(oldBookingDetailResult.data, newBookingDetailResult.data).catch(error => {
-      console.error('[Booking] Failed to send reschedule email (async):', error);
-    });
+    this.notificationService
+      .sendBookingReschedule(
+        oldBookingDetailResult.data,
+        newBookingDetailResult.data
+      )
+      .catch((error) => {
+        console.error(
+          '[Booking] Failed to send reschedule email (async):',
+          error
+        );
+      });
 
     return newBookingDetailResult;
   }
@@ -1692,9 +2183,10 @@ export class BookingService {
     userId: string,
     includeStatuses?: BookingStatus[]
   ): Promise<ServiceResult<BookingCalculationDto | null>> {
-    const statusFilter = includeStatuses && includeStatuses.length > 0
-      ? { in: includeStatuses }
-      : BookingStatus.PENDING; // Default: only PENDING bookings
+    const statusFilter =
+      includeStatuses && includeStatuses.length > 0
+        ? { in: includeStatuses }
+        : BookingStatus.PENDING; // Default: only PENDING bookings
 
     const booking = await this.prisma.bookings.findFirst({
       where: {
@@ -1714,5 +2206,29 @@ export class BookingService {
     // Return full booking summary
     return this.getBookingSummary(booking.id, userId);
   }
-}
 
+  // ==================== Private Helpers ====================
+
+  private async getShowtimeIdsForCinema(cinemaId: string): Promise<string[]> {
+    try {
+      const result = await firstValueFrom(
+        this.cinemaClient.send(CinemaMessage.SHOWTIME.FILTER_SHOWTIME, {
+          cinemaId,
+        })
+      );
+      // Result is ServiceResult<ShowtimeSummaryResponse[]>
+      const showtimes = result?.data || [];
+      // Check if data is array
+      if (Array.isArray(showtimes)) {
+        return showtimes.map((s) => s.id);
+      }
+      return [];
+    } catch (error) {
+      this.logger.error(
+        `Failed to get showtime ids for cinema ${cinemaId}`,
+        error
+      );
+      return [];
+    }
+  }
+}

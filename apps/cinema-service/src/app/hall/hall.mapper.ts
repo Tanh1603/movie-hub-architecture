@@ -32,7 +32,15 @@ export class HallMapper {
   }
 
   static toHallUpdate(request) {
-    const { cinemaId, name, type, screenType, soundSystem, features } = request;
+    const {
+      cinemaId,
+      name,
+      type,
+      screenType,
+      soundSystem,
+      features,
+      status,
+    } = request;
     return {
       ...(cinemaId !== undefined && { cinema_id: cinemaId }),
       ...(name !== undefined && { name }),
@@ -40,6 +48,7 @@ export class HallMapper {
       ...(screenType !== undefined && { screen_type: screenType }),
       ...(soundSystem !== undefined && { sound_system: soundSystem }),
       ...(features !== undefined && { features }),
+      ...(status !== undefined && { status }),
     };
   }
 

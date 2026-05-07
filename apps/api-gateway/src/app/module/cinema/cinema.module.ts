@@ -11,6 +11,8 @@ import { HallService } from './service/hall.service';
 import { TicketPricingController } from './controller/ticket-pricing.controller';
 import { TicketPricingService } from './service/ticket-pricing.service';
 
+import { AuthModule } from '../../common/auth/auth.module';
+
 @Module({
   imports: [
     ClientsModule.registerAsync([
@@ -25,18 +27,8 @@ import { TicketPricingService } from './service/ticket-pricing.service';
           },
         }),
       },
-      {
-        name: SERVICE_NAME.USER,
-        inject: [ConfigService],
-        useFactory: (configService: ConfigService) => ({
-          transport: Transport.TCP,
-          options: {
-            host: configService.get<string>('USER_HOST'),
-            port: configService.get<number>('USER_PORT'),
-          },
-        }),
-      },
     ]),
+    AuthModule,
   ],
   controllers: [
     CinemaController,

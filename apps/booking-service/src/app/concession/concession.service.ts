@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import {
   ConcessionDto,
@@ -7,6 +11,7 @@ import {
   UpdateConcessionDto,
   ServiceResult,
 } from '@movie-hub/shared-types';
+import { ConcessionCategory as PrismaConcessionCategory } from '../../../generated/prisma';
 
 @Injectable()
 export class ConcessionService {
@@ -19,21 +24,18 @@ export class ConcessionService {
   ): Promise<ServiceResult<ConcessionDto[]>> {
     const where: any = {};
     const normalizedCinemaId = this.optionalUuid(cinemaId, 'cinemaId');
-    
+
     if (normalizedCinemaId) {
-      where.OR = [
-        { cinema_id: normalizedCinemaId },
-        { cinema_id: null }
-      ];
+      where.OR = [{ cinema_id: normalizedCinemaId }, { cinema_id: null }];
     } else {
-       // When no cinema filter is provided, only show "all cinemas" items
+      // When no cinema filter is provided, only show "all cinemas" items
       where.cinema_id = null;
     }
-    
+
     if (category) {
       where.category = category;
     }
-    
+
     if (available !== undefined) {
       where.available = available;
     }
@@ -63,7 +65,9 @@ export class ConcessionService {
     };
   }
 
-  async create(dto: CreateConcessionDto): Promise<ServiceResult<ConcessionDto>> {
+  async create(
+    dto: CreateConcessionDto
+  ): Promise<ServiceResult<ConcessionDto>> {
     const normalizedCinemaId = this.optionalUuid(dto.cinemaId, 'cinemaId');
 
     // Check if concession with same name exists in same cinema
@@ -87,7 +91,7 @@ export class ConcessionService {
         name: dto.name,
         name_en: dto.nameEn,
         description: dto.description,
-        category: dto.category,
+        category: dto.category as PrismaConcessionCategory,
         price: dto.price,
         image_url: dto.imageUrl,
         available: dto.available ?? true,
@@ -105,7 +109,10 @@ export class ConcessionService {
     };
   }
 
-  async update(id: string, dto: UpdateConcessionDto): Promise<ServiceResult<ConcessionDto>> {
+  async update(
+    id: string,
+    dto: UpdateConcessionDto
+  ): Promise<ServiceResult<ConcessionDto>> {
     const concessionId = this.requireUuid(id, 'id');
     const normalizedCinemaId = this.optionalUuid(dto.cinemaId, 'cinemaId');
 
@@ -141,12 +148,16 @@ export class ConcessionService {
         ...(dto.name !== undefined && { name: dto.name }),
         ...(dto.nameEn !== undefined && { name_en: dto.nameEn }),
         ...('description' in dto && { description: dto.description }),
-        ...(dto.category !== undefined && { category: dto.category }),
+        ...(dto.category !== undefined && {
+          category: dto.category as PrismaConcessionCategory,
+        }),
         ...(dto.price !== undefined && { price: dto.price }),
         ...(dto.imageUrl !== undefined && { image_url: dto.imageUrl }),
         ...(dto.available !== undefined && { available: dto.available }),
         ...(dto.inventory !== undefined && { inventory: dto.inventory }),
-        ...(normalizedCinemaId !== undefined && { cinema_id: normalizedCinemaId }),
+        ...(normalizedCinemaId !== undefined && {
+          cinema_id: normalizedCinemaId,
+        }),
         ...('nutritionInfo' in dto && {
           nutrition_info: dto.nutritionInfo,
         }),
@@ -245,10 +256,13 @@ export class ConcessionService {
     };
   }
 
-  private optionalUuid(value: string | undefined, fieldName: string): string | undefined {
+  private optionalUuid(
+    value: string | undefined,
+    fieldName: string
+  ): string | undefined {
     if (!value) return undefined;
     const trimmed = value.trim();
-    if (!trimmed) return undefined;
+    if (!trimmed || trimmed === 'all') return undefined;
     if (!this.isValidUuid(trimmed)) {
       throw new BadRequestException(`Invalid ${fieldName} format`);
     }

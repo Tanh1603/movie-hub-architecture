@@ -24,7 +24,7 @@ export class ClerkAuthGuard implements CanActivate {
 
     // ====== 2️⃣ Auth via Clerk - Check both cookie and Authorization header ======
     let token = request.cookies?.__session;
-    
+
     // Fallback to Authorization header if no cookie
     if (!token) {
       const authHeader = request.headers?.authorization;
@@ -37,7 +37,9 @@ export class ClerkAuthGuard implements CanActivate {
     }
 
     if (!token) {
-      this.logger.warn('No token found in __session cookie or Authorization header');
+      this.logger.warn(
+        'No token found in __session cookie or Authorization header'
+      );
       return false;
     }
 
@@ -56,8 +58,50 @@ export class ClerkAuthGuard implements CanActivate {
     }
 
     // ====== 3️⃣ If no permission required, just return true after auth ======
+
+    // Enrichment: Fetch Staff Context (CinemaID, Role)
+    if (request.userId) {
+      try {
+        const userDetail = await lastValueFrom(
+          this.userClient.send(UserMessage.GET_USER_DETAIL, request.userId)
+        );
+
+        if (userDetail?.email) {
+          try {
+            const staffResult = await lastValueFrom(
+              this.userClient.send(
+                UserMessage.STAFF.FIND_BY_EMAIL,
+                userDetail.email
+              )
+            );
+
+            if (staffResult?.data) {
+              request.staffContext = {
+                staffId: staffResult.data.id,
+                cinemaId: staffResult.data.cinemaId,
+                role: staffResult.data.position, // MANAGER, STAFF, etc.
+              };
+              this.logger.debug(
+                `Staff context attached: ${JSON.stringify(
+                  request.staffContext
+                )}`
+              );
+            }
+          } catch (e) {
+            this.logger.debug(
+              `User ${userDetail.email} is not a staff member: ${e.message}`
+            );
+          }
+        }
+      } catch (error) {
+        this.logger.warn(`Failed to enrich user context: ${error.message}`);
+      }
+    }
+
     if (!requiredPermission) {
-      this.logger.debug(`No permission required, user ${request.userId} authenticated successfully`);
+      this.logger.debug(
+        `No permission required, user ${request.userId} authenticated successfully`
+      );
       return true;
     }
 
@@ -77,13 +121,17 @@ export class ClerkAuthGuard implements CanActivate {
         )
       );
 
-      this.logger.debug(`User ${userId} permissions: ${JSON.stringify(permissions)}`);
+      this.logger.debug(
+        `User ${userId} permissions: ${JSON.stringify(permissions)}`
+      );
       const hasPermission = permissions.includes(requiredPermission);
-      
+
       if (!hasPermission) {
-        this.logger.warn(`User ${userId} missing required permission: ${requiredPermission}`);
+        this.logger.warn(
+          `User ${userId} missing required permission: ${requiredPermission}`
+        );
       }
-      
+
       return hasPermission;
     } catch (error) {
       this.logger.error(`Permission check failed for user ${userId}:`, {

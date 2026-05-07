@@ -89,7 +89,7 @@ export const CinemaListNearby = () => {
     <div className="px-6">
       <div className="relative flex items-center justify-between pt-20 pb-10">
         <BlurCircle top="0" right="-80px" />
-        <p className="text-gray-300 font-bold text-lg"> 🎯RẠP GẦN BẠN</p>
+        {/* <p className="text-gray-300 font-bold text-lg"> 🎯RẠP GẦN BẠN</p> */}
       </div>
 
       <Carousel className="w-full">

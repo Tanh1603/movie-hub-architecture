@@ -5,6 +5,7 @@ import {
   Catch,
   ExceptionFilter,
   HttpStatus,
+  HttpException,
 } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { Request, Response } from 'express';
@@ -16,7 +17,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response: Response = ctx.getResponse<Response>();
-    const request: Request = ctx.getResponse<Request>();
+    const request: Request = ctx.getRequest<Request>();
     // const status = exception.getStatus();
 
     let errorResponse: ApiErrorResponse;
@@ -48,6 +49,27 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             code: error?.code || 'UNKNOWN_ERROR',
             field: error?.field,
             message: error?.message || 'Internal server error',
+          },
+        ],
+        path: request.path,
+        timestamp: new Date().toISOString(),
+      };
+    } else if (exception instanceof HttpException) {
+      status = exception.getStatus();
+      const responseBody = exception.getResponse() as any;
+      errorResponse = {
+        success: false,
+        message: responseBody.message || exception.message || 'Error',
+        errors: [
+          {
+            code:
+              typeof responseBody.error === 'string'
+                ? responseBody.error
+                : 'HTTP_ERROR',
+            field: null,
+            message: Array.isArray(responseBody.message)
+              ? responseBody.message.join(', ')
+              : responseBody.message || exception.message,
           },
         ],
         path: request.path,

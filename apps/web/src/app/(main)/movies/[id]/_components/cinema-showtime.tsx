@@ -5,12 +5,6 @@ import { CinemaLocationResponse } from '@/libs/types/cinema.type';
 import { useGetMovieShowtimesAtCinema } from '@/hooks/cinema-hooks';
 import { Skeleton } from '@movie-hub/shacdn-ui/skeleton';
 
-interface Showtime {
-  id: string;
-  time: string;
-  format: string;
-}
-
 interface CinemaShowtimeProps {
   movieId: string;
   cinema: CinemaLocationResponse;
@@ -36,7 +30,6 @@ export const CinemaShowtime = ({
   );
 
   const handleClick = (showtimeId: string) => {
-  
     onSelectShowtime(showtimeId);
   };
 
@@ -52,32 +45,32 @@ export const CinemaShowtime = ({
   }, [showtimes]);
 
   return (
-    <div className="bg-rose-700/20 text-white rounded-lg overflow-hidden transition-all w-full">
+    <div className="bg-slate-200/5 border border-slate-200/10 text-white rounded-lg overflow-hidden transition-all w-full">
       {/* Header */}
       <div
-        className="flex items-center justify-between p-4 cursor-pointer hover:bg-rose-700/30 transition-colors w-full"
+        className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-200/10 transition-colors w-full"
         onClick={() => setIsOpen(!isOpen)}
       >
         <div>
-          <p className="text-rose-400 font-bold text-lg">{cinema.name}</p>
+          <p className="text-slate-100 font-bold text-lg">{cinema.name}</p>
           <p className="text-sm text-neutral-300">{cinema.address}</p>
         </div>
         {isOpen ? (
-          <ChevronUpIcon className="text-rose-400" />
+          <ChevronUpIcon className="text-slate-300" />
         ) : (
-          <ChevronDownIcon className="text-rose-400" />
+          <ChevronDownIcon className="text-slate-300" />
         )}
       </div>
 
       {/* Content */}
       {isOpen && (
-        <div className="p-4 border-t border-rose-700/40 space-y-5">
+        <div className="p-4 border-t border-slate-200/10 space-y-5">
           {isLoading ? (
             <div className="flex flex-wrap gap-3">
               {Array.from({ length: 4 }).map((_, i) => (
                 <Skeleton
                   key={i}
-                  className="h-8 w-16 rounded-md bg-rose-500/30"
+                  className="h-8 w-16 rounded-md bg-slate-200/10"
                 />
               ))}
             </div>
@@ -86,7 +79,7 @@ export const CinemaShowtime = ({
           ) : (
             Object.entries(groupedShowtimes).map(([format, times]) => (
               <div key={format}>
-                <p className="font-semibold text-rose-200 mb-3">{format}</p>
+                <p className="font-semibold text-slate-300 mb-3">{format}</p>
                 <div className="flex flex-wrap gap-3">
                   {times.map((s) => {
                     const start = new Date(s.startTime);
@@ -96,20 +89,20 @@ export const CinemaShowtime = ({
                     return (
                       <button
                         key={s.id}
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                         onClick={() => !disabled && s.id && handleClick(s.id)}
                         disabled={disabled}
                         className={`border rounded-md px-3 py-1 transition-all ${
                           disabled
                             ? 'text-gray-100 bg-neutral-500 cursor-not-allowed'
                             : selectedShowtime === s.id
-                            ? 'bg-rose-600 text-white border-rose-500'
-                            : 'text-rose-400 border-rose-500/60 hover:bg-rose-600 hover:text-white hover:border-rose-500'
+                            ? 'bg-primary text-white border-primary'
+                            : 'text-slate-200 border-slate-200/20 hover:bg-primary/20 hover:text-white hover:border-primary'
                         }`}
                       >
                         {start.toLocaleTimeString('vi-VN', {
                           hour: '2-digit',
                           minute: '2-digit',
+                          timeZone: 'UTC',
                         })}
                       </button>
                     );
@@ -126,13 +119,13 @@ export const CinemaShowtime = ({
 
 CinemaShowtime.Skeleton = function CinemaShowtimeSkeleton() {
   return (
-    <div className="p-4 border-t border-rose-700/40 space-y-5">
+    <div className="p-4 border-t border-slate-200/10 space-y-5">
       {/* Tiêu đề phòng chiếu */}
-      <Skeleton className="h-4 w-32 rounded bg-rose-500/30" />
+      <Skeleton className="h-4 w-32 rounded bg-slate-200/10" />
       {/* Các nút giờ chiếu giả lập */}
       <div className="flex flex-wrap gap-3">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-8 w-16 rounded-md bg-rose-500/30" />
+          <Skeleton key={i} className="h-8 w-16 rounded-md bg-slate-200/10" />
         ))}
       </div>
     </div>

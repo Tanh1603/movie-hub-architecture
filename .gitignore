@@ -69,3 +69,20 @@ apps/**/.env.*.local
 docker-compose.override.yml
 !docker-compose.override.yml.example
 
+# Test results
+test-results/
+coverage/
+junit.xml
+*.log
+
+# Keep folder structure
+!test-results/.gitkeep
+
+infra/terraform/.terraform.lock.hcl
+infra/terraform/.terraform/providers/registry.terraform.io/hashicorp/azurerm/3.117.1/linux_amd64/LICENSE.txt
+infra/terraform/.terraform/providers/registry.terraform.io/hashicorp/azurerm/3.117.1/linux_amd64/terraform-provider-azurerm_v3.117.1_x5
+infra/terraform/terraform.tfstate
+infra/terraform/terraform.tfstate.backup
+infra/terraform/terraform.tfvars
+infra/terraform/tfplan
+scripts/prepare-env.sh

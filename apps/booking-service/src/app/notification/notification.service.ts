@@ -37,10 +37,13 @@ export class NotificationService {
   }
 
   private initializeMailer() {
-    const emailEnabled = this.configService.get('EMAIL_ENABLED', 'false') === 'true';
-    
+    const emailEnabled =
+      this.configService.get('EMAIL_ENABLED', 'false') === 'true';
+
     if (!emailEnabled) {
-      this.logger.warn('Email notifications are DISABLED. Set EMAIL_ENABLED=true to enable.');
+      this.logger.warn(
+        'Email notifications are DISABLED. Set EMAIL_ENABLED=true to enable.'
+      );
       return;
     }
 
@@ -51,7 +54,9 @@ export class NotificationService {
     const pass = this.configService.get('EMAIL_PASSWORD');
 
     if (!user || !pass) {
-      this.logger.warn('Email credentials not configured. Email notifications will not work.');
+      this.logger.warn(
+        'Email credentials not configured. Email notifications will not work.'
+      );
       return;
     }
 
@@ -80,12 +85,17 @@ export class NotificationService {
    */
   async sendEmail(options: EmailOptions): Promise<boolean> {
     if (!this.transporter) {
-      this.logger.warn('Email transporter not initialized. Skipping email send.');
+      this.logger.warn(
+        'Email transporter not initialized. Skipping email send.'
+      );
       return false;
     }
 
     try {
-      const from = this.configService.get('EMAIL_FROM', 'MovieHub <noreply@moviehub.com>');
+      const from = this.configService.get(
+        'EMAIL_FROM',
+        'MovieHub <noreply@moviehub.com>'
+      );
 
       const info = await this.transporter.sendMail({
         from,
@@ -95,7 +105,9 @@ export class NotificationService {
         attachments: options.attachments,
       });
 
-      this.logger.log(`Email sent successfully to ${options.to}: ${info.messageId}`);
+      this.logger.log(
+        `Email sent successfully to ${options.to}: ${info.messageId}`
+      );
       return true;
     } catch (error) {
       this.logger.error(`Failed to send email to ${options.to}:`, error);
@@ -106,16 +118,35 @@ export class NotificationService {
   /**
    * Send booking confirmation email with tickets
    */
-  async sendBookingConfirmation(data: BookingConfirmationEmailData): Promise<boolean> {
-    const { booking } = data;
+  async sendBookingConfirmation(
+    data: BookingConfirmationEmailData
+  ): Promise<boolean> {
+    const { booking, tickets } = data;
 
     const subject = `🎬 Booking Confirmation - ${booking.bookingCode}`;
+
+    // Prepare attachments for QR codes
+    const attachments = tickets.map((ticket) => {
+      // Remove data URL header if present to get raw base64
+      const base64Content = ticket.qrCode.replace(
+        /^data:image\/\w+;base64,/,
+        ''
+      );
+
+      return {
+        filename: `qrcode-${ticket.ticketCode}.png`,
+        content: Buffer.from(base64Content, 'base64'),
+        cid: `qrcode-${ticket.ticketCode}`, // Content ID for referencing in HTML
+      };
+    });
+
     const html = this.generateBookingConfirmationHTML(data);
 
     return this.sendEmail({
       to: booking.customerEmail,
       subject,
       html,
+      attachments,
     });
   }
 
@@ -156,7 +187,10 @@ export class NotificationService {
   /**
    * Send payment reminder (for pending bookings)
    */
-  async sendPaymentReminder(booking: BookingDetailDto, paymentUrl?: string): Promise<boolean> {
+  async sendPaymentReminder(
+    booking: BookingDetailDto,
+    paymentUrl?: string
+  ): Promise<boolean> {
     const subject = `⏰ Payment Reminder - ${booking.bookingCode}`;
     const html = this.generatePaymentReminderHTML(booking, paymentUrl);
 
@@ -183,7 +217,9 @@ export class NotificationService {
 
   // ==================== HTML TEMPLATES ====================
 
-  private generateBookingConfirmationHTML(data: BookingConfirmationEmailData): string {
+  private generateBookingConfirmationHTML(
+    data: BookingConfirmationEmailData
+  ): string {
     const { booking } = data;
 
     return `
@@ -236,51 +272,77 @@ export class NotificationService {
         </div>
         <div class="info-row">
           <span class="label">Date & Time:</span>
-          <span class="value">${new Date(booking.startTime).toLocaleString('vi-VN')}</span>
+          <span class="value">${new Date(booking.startTime).toLocaleString(
+            'vi-VN'
+          )}</span>
         </div>
       </div>
 
       <div class="section">
         <div class="section-title">🎫 Seats</div>
         <div class="seats">
-          ${booking.seats.map(seat => `<div class="seat">${seat.row}${seat.number}</div>`).join('')}
+          ${booking.seats
+            .map((seat) => `<div class="seat">${seat.row}${seat.number}</div>`)
+            .join('')}
         </div>
       </div>
 
-      ${data.tickets && data.tickets.length > 0 ? `
+      ${
+        data.tickets && data.tickets.length > 0
+          ? `
       <div class="section">
         <div class="section-title">🎟️ Your Tickets with QR Codes</div>
         <p style="color: #666; margin-bottom: 20px;">Show these QR codes at the cinema entrance for validation.</p>
-        ${data.tickets.map(ticket => `
+        ${data.tickets
+          .map(
+            (ticket) => `
           <div style="background: white; border: 2px solid #667eea; border-radius: 8px; padding: 20px; margin: 15px 0;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <div>
-                <div style="font-weight: bold; font-size: 16px; color: #667eea;">Seat ${ticket.seatNumber}</div>
-                <div style="color: #666; margin: 5px 0;">Ticket: ${ticket.ticketCode}</div>
+                <div style="font-weight: bold; font-size: 16px; color: #667eea;">Seat ${
+                  ticket.seatNumber
+                }</div>
+                <div style="color: #666; margin: 5px 0;">Ticket: ${
+                  ticket.ticketCode
+                }</div>
                 <div style="color: #666;">Type: ${ticket.ticketType}</div>
                 <div style="font-weight: bold; color: #333; margin-top: 5px;">${ticket.price.toLocaleString()} VND</div>
               </div>
               <div style="text-align: center;">
-                <img src="${ticket.qrCode}" alt="QR Code" style="width: 120px; height: 120px; border: 2px solid #eee; border-radius: 5px;" />
+                <img src="cid:qrcode-${
+                  ticket.ticketCode
+                }" alt="QR Code" style="width: 120px; height: 120px; border: 2px solid #eee; border-radius: 5px;" />
                 <div style="font-size: 11px; color: #999; margin-top: 5px;">Scan at entrance</div>
               </div>
             </div>
           </div>
-        `).join('')}
+        `
+          )
+          .join('')}
       </div>
-      ` : ''}
+      `
+          : ''
+      }
 
-      ${booking.concessions && booking.concessions.length > 0 ? `
+      ${
+        booking.concessions && booking.concessions.length > 0
+          ? `
       <div class="section">
         <div class="section-title">🍿 Concessions</div>
-        ${booking.concessions.map(item => `
+        ${booking.concessions
+          .map(
+            (item) => `
           <div class="info-row">
             <span class="label">${item.quantity}x ${item.name}</span>
             <span class="value">${item.totalPrice.toLocaleString()} VND</span>
           </div>
-        `).join('')}
+        `
+          )
+          .join('')}
       </div>
-      ` : ''}
+      `
+          : ''
+      }
 
       <div class="section">
         <div class="section-title">💰 Payment Summary</div>
@@ -288,25 +350,33 @@ export class NotificationService {
           <span class="label">Subtotal:</span>
           <span class="value">${booking.subtotal.toLocaleString()} VND</span>
         </div>
-        ${booking.discount > 0 ? `
+        ${
+          booking.discount > 0
+            ? `
         <div class="info-row">
           <span class="label">Discount:</span>
           <span class="value" style="color: green;">-${booking.discount.toLocaleString()} VND</span>
         </div>
-        ` : ''}
-        ${booking.pointsDiscount > 0 ? `
+        `
+            : ''
+        }
+        ${
+          booking.pointsDiscount > 0
+            ? `
         <div class="info-row">
           <span class="label">Loyalty Points (${booking.pointsUsed} pts):</span>
           <span class="value" style="color: green;">-${booking.pointsDiscount.toLocaleString()} VND</span>
         </div>
-        ` : ''}
+        `
+            : ''
+        }
         <div class="total">Total: ${booking.finalAmount.toLocaleString()} VND</div>
       </div>
 
       <div class="warning">
         <strong>⚠️ Cancellation Policy:</strong><br>
-        - Cancellations must be made at least 2 hours before showtime<br>
-        - Refund: 70% of ticket price (excluding concessions)<br>
+        - Cancellations must be made at least 24 hours before showtime<br>
+        - Refund: 100% of ticket price (as voucher)<br>
         - Rescheduling is allowed once per booking
       </div>
 
@@ -326,7 +396,10 @@ export class NotificationService {
     `;
   }
 
-  private generateCancellationHTML(booking: BookingDetailDto, refundAmount?: number): string {
+  private generateCancellationHTML(
+    booking: BookingDetailDto,
+    refundAmount?: number
+  ): string {
     return `
 <!DOCTYPE html>
 <html>
@@ -367,27 +440,41 @@ export class NotificationService {
         </div>
         <div class="info-row">
           <span>Cancelled At:</span>
-          <span>${new Date(booking.cancelledAt || new Date()).toLocaleString('vi-VN')}</span>
+          <span>${new Date(booking.cancelledAt || new Date()).toLocaleString(
+            'vi-VN'
+          )}</span>
         </div>
-        ${booking.cancellationReason ? `
+        ${
+          booking.cancellationReason
+            ? `
         <div class="info-row">
           <span>Reason:</span>
           <span>${booking.cancellationReason}</span>
         </div>
-        ` : ''}
+        `
+            : ''
+        }
       </div>
 
-      ${refundAmount && refundAmount > 0 ? `
+      ${
+        refundAmount && refundAmount > 0
+          ? `
       <div class="refund-box">
         <h3>💰 Refund Amount</h3>
         <div class="refund-amount">${refundAmount.toLocaleString()} VND</div>
         <p>Refund will be processed within 3-7 business days</p>
       </div>
-      ` : ''}
+      `
+          : ''
+      }
 
       <div class="section">
         <p><strong>Note:</strong> Your tickets have been cancelled and can no longer be used.</p>
-        ${refundAmount ? '<p>You will receive the refund to your original payment method.</p>' : ''}
+        ${
+          refundAmount
+            ? '<p>You will receive the refund to your original payment method.</p>'
+            : ''
+        }
       </div>
     </div>
   </div>
@@ -396,7 +483,10 @@ export class NotificationService {
     `;
   }
 
-  private generateRescheduleHTML(oldBooking: BookingDetailDto, newBooking: BookingDetailDto): string {
+  private generateRescheduleHTML(
+    oldBooking: BookingDetailDto,
+    newBooking: BookingDetailDto
+  ): string {
     return `
 <!DOCTYPE html>
 <html>
@@ -422,10 +512,16 @@ export class NotificationService {
     <div class="content">
       <div class="section">
         <h3>Your showtime has been changed:</h3>
-        <p class="old-time">Old Time: ${new Date(oldBooking.startTime).toLocaleString('vi-VN')}</p>
-        <p class="new-time">New Time: ${new Date(newBooking.startTime).toLocaleString('vi-VN')}</p>
+        <p class="old-time">Old Time: ${new Date(
+          oldBooking.startTime
+        ).toLocaleString('vi-VN')}</p>
+        <p class="new-time">New Time: ${new Date(
+          newBooking.startTime
+        ).toLocaleString('vi-VN')}</p>
         <p><strong>Movie:</strong> ${newBooking.movieTitle}</p>
-        <p><strong>Cinema:</strong> ${newBooking.cinemaName} - ${newBooking.hallName}</p>
+        <p><strong>Cinema:</strong> ${newBooking.cinemaName} - ${
+      newBooking.hallName
+    }</p>
       </div>
 
       <div class="section">
@@ -439,7 +535,10 @@ export class NotificationService {
     `;
   }
 
-  private generatePaymentReminderHTML(booking: BookingDetailDto, paymentUrl?: string): string {
+  private generatePaymentReminderHTML(
+    booking: BookingDetailDto,
+    paymentUrl?: string
+  ): string {
     return `
 <!DOCTYPE html>
 <html>
@@ -464,17 +563,23 @@ export class NotificationService {
     <div class="content">
       <div class="warning">
         <strong>Your booking is about to expire!</strong><br>
-        Please complete payment before: ${new Date(booking.expiresAt || new Date()).toLocaleString('vi-VN')}
+        Please complete payment before: ${new Date(
+          booking.expiresAt || new Date()
+        ).toLocaleString('vi-VN')}
       </div>
 
       <p><strong>Movie:</strong> ${booking.movieTitle}</p>
       <p><strong>Amount:</strong> ${booking.finalAmount.toLocaleString()} VND</p>
 
-      ${paymentUrl ? `
+      ${
+        paymentUrl
+          ? `
       <div style="text-align: center;">
         <a href="${paymentUrl}" class="button">Complete Payment Now</a>
       </div>
-      ` : ''}
+      `
+          : ''
+      }
     </div>
   </div>
 </body>
@@ -508,11 +613,17 @@ export class NotificationService {
       
       <div class="time-box">
         <p>Showtime</p>
-        <div class="time">${new Date(booking.startTime).toLocaleString('vi-VN')}</div>
+        <div class="time">${new Date(booking.startTime).toLocaleString(
+          'vi-VN'
+        )}</div>
       </div>
 
-      <p><strong>Cinema:</strong> ${booking.cinemaName} - ${booking.hallName}</p>
-      <p><strong>Seats:</strong> ${booking.seats.map(s => `${s.row}${s.number}`).join(', ')}</p>
+      <p><strong>Cinema:</strong> ${booking.cinemaName} - ${
+      booking.hallName
+    }</p>
+      <p><strong>Seats:</strong> ${booking.seats
+        .map((s) => `${s.row}${s.number}`)
+        .join(', ')}</p>
       <p><strong>Booking Code:</strong> ${booking.bookingCode}</p>
 
       <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 20px;">
@@ -534,14 +645,22 @@ export class NotificationService {
   async sendSMS(phoneNumber: string, message: string): Promise<boolean> {
     // TODO: Integrate with SMS provider (Twilio, AWS SNS, etc.)
     this.logger.log(`SMS to ${phoneNumber}: ${message}`);
-    this.logger.warn('SMS integration not implemented yet. Use Twilio or similar service.');
+    this.logger.warn(
+      'SMS integration not implemented yet. Use Twilio or similar service.'
+    );
     return false;
   }
 
-  async sendBookingConfirmationSMS(booking: BookingDetailDto): Promise<boolean> {
+  async sendBookingConfirmationSMS(
+    booking: BookingDetailDto
+  ): Promise<boolean> {
     if (!booking.customerPhone) return false;
 
-    const message = `MovieHub: Booking ${booking.bookingCode} confirmed! ${booking.movieTitle} at ${booking.cinemaName}, ${new Date(booking.startTime).toLocaleString('vi-VN')}. Seats: ${booking.seats.map(s => `${s.row}${s.number}`).join(', ')}`;
+    const message = `MovieHub: Booking ${booking.bookingCode} confirmed! ${
+      booking.movieTitle
+    } at ${booking.cinemaName}, ${new Date(booking.startTime).toLocaleString(
+      'vi-VN'
+    )}. Seats: ${booking.seats.map((s) => `${s.row}${s.number}`).join(', ')}`;
 
     return this.sendSMS(booking.customerPhone, message);
   }

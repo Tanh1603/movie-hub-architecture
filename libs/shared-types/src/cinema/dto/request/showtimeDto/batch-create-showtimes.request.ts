@@ -1,4 +1,4 @@
-import { FormatEnum } from '@movie-hub/shared-types/cinema/enum';
+import { FormatEnum, ShowtimeStatusEnum } from '@movie-hub/shared-types/cinema/enum';
 import { z } from 'zod';
 
 // yyyy-MM-dd (2025-12-15)
@@ -36,6 +36,11 @@ export const batchCreateShowtimesSchema = z.object({
 
   language: z.string().min(1),
   subtitles: z.array(z.string()).optional().default([]),
+
+  status: z
+    .enum(Object.values(ShowtimeStatusEnum) as [string, ...string[]])
+    .optional()
+    .default(ShowtimeStatusEnum.SELLING),
 });
 
 export type BatchCreateShowtimesInput = z.infer<

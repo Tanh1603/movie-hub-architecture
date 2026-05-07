@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { setAuthTokenGetter } from '../../libs/api-client';
+import { setAuthTokenGetter as setAuthTokenGetterApi } from '../../libs/api/api-client';
 import Loading from '../loading';
 
 export default function PageWrapper({
@@ -13,9 +14,10 @@ export default function PageWrapper({
   const { getToken } = useAuth();
 
   useEffect(() => {
-    // Set up the token getter for API client
+    // Set up the token getter for both API clients
     setAuthTokenGetter(getToken);
-    
+    setAuthTokenGetterApi(getToken);
+
     // Khi client mount xong thì bật mounted
     setMounted(true);
   }, [getToken]);

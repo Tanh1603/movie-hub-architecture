@@ -70,6 +70,22 @@
         "cwd": "apps/booking-service"
       }
     },
+    "prisma:push": {
+      "cache": false,
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "prisma db push --accept-data-loss",
+        "cwd": "apps/booking-service"
+      }
+    },
+    "prisma:seed": {
+      "cache": false,
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsx prisma/seed.ts",
+        "cwd": "apps/booking-service"
+      }
+    },
     "test": {
       "options": {
         "passWithNoTests": true

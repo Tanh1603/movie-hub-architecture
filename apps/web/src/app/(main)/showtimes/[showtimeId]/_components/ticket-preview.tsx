@@ -91,19 +91,37 @@ export default function TicketPreview({
           <CardDescription className="text-sm text-neutral-400">
             <div className="flex items-center gap-2 text-neutral-300">
               <CalendarDays className="w-4 h-4 text-rose-500" />
-              <span>
+              <span suppressHydrationWarning>
                 {data?.showtime.start_time
-                  ? new Date(data?.showtime.start_time).toLocaleString(
-                      'vi-VN',
-                      {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      }
-                    )
-                  : '—'}{' '}
+                  ? (() => {
+                      // Manual UTC to Vietnam time conversion to bypass all timezone issues
+                      const utcDate = new Date(data.showtime.start_time);
+                      // Create a new date that represents Vietnam time (UTC+7)
+                      const vnDate = new Date(
+                        utcDate.getTime() + 7 * 60 * 60 * 1000
+                      );
+
+                      // Format manually to ensure no timezone conversion
+                      const hours = vnDate
+                        .getUTCHours()
+                        .toString()
+                        .padStart(2, '0');
+                      const minutes = vnDate
+                        .getUTCMinutes()
+                        .toString()
+                        .padStart(2, '0');
+                      const day = vnDate
+                        .getUTCDate()
+                        .toString()
+                        .padStart(2, '0');
+                      const month = (vnDate.getUTCMonth() + 1)
+                        .toString()
+                        .padStart(2, '0');
+                      const year = vnDate.getUTCFullYear();
+
+                      return `${hours}:${minutes} ${day}/${month}/${year}`;
+                    })()
+                  : '—'}
               </span>
             </div>
             <br />

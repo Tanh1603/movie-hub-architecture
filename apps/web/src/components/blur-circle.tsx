@@ -12,7 +12,7 @@ export const BlurCircle = ({
 }: BlurCircleProps) => {
   return (
     <div
-      className="absolute -z-0 h-52 w-52 aspect-square rounded-full bg-rose-700/30 blur-3xl pointer-events-none"
+      className="absolute -z-0 h-52 w-52 aspect-square rounded-full bg-primary/30 blur-3xl pointer-events-none"
       style={{ top: top, left: left, right: right, bottom: bottom }}
     ></div>
   );

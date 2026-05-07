@@ -1,0 +1,477 @@
+{
+  "cinemas": [
+    {
+      "id": "cinema_1",
+      "name": "MovieHub Landmark Center",
+      "address": "81 Le Thanh Ton, Ben Nghe, District 1, HCMC",
+      "city": "Ho Chi Minh",
+      "district": "District 1",
+      "phone": "1900-6017",
+      "email": "landmark@moviehub.vn",
+      "latitude": 10.7827,
+      "longitude": 106.7013,
+      "description": "Our flagship cinema featuring state-of-the-art IMAX Laser technology and premium lounge areas.",
+      "amenities": ["Parking", "Food Court", "3D", "IMAX", "VIP", "Lounge"],
+      "facilities": {
+        "totalScreens": 8,
+        "totalSeats": 1200,
+        "parking": true,
+        "wheelchairAccess": true,
+        "airConditioning": true
+      },
+      "images": [
+        "https://placehold.co/800x600?text=MH+Landmark+Lobby",
+        "https://placehold.co/800x600?text=MH+Landmark+Exterior"
+      ],
+      "rating": 4.8,
+      "total_reviews": 342,
+      "operating_hours": {
+        "monday": "09:00-23:00",
+        "tuesday": "09:00-23:00",
+        "wednesday": "09:00-23:00",
+        "thursday": "09:00-23:00",
+        "friday": "09:00-24:00",
+        "saturday": "09:00-24:00",
+        "sunday": "09:00-23:00"
+      },
+      "social_media": {
+        "facebook": "moviehub.landmark",
+        "instagram": "moviehub_landmark"
+      },
+      "status": "ACTIVE"
+    },
+    {
+      "id": "cinema_2",
+      "name": "MovieHub Diamond Plaza",
+      "address": "34 Le Duan, Ben Nghe, District 1, HCMC",
+      "city": "Ho Chi Minh",
+      "district": "District 1",
+      "phone": "1900-5555",
+      "email": "diamond@moviehub.vn",
+      "latitude": 10.7886,
+      "longitude": 106.7024,
+      "description": "Premium cinema experience in the heart of the city, specializing in VIP service.",
+      "amenities": ["Parking", "Food Court", "3D", "4DX", "Premium", "Valet"],
+      "facilities": {
+        "totalScreens": 6,
+        "totalSeats": 900,
+        "parking": true,
+        "wheelchairAccess": true,
+        "airConditioning": true
+      },
+      "images": [
+        "https://placehold.co/800x600?text=MH+Diamond+Lobby",
+        "https://placehold.co/800x600?text=MH+Diamond+Exterior"
+      ],
+      "rating": 4.6,
+      "total_reviews": 189,
+      "operating_hours": {
+        "monday": "10:00-22:30",
+        "tuesday": "10:00-22:30",
+        "wednesday": "10:00-22:30",
+        "thursday": "10:00-22:30",
+        "friday": "10:00-23:30",
+        "saturday": "10:00-23:30",
+        "sunday": "10:00-22:30"
+      },
+      "social_media": {
+        "facebook": "moviehub.diamond",
+        "instagram": "moviehub_diamond"
+      },
+      "status": "ACTIVE"
+    },
+    {
+      "id": "cinema_3",
+      "name": "MovieHub Crescent Mall",
+      "address": "101 Ton Dat Tien, Tan Phu, District 7, HCMC",
+      "city": "Ho Chi Minh",
+      "district": "District 7",
+      "phone": "1900-8888",
+      "email": "crescent@moviehub.vn",
+      "latitude": 10.7291,
+      "longitude": 106.7214,
+      "description": "Family-friendly cinema with spacious halls and variety of food options.",
+      "amenities": ["Parking", "Mall Access", "3D", "Family Hall"],
+      "facilities": {
+        "totalScreens": 5,
+        "totalSeats": 850,
+        "parking": true,
+        "wheelchairAccess": true,
+        "airConditioning": true
+      },
+      "images": [
+        "https://placehold.co/800x600?text=MH+Crescent+Lobby",
+        "https://placehold.co/800x600?text=MH+Crescent+Exterior"
+      ],
+      "rating": 4.5,
+      "total_reviews": 120,
+      "operating_hours": {
+        "monday": "09:30-22:00",
+        "tuesday": "09:30-22:00",
+        "wednesday": "09:30-22:00",
+        "thursday": "09:30-22:00",
+        "friday": "09:30-23:30",
+        "saturday": "09:00-23:30",
+        "sunday": "09:00-22:30"
+      },
+      "social_media": {
+        "facebook": "moviehub.crescent",
+        "instagram": "moviehub_crescent"
+      },
+      "status": "ACTIVE"
+    },
+    {
+      "id": "cinema_4",
+      "name": "MovieHub Metropolis Hanoi",
+      "address": "29 Lieu Giai, Ngoc Khanh, Ba Dinh, Hanoi",
+      "city": "Hanoi",
+      "district": "Ba Dinh",
+      "phone": "1900-9999",
+      "email": "metropolis@moviehub.vn",
+      "latitude": 21.0292,
+      "longitude": 105.8118,
+      "description": "Luxury cinema experience bringing the MovieHub standard to the capital.",
+      "amenities": ["Parking", "4DX", "IMAX", "VIP", "Bar"],
+      "facilities": {
+        "totalScreens": 7,
+        "totalSeats": 1100,
+        "parking": true,
+        "wheelchairAccess": true,
+        "airConditioning": true
+      },
+      "images": [
+        "https://placehold.co/800x600?text=MH+Metropolis+Lobby",
+        "https://placehold.co/800x600?text=MH+Metropolis+Exterior"
+      ],
+      "rating": 4.7,
+      "total_reviews": 56,
+      "operating_hours": {
+        "monday": "09:00-23:00",
+        "tuesday": "09:00-23:00",
+        "wednesday": "09:00-23:00",
+        "thursday": "09:00-23:00",
+        "friday": "09:00-24:00",
+        "saturday": "09:00-24:00",
+        "sunday": "09:00-23:00"
+      },
+      "social_media": {
+        "facebook": "moviehub.metro",
+        "instagram": "moviehub_metro"
+      },
+      "status": "ACTIVE"
+    },
+    {
+      "id": "cinema_5",
+      "name": "MovieHub Gigamall Thu Duc",
+      "address": "240-242 Pham Van Dong, Hiep Binh Chanh, Thu Duc, HCMC",
+      "city": "Ho Chi Minh",
+      "district": "Thu Duc",
+      "phone": "1900-2222",
+      "email": "gigamall@moviehub.vn",
+      "latitude": 10.8267,
+      "longitude": 106.7218,
+      "description": "Modern cinema located in the vibrant Gigamall shopping center, featuring the latest projection technology.",
+      "amenities": ["Parking", "Mall Access", "3D", "Premium", "Food Court"],
+      "facilities": {
+        "totalScreens": 7,
+        "totalSeats": 1050,
+        "parking": true,
+        "wheelchairAccess": true,
+        "airConditioning": true
+      },
+      "images": [
+        "https://placehold.co/800x600?text=MH+Gigamall+Lobby",
+        "https://placehold.co/800x600?text=MH+Gigamall+Exterior"
+      ],
+      "rating": 4.7,
+      "total_reviews": 85,
+      "operating_hours": {
+        "monday": "09:00-23:00",
+        "tuesday": "09:00-23:00",
+        "wednesday": "09:00-23:00",
+        "thursday": "09:00-23:00",
+        "friday": "09:00-24:00",
+        "saturday": "09:00-24:00",
+        "sunday": "09:00-23:00"
+      },
+      "social_media": {
+        "facebook": "moviehub.gigamall",
+        "instagram": "moviehub_gigamall"
+      },
+      "status": "ACTIVE"
+    },
+    {
+      "id": "cinema_6",
+      "name": "MovieHub National University",
+      "address": "Lưu Hữu Phước, National University Village, Thu Duc, HCMC",
+      "city": "Ho Chi Minh",
+      "district": "Thu Duc",
+      "phone": "1900-3333",
+      "email": "university@moviehub.vn",
+      "latitude": 10.8753,
+      "longitude": 106.8007,
+      "description": "Popular hangout spot for students with budget-friendly pricing and vibrant atmosphere.",
+      "amenities": ["Student Discount", "Parking", "Food Court"],
+      "facilities": {
+        "totalScreens": 5,
+        "totalSeats": 750,
+        "parking": true,
+        "wheelchairAccess": true,
+        "airConditioning": true
+      },
+      "images": [
+        "https://placehold.co/800x600?text=MH+University+Lobby",
+        "https://placehold.co/800x600?text=MH+University+Exterior"
+      ],
+      "rating": 4.5,
+      "total_reviews": 420,
+      "operating_hours": {
+        "monday": "08:30-22:30",
+        "tuesday": "08:30-22:30",
+        "wednesday": "08:30-22:30",
+        "thursday": "08:30-22:30",
+        "friday": "08:30-23:30",
+        "saturday": "08:30-23:30",
+        "sunday": "08:30-22:30"
+      },
+      "social_media": {
+        "facebook": "moviehub.university",
+        "instagram": "moviehub_university"
+      },
+      "status": "ACTIVE"
+    },
+    {
+      "id": "cinema_7",
+      "name": "MovieHub Le Van Viet Plaza",
+      "address": "50 Le Van Viet, Hiep Phu, Thu Duc, HCMC",
+      "city": "Ho Chi Minh",
+      "district": "Thu Duc",
+      "phone": "1900-4444",
+      "email": "levanviet@moviehub.vn",
+      "latitude": 10.8443,
+      "longitude": 106.7792,
+      "description": "Premium cinema experience in the heart of Thu Duc, featuring IMAX and luxury halls.",
+      "amenities": ["Parking", "IMAX", "4DX", "Mall Access"],
+      "facilities": {
+        "totalScreens": 8,
+        "totalSeats": 1200,
+        "parking": true,
+        "wheelchairAccess": true,
+        "airConditioning": true
+      },
+      "images": [
+        "https://placehold.co/800x600?text=MH+LeVanViet+Lobby",
+        "https://placehold.co/800x600?text=MH+LeVanViet+Exterior"
+      ],
+      "rating": 4.8,
+      "total_reviews": 215,
+      "operating_hours": {
+        "monday": "09:00-23:00",
+        "tuesday": "09:00-23:00",
+        "wednesday": "09:00-23:00",
+        "thursday": "09:00-23:00",
+        "friday": "09:00-24:00",
+        "saturday": "09:00-24:00",
+        "sunday": "09:00-23:00"
+      },
+      "social_media": {
+        "facebook": "moviehub.levanviet",
+        "instagram": "moviehub_levanviet"
+      },
+      "status": "ACTIVE"
+    }
+  ],
+  "halls": [
+    {
+      "cinema_ref": "cinema_1",
+      "name": "Hall 1 (Standard)",
+      "type": "STANDARD",
+      "capacity": 150,
+      "rows": 10,
+      "screen_type": "2K Digital",
+      "sound_system": "Dolby 7.1",
+      "features": ["AC"],
+      "status": "ACTIVE"
+    },
+    {
+      "cinema_ref": "cinema_1",
+      "name": "Hall 2 (VIP)",
+      "type": "VIP",
+      "capacity": 64,
+      "rows": 8,
+      "screen_type": "4K Digital",
+      "sound_system": "Dolby Atmos",
+      "features": ["Recliner"],
+      "status": "ACTIVE"
+    },
+    {
+      "cinema_ref": "cinema_1",
+      "name": "Hall 3 (IMAX)",
+      "type": "IMAX",
+      "capacity": 200,
+      "rows": 12,
+      "screen_type": "IMAX Laser",
+      "sound_system": "IMAX Sound",
+      "features": ["Giant Screen"],
+      "status": "ACTIVE"
+    },
+    {
+      "cinema_ref": "cinema_2",
+      "name": "Screen 1 (Standard)",
+      "type": "STANDARD",
+      "capacity": 120,
+      "rows": 10,
+      "screen_type": "2K",
+      "sound_system": "Dolby 7.1",
+      "features": [],
+      "status": "ACTIVE"
+    },
+    {
+      "cinema_ref": "cinema_2",
+      "name": "Screen 2 (Premium)",
+      "type": "PREMIUM",
+      "capacity": 96,
+      "rows": 8,
+      "screen_type": "4K",
+      "sound_system": "Dolby Atmos",
+      "features": [],
+      "status": "ACTIVE"
+    },
+    {
+      "cinema_ref": "cinema_3",
+      "name": "Cinema 1 (Family)",
+      "type": "STANDARD",
+      "capacity": 100,
+      "rows": 10,
+      "screen_type": "2K",
+      "sound_system": "Dolby 7.1",
+      "features": ["Kids Seats"],
+      "status": "ACTIVE"
+    },
+    {
+      "cinema_ref": "cinema_3",
+      "name": "Cinema 2 (Standard)",
+      "type": "STANDARD",
+      "capacity": 120,
+      "rows": 10,
+      "screen_type": "2K",
+      "sound_system": "Dolby 7.1",
+      "features": [],
+      "status": "ACTIVE"
+    },
+    {
+      "cinema_ref": "cinema_4",
+      "name": "Screen 1 (IMAX)",
+      "type": "IMAX",
+      "capacity": 220,
+      "rows": 14,
+      "screen_type": "IMAX Laser",
+      "sound_system": "IMAX Sound",
+      "features": [],
+      "status": "ACTIVE"
+    },
+    {
+      "cinema_ref": "cinema_4",
+      "name": "Screen 2 (4DX)",
+      "type": "FOUR_DX",
+      "capacity": 80,
+      "rows": 8,
+      "screen_type": "4K",
+      "sound_system": "Dolby Atmos",
+      "features": ["Motion"],
+      "status": "ACTIVE"
+    },
+    {
+      "cinema_ref": "cinema_5",
+      "name": "Hall 1 (Premium)",
+      "type": "PREMIUM",
+      "capacity": 120,
+      "rows": 10,
+      "screen_type": "4K Digital",
+      "sound_system": "Dolby Atmos",
+      "features": ["Leather Seats"],
+      "status": "ACTIVE"
+    },
+    {
+      "cinema_ref": "cinema_5",
+      "name": "Hall 2 (Standard)",
+      "type": "STANDARD",
+      "capacity": 150,
+      "rows": 10,
+      "screen_type": "2K Digital",
+      "sound_system": "Dolby 7.1",
+      "features": [],
+      "status": "ACTIVE"
+    },
+    {
+      "cinema_ref": "cinema_6",
+      "name": "Hall 1 (Student)",
+      "type": "STANDARD",
+      "capacity": 200,
+      "rows": 12,
+      "screen_type": "2K Digital",
+      "sound_system": "Dolby 7.1",
+      "features": ["Beanbags"],
+      "status": "ACTIVE"
+    },
+    {
+      "cinema_ref": "cinema_6",
+      "name": "Hall 2 (Standard)",
+      "type": "STANDARD",
+      "capacity": 180,
+      "rows": 12,
+      "screen_type": "2K Digital",
+      "sound_system": "Dolby 7.1",
+      "features": [],
+      "status": "ACTIVE"
+    },
+    {
+      "cinema_ref": "cinema_7",
+      "name": "Cinema 1 (IMAX)",
+      "type": "IMAX",
+      "capacity": 250,
+      "rows": 15,
+      "screen_type": "IMAX Laser",
+      "sound_system": "IMAX Sound",
+      "features": ["Giant Screen"],
+      "status": "ACTIVE"
+    },
+    {
+      "cinema_ref": "cinema_7",
+      "name": "Cinema 2 (VIP Luxury)",
+      "type": "VIP",
+      "capacity": 48,
+      "rows": 6,
+      "screen_type": "4K Digital",
+      "sound_system": "Dolby Atmos",
+      "features": ["Private Bar"],
+      "status": "ACTIVE"
+    }
+  ],
+  "reviews": [
+    {
+      "cinema_ref": "cinema_1",
+      "user_id": "auth0|663a1b2c3d4e5f6a7b8c9d0e",
+      "rating": 5,
+      "comment": "Amazing IMAX experience! Totally worth the price."
+    },
+    {
+      "cinema_ref": "cinema_1",
+      "user_id": "auth0|663a2b3c4d5e6f7a8b9c0d1e",
+      "rating": 4,
+      "comment": "Good popcorn, clean seats. A bit cold though."
+    },
+    {
+      "cinema_ref": "cinema_2",
+      "user_id": "auth0|663a3b4c5d6e7f8a9b0c1d2e",
+      "rating": 5,
+      "comment": "VIP lounge is top-notch. Love the service."
+    },
+    {
+      "cinema_ref": "cinema_4",
+      "user_id": "auth0|663a4b5c6d7e8f9a0b1c2d3e",
+      "rating": 5,
+      "comment": "Best cinema in Hanoi now. The 4DX is intense!"
+    }
+  ]
+}

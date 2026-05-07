@@ -9,7 +9,7 @@ export default function CinemaDetailCard({
   cinema: CinemaLocationResponse;
 }) {
   return (
-    <Card className="w-full rounded-xl shadow-md bg-rose-500/20 border border-rose-500 text-gray-200 p-4">
+    <Card className="w-full rounded-xl shadow-md bg-cyan-500/15 border border-cyan-500/50 text-gray-200 p-4">
       <CardContent className="flex flex-col md:flex-row gap-4">
         {/* Left image */}
         <div className="w-full md:w-1/3 h-40 md:h-auto rounded-lg bg-neutral-500 overflow-hidden flex-shrink-0">
@@ -26,7 +26,7 @@ export default function CinemaDetailCard({
         <div className="flex-1 flex flex-col gap-2">
           {/* Title and rating */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-1">
-            <h2 className="text-xl font-bold text-rose-700">{cinema.name}</h2>
+            <h2 className="text-xl font-bold text-cyan-300">{cinema.name}</h2>
             <div className="flex items-center gap-1 text-yellow-500 text-sm">
               <Star className="w-4 h-4" /> {cinema.rating || '—'}
               <span className="text-gray-400">({cinema.totalReviews})</span>
@@ -60,7 +60,7 @@ export default function CinemaDetailCard({
                 <a
                   href={cinema.website}
                   target="_blank"
-                  className="underline text-blue-400 hover:text-blue-300"
+                  className="underline text-cyan-400 hover:text-cyan-300"
                 >
                   Website
                 </a>
@@ -71,7 +71,7 @@ export default function CinemaDetailCard({
           {/* Operating hours */}
           {cinema.operatingHours && (
             <div className="bg-neutral-800/40 border border-neutral-700 rounded-xl p-4">
-              <h3 className="text-rose-300 font-semibold flex gap-2 items-center mb-2">
+              <h3 className="text-cyan-300 font-semibold flex gap-2 items-center mb-2">
                 <Clock className="w-4 h-4" /> Giờ hoạt động
               </h3>
 
@@ -94,7 +94,7 @@ export default function CinemaDetailCard({
               {cinema.amenities.map((a, i) => (
                 <span
                   key={i}
-                  className="px-2 py-1 rounded-full bg-rose-500 text-neutral-200 text-sm"
+                  className="px-2 py-1 rounded-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white text-sm font-medium shadow-md shadow-cyan-500/20"
                 >
                   {a}
                 </span>

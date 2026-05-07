@@ -1,5 +1,5 @@
 import api from './api-client';
-import { useAuth } from '@clerk/nextjs';
+// import { useAuth } from '@clerk/nextjs';
 
 // Types based on api-gateway responses and @movie-hub/shared-types
 export interface ApiResponse<T> {
@@ -128,10 +128,11 @@ export const createAdminApi = (getToken: () => Promise<string | null>) => {
 };
 
 // Custom hook for using admin API
-export const useAdminApi = () => {
-  const { getToken } = useAuth();
-  return createAdminApi(getToken);
-};
+// DEPRECATED: Use new hooks from libs/api instead
+// export const useAdminApi = () => {
+//   const { getToken } = useAuth();
+//   return createAdminApi(getToken);
+// };
 
 // Types for admin API
 export type CinemaStatus = 'ACTIVE' | 'MAINTENANCE' | 'CLOSED';
