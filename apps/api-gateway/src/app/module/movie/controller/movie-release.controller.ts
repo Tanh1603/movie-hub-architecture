@@ -12,6 +12,7 @@ import {
 import { MovieService } from '../service/movie.service';
 import { CreateMovieReleaseRequest } from '@movie-hub/shared-types';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
+import { Permission } from '../../../common/decorator/permission.decorator';
 
 @Controller({
   version: '1',
@@ -22,6 +23,7 @@ export class MovieReleaseController {
 
   @Post()
   @UseGuards(ClerkAuthGuard)
+  @Permission('movie:write')
   async createMovieRelease(
     @Req() req: any,
     @Body() request: CreateMovieReleaseRequest
@@ -35,6 +37,7 @@ export class MovieReleaseController {
 
   @Put(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission('movie:write')
   async updateMovieRelease(
     @Req() req: any,
     @Param('id') id: string,
@@ -49,6 +52,7 @@ export class MovieReleaseController {
 
   @Delete(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission('movie:write')
   async remove(@Req() req: any, @Param('id') id: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {

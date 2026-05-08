@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { BookingService } from '../service/booking.service';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
+import { Permission } from '../../../common/decorator/permission.decorator';
 import { CurrentUserId } from '../../../common/decorator/current-user-id.decorator';
 import {
   CreateBookingDto,
@@ -42,6 +43,7 @@ export class BookingController {
     const userCinemaId = req.staffContext?.cinemaId;
     if (!userCinemaId) return;
 
+    // Defense-in-depth: managers can only read bookings for their own cinema.
     const context = await this.bookingService.getShowtimeContext(showtimeId);
     if (context.cinemaId !== userCinemaId) {
       throw new ForbiddenException(
@@ -57,6 +59,7 @@ export class BookingController {
     const userCinemaId = req.staffContext?.cinemaId;
     if (!userCinemaId) return;
 
+    // Defense-in-depth: mutation endpoints must remain scoped to manager's cinema.
     const context = await this.bookingService.getAdminBookingContext(bookingId);
     if (context.cinemaId !== userCinemaId) {
       throw new ForbiddenException(
@@ -139,6 +142,7 @@ export class BookingController {
 
   @Get('admin/all')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async adminFindAll(
     @Req() req: any,
     @Query() filters: AdminFindAllBookingsDto
@@ -152,6 +156,7 @@ export class BookingController {
 
   @Get('admin/showtime/:showtimeId')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async findByShowtime(
     @Req() req: any,
     @Param('showtimeId') showtimeId: string,
@@ -163,6 +168,7 @@ export class BookingController {
 
   @Get('admin/date-range')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async findByDateRange(
     @Req() req: any,
     @Query() filters: FindBookingsByDateRangeDto
@@ -176,6 +182,7 @@ export class BookingController {
 
   @Put('admin/:id/status')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:write')
   async updateStatus(
     @Req() req: any,
     @Param('id') bookingId: string,
@@ -188,6 +195,7 @@ export class BookingController {
 
   @Post('admin/:id/confirm')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:write')
   async confirmBooking(@Req() req: any, @Param('id') bookingId: string) {
     await this.enforceBookingOwnership(req, bookingId);
     return this.bookingService.confirmBooking(bookingId);
@@ -195,6 +203,7 @@ export class BookingController {
 
   @Post('admin/:id/complete')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:write')
   async completeBooking(@Req() req: any, @Param('id') bookingId: string) {
     await this.enforceBookingOwnership(req, bookingId);
     return this.bookingService.completeBooking(bookingId);
@@ -202,6 +211,7 @@ export class BookingController {
 
   @Post('admin/:id/expire')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:write')
   async expireBooking(@Req() req: any, @Param('id') bookingId: string) {
     await this.enforceBookingOwnership(req, bookingId);
     return this.bookingService.expireBooking(bookingId);
@@ -209,6 +219,7 @@ export class BookingController {
 
   @Get('admin/statistics')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async getStatistics(
     @Req() req: any,
     @Query() filters: GetBookingStatisticsDto
@@ -222,6 +233,7 @@ export class BookingController {
 
   @Get('admin/revenue-report')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async getRevenueReport(
     @Req() req: any,
     @Query() filters: GetRevenueReportDto

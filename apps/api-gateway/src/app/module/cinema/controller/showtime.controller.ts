@@ -17,6 +17,7 @@ import { ShowtimeService } from '../service/showtime.service';
 import { TransformInterceptor } from '../../../common/interceptor/transform.interceptor';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 import { CurrentUserId } from '../../../common/decorator/current-user-id.decorator';
+import { Permission } from '../../../common/decorator/permission.decorator';
 import {
   AdminShowtimeFilterDTO,
   BatchCreateShowtimesInput,
@@ -37,6 +38,7 @@ export class ShowtimeController {
 
   @Get()
   @UseGuards(ClerkAuthGuard)
+  @Permission('cinema:read')
   getShowtimes(@Req() req: any, @Query() filter: AdminShowtimeFilterDTO) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -48,6 +50,7 @@ export class ShowtimeController {
 
   @Get(':id/seats')
   @UseGuards(ClerkAuthGuard)
+  @Permission('cinema:read')
   getShowtimeSeats(
     @Param('id') showtimeId: string,
     @CurrentUserId() userId: string
@@ -57,12 +60,14 @@ export class ShowtimeController {
 
   @Get(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission('cinema:read')
   getShowtime(@Param('id') showtimeId: string) {
     return this.showtimeService.getShowtime(showtimeId);
   }
 
   @Get('showtime/:showtimeId/ttl')
   @UseGuards(ClerkAuthGuard)
+  @Permission('cinema:read')
   getSessionTTL(
     @Param('showtimeId') showtimeId: string,
     @CurrentUserId() userId: string
@@ -72,6 +77,7 @@ export class ShowtimeController {
 
   @Post('showtime')
   @UseGuards(ClerkAuthGuard)
+  @Permission('cinema:write')
   @UsePipes(new ZodValidationPipe(createShowtimeSchema))
   createShowtime(@Req() req: any, @Body() body: CreateShowtimeRequest) {
     const userCinemaId = req.staffContext?.cinemaId;
@@ -85,6 +91,7 @@ export class ShowtimeController {
 
   @Post('/batch')
   @UseGuards(ClerkAuthGuard)
+  @Permission('cinema:write')
   @UsePipes(new ZodValidationPipe(batchCreateShowtimesSchema))
   createBatchShowtimes(
     @Req() req: any,
@@ -101,6 +108,7 @@ export class ShowtimeController {
 
   @Patch('/showtime/:id')
   @UseGuards(ClerkAuthGuard)
+  @Permission('cinema:write')
   async updateShowtime(
     @Req() req: any,
     @Param('id') showtimeId: string,
@@ -121,6 +129,7 @@ export class ShowtimeController {
 
   @Delete('/showtime/:id')
   @UseGuards(ClerkAuthGuard)
+  @Permission('cinema:write')
   async deleteShowtime(@Req() req: any, @Param('id') showtimeId: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {

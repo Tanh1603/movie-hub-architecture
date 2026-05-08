@@ -9,13 +9,14 @@ export class UserController {
 
   @Get()
   @UseGuards(ClerkAuthGuard)
-  @Permission('USER.LIST')
+  @Permission('user:read')
   getUser() {
     return this.userService.getUsers();
   }
 
   @Get('me')
   @UseGuards(ClerkAuthGuard)
+  @Permission('user:read')
   getMe(@Req() req: any) {
     return {
       userId: req.userId,

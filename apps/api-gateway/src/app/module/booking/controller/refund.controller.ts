@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { RefundService } from '../service/refund.service';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
+import { Permission } from '../../../common/decorator/permission.decorator';
 import {
   CreateRefundDto,
   FindAllRefundsDto,
@@ -28,30 +29,35 @@ export class RefundController {
 
   @Post()
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:cancel')
   async create(@Body() createRefundDto: CreateRefundDto) {
     return this.refundService.createRefund(createRefundDto);
   }
 
   @Get()
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async findAll(@Query() filters: FindAllRefundsDto) {
     return this.refundService.findAll(filters);
   }
 
   @Get(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async findOne(@Param('id') id: string) {
     return this.refundService.findOne(id);
   }
 
   @Get('payment/:paymentId')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async findByPayment(@Param('paymentId') paymentId: string) {
     return this.refundService.findByPayment(paymentId);
   }
 
   @Put(':id/process')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:write')
   async process(
     @Param('id') refundId: string,
     @Body() processDto: ProcessRefundDto
@@ -61,6 +67,7 @@ export class RefundController {
 
   @Put(':id/approve')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:write')
   async approve(
     @Param('id') refundId: string,
     @Body() approveDto: ApproveRefundDto
@@ -70,6 +77,7 @@ export class RefundController {
 
   @Put(':id/reject')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:write')
   async reject(
     @Param('id') refundId: string,
     @Body() rejectDto: RejectRefundDto
@@ -83,6 +91,7 @@ export class RefundController {
    */
   @Post('booking/:bookingId/voucher')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:cancel')
   async processAsVoucher(
     @Param('bookingId') bookingId: string,
     @Req() req: { userId: string },

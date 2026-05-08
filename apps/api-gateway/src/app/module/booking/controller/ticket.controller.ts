@@ -13,6 +13,7 @@ import {
 import { TicketService } from '../service/ticket.service';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 import { CurrentUserId } from '../../../common/decorator/current-user-id.decorator';
+import { Permission } from '../../../common/decorator/permission.decorator';
 import { AdminFindAllTicketsDto, BulkValidateTicketsDto } from '@movie-hub/shared-types';
 
 @Controller({
@@ -28,6 +29,7 @@ export class TicketController {
    */
   @Get(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async getTicket(@CurrentUserId() userId: string, @Param('id') id: string) {
     return this.ticketService.findOne(id);
   }
@@ -38,6 +40,7 @@ export class TicketController {
    */
   @Get('code/:ticketCode')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async getTicketByCode(
     @CurrentUserId() userId: string,
     @Param('ticketCode') ticketCode: string
@@ -51,6 +54,7 @@ export class TicketController {
    */
   @Post(':id/validate')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   @HttpCode(HttpStatus.OK)
   async validateTicket(
     @CurrentUserId() userId: string,
@@ -71,6 +75,7 @@ export class TicketController {
    */
   @Post(':id/use')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:write')
   @HttpCode(HttpStatus.OK)
   async useTicket(@CurrentUserId() userId: string, @Param('id') ticketId: string) {
     return this.ticketService.useTicket(ticketId);
@@ -82,6 +87,7 @@ export class TicketController {
    */
   @Get(':id/qr')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async generateQRCode(
     @CurrentUserId() userId: string,
     @Param('id') ticketId: string
@@ -94,24 +100,28 @@ export class TicketController {
 
   @Get('admin/all')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async adminFindAll(@Query() filters: AdminFindAllTicketsDto) {
     return this.ticketService.adminFindAll(filters);
   }
 
   @Get('admin/showtime/:showtimeId')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async findByShowtime(@Param('showtimeId') showtimeId: string) {
     return this.ticketService.findByShowtime(showtimeId);
   }
 
   @Get('admin/booking/:bookingId')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async findByBooking(@Param('bookingId') bookingId: string) {
     return this.ticketService.findByBooking(bookingId);
   }
 
   @Post('admin/bulk-validate')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:write')
   @HttpCode(HttpStatus.OK)
   async bulkValidate(@Body() bulkValidateDto: BulkValidateTicketsDto) {
     return this.ticketService.bulkValidate(bulkValidateDto);
@@ -119,6 +129,7 @@ export class TicketController {
 
   @Put('admin/:id/cancel')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:write')
   async cancelTicket(
     @Param('id') ticketId: string,
     @Body('reason') reason?: string

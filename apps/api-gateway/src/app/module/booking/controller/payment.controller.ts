@@ -16,6 +16,7 @@ import {
 import { PaymentService } from '../service/payment.service';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 import { CurrentUserId } from '../../../common/decorator/current-user-id.decorator';
+import { Permission } from '../../../common/decorator/permission.decorator';
 import { CreatePaymentDto, AdminFindAllPaymentsDto, PaymentStatus } from '@movie-hub/shared-types';
 import { Request } from 'express';
 
@@ -57,12 +58,14 @@ export class PaymentController {
 
   @Get('admin/all')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async adminFindAll(@Query() filters: AdminFindAllPaymentsDto) {
     return this.paymentService.adminFindAll(filters);
   }
 
   @Get('admin/status/:status')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async findByStatus(
     @Param('status') status: PaymentStatus,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
@@ -73,12 +76,14 @@ export class PaymentController {
 
   @Put('admin/:id/cancel')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:write')
   async cancelPayment(@Param('id') paymentId: string) {
     return this.paymentService.cancelPayment(paymentId);
   }
 
   @Get('admin/statistics')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async getStatistics(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
@@ -99,6 +104,7 @@ export class PaymentController {
    */
   @Post('bookings/:bookingId')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:write')
   async createPayment(
     @CurrentUserId() userId: string,
     @Param('bookingId') bookingId: string,
@@ -119,6 +125,7 @@ export class PaymentController {
    */
   @Get('booking/:bookingId')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async getPaymentsByBooking(
     @CurrentUserId() userId: string,
     @Param('bookingId') bookingId: string
@@ -133,6 +140,7 @@ export class PaymentController {
    */
   @Get(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:read')
   async getPayment(@CurrentUserId() userId: string, @Param('id') id: string) {
     return this.paymentService.getPayment(id);
   }

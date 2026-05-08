@@ -20,6 +20,7 @@ import {
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 import { StaffService } from '../service/staff.service';
 import { TransformInterceptor } from '../../../common/interceptor/transform.interceptor';
+import { Permission } from '../../../common/decorator/permission.decorator';
 
 @Controller({
   version: '1',
@@ -31,6 +32,7 @@ export class StaffController {
 
   @Post()
   @UseGuards(ClerkAuthGuard)
+  @Permission('user:write')
   async create(@Req() req: any, @Body() request: CreateStaffRequest) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId && request.cinemaId !== userCinemaId) {
@@ -43,6 +45,7 @@ export class StaffController {
 
   @Get()
   @UseGuards(ClerkAuthGuard)
+  @Permission('user:read')
   async findAll(@Req() req: any, @Query() query: StaffQuery) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -53,6 +56,7 @@ export class StaffController {
 
   @Get(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission('user:read')
   async findOne(@Req() req: any, @Param('id') id: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     const staff = await this.staffService.findOne(id);
@@ -66,6 +70,7 @@ export class StaffController {
 
   @Put(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission('user:write')
   async update(
     @Req() req: any,
     @Param('id') id: string,
@@ -85,6 +90,7 @@ export class StaffController {
 
   @Delete(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission('user:write')
   async remove(@Req() req: any, @Param('id') id: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {

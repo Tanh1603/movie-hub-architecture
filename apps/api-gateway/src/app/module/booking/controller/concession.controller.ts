@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { ConcessionService } from '../service/concession.service';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
+import { Permission } from '../../../common/decorator/permission.decorator';
 import {
   ConcessionDto,
   ConcessionCategory,
@@ -46,12 +47,14 @@ export class ConcessionController {
 
   @Post()
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:write')
   async create(@Body() createConcessionDto: CreateConcessionDto) {
     return this.concessionService.create(createConcessionDto);
   }
 
   @Put(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:write')
   async update(
     @Param('id') id: string,
     @Body() updateConcessionDto: UpdateConcessionDto
@@ -61,12 +64,14 @@ export class ConcessionController {
 
   @Delete(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:write')
   async delete(@Param('id') id: string) {
     return this.concessionService.delete(id);
   }
 
   @Patch(':id/inventory')
   @UseGuards(ClerkAuthGuard)
+  @Permission('booking:write')
   async updateInventory(
     @Param('id') id: string,
     @Body('quantity') quantity: number
