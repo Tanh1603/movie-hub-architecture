@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './module/user/user.module';
 import { CinemaModule } from './module/cinema/cinema.module';
@@ -10,6 +10,7 @@ import { RealtimeModule } from './module/realtime/realtime.module';
 import { BookingModule } from './module/booking/booking.module';
 import { DashboardModule } from './module/dashboard/dashboard.module';
 import { HealthController } from './health.controller';
+import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
 
 @Module({
   imports: [
@@ -31,9 +32,9 @@ import { HealthController } from './health.controller';
     UserModule,
     MovieModule,
     CinemaModule,
-    BookingModule, // Includes: booking, payment, refund, concession, promotion, ticket, loyalty controllers
+    BookingModule,
     RealtimeModule,
-    DashboardModule, // BFF aggregation for admin dashboard
+    DashboardModule,
   ],
   controllers: [HealthController],
   providers: [
@@ -43,4 +44,8 @@ import { HealthController } from './health.controller';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestContextMiddleware).forRoutes('*');
+  }
+}

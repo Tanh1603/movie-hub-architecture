@@ -12,11 +12,13 @@ import {
 import {
   sanitizeForLogging,
   serializeStructuredLog,
+  RequestContextMetadata,
 } from '@movie-hub/shared-types/common/observability.util';
 import { OutboxEvents, OutboxStatus } from '../../../generated/prisma';
 import { NotificationService } from '../notification/notification.service';
 import { PrismaService } from '../prisma.service';
 import { TicketService } from '../ticket/ticket.service';
+import { resolveBookingRequestContext } from '../common/booking-request-context.util';
 
 const BOOKING_CONFIRMED_NOTIFICATION = 'booking.confirmed.notification';
 const MAX_DELIVERY_ATTEMPTS = 3;
@@ -103,7 +105,7 @@ export class OutboxService {
         eventId: event.id,
         eventType: event.event_type,
         aggregateId: event.aggregate_id,
-      });
+      }, resolveBookingRequestContext(event.payload as Record<string, unknown>));
     } catch (error) {
       const nextAttempts = event.delivery_attempts + 1;
       await this.prisma.outboxEvents.update({
@@ -124,14 +126,14 @@ export class OutboxService {
         eventType: event.event_type,
         aggregateId: event.aggregate_id,
         attempts: nextAttempts,
-      });
+      }, resolveBookingRequestContext(event.payload as Record<string, unknown>));
     }
   }
 
   private async dispatch(event: OutboxEvents): Promise<void> {
     switch (event.event_type) {
       case BOOKING_CONFIRMED_NOTIFICATION:
-        await this.sendBookingConfirmation(event.aggregate_id);
+        await this.sendBookingConfirmation(event.aggregate_id, event.payload as Record<string, unknown>);
         return;
       default:
         this.logInfo('outbox.event.ignored', 'No handler registered', {
@@ -141,7 +143,8 @@ export class OutboxService {
     }
   }
 
-  private async sendBookingConfirmation(bookingId: string): Promise<void> {
+  private async sendBookingConfirmation(bookingId: string, payload?: Record<string, unknown>): Promise<void> {
+    const requestContext = resolveBookingRequestContext(payload);
     const booking = await this.prisma.bookings.findUnique({
       where: { id: bookingId },
       include: {
@@ -168,7 +171,7 @@ export class OutboxService {
       this.logInfo('outbox.notification.user_lookup_skipped', 'Using booking customer data', {
         bookingId,
         error: sanitizeForLogging(error),
-      });
+      }, requestContext);
     }
 
     const ticketsWithQR = await Promise.all(
@@ -187,7 +190,7 @@ export class OutboxService {
             bookingId,
             ticketId: ticket.id,
             error: sanitizeForLogging(error),
-          });
+          }, requestContext);
           return {
             ticketCode: ticket.ticket_code,
             seatNumber: ticket.seat_id,
@@ -254,12 +257,16 @@ export class OutboxService {
   private logInfo(
     action: string,
     message: string,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
+    context?: Partial<RequestContextMetadata>
   ) {
     this.logger.log(
       serializeStructuredLog({
         level: 'info',
         service: OutboxService.name,
+        correlationId: context?.correlationId,
+        requestId: context?.requestId,
+        userId: context?.userId,
         action,
         message,
         metadata,
@@ -270,13 +277,17 @@ export class OutboxService {
   private logError(
     action: string,
     error: unknown,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
+    context?: Partial<RequestContextMetadata>
   ) {
     const errorObject = error instanceof Error ? error : new Error(String(error));
     this.logger.error(
       serializeStructuredLog({
         level: 'error',
         service: OutboxService.name,
+        correlationId: context?.correlationId,
+        requestId: context?.requestId,
+        userId: context?.userId,
         action,
         message: errorObject.message,
         errorCode: errorObject.name,
