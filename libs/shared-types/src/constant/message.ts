@@ -113,6 +113,8 @@ export const BookingMessage = {
   FIND_BY_SHOWTIME: 'booking.findByShowtime',
   FIND_BY_CINEMA: 'booking.findByCinema',
   FIND_BY_DATE_RANGE: 'booking.findByDateRange',
+  GET_SHOWTIME_CONTEXT: 'booking.getShowtimeContext',
+  GET_ADMIN_BOOKING_CONTEXT: 'booking.getAdminBookingContext',
   UPDATE_STATUS: 'booking.updateStatus',
   CONFIRM: 'booking.confirm',
   COMPLETE: 'booking.complete',

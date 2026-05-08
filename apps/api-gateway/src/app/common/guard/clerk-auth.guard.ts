@@ -51,7 +51,6 @@ export class ClerkAuthGuard implements CanActivate {
       this.logger.error('Clerk verification failed', {
         error: err.message,
         reason: err.reason,
-        tokenPrefix: token.substring(0, 20) + '...',
       });
       // Token might be from wrong Clerk instance (test vs production)
       return false;

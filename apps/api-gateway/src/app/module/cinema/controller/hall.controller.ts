@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { TransformInterceptor } from '../../../common/interceptor/transform.interceptor';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
+import { Permission } from '../../../common/decorator/permission.decorator';
 import {
   CreateHallRequest,
   HallStatusEnum,
@@ -61,7 +62,7 @@ export class HallController {
    */
   @Post('hall')
   @UseGuards(ClerkAuthGuard)
-  //@Permission('hall:create')
+  @Permission('hall:write')
   createHall(@Req() req: any, @Body() createHallRequest: CreateHallRequest) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId && createHallRequest.cinemaId !== userCinemaId) {
@@ -77,7 +78,7 @@ export class HallController {
    */
   @Patch('hall/:hallId')
   @UseGuards(ClerkAuthGuard)
-  //@Permission('hall:create')
+  @Permission('hall:write')
   async updateHall(
     @Req() req: any,
     @Param('hallId') hallId: string,
@@ -102,7 +103,7 @@ export class HallController {
    */
   @Delete('hall/:hallId')
   @UseGuards(ClerkAuthGuard)
-  //@Permission('hall:create')
+  @Permission('hall:write')
   async deleteHall(@Req() req: any, @Param('hallId') hallId: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -123,7 +124,7 @@ export class HallController {
    */
   @Patch('seat/:seatId/status')
   @UseGuards(ClerkAuthGuard)
-  //@Permission('hall:create')
+  @Permission('hall:write')
   async updateSeatStatus(
     @Req() req: any,
     @Param('seatId') seatId: string,

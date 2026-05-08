@@ -68,7 +68,7 @@ export class CinemaController {
    */
   @Post('cinema')
   @UseGuards(ClerkAuthGuard)
-  //@Permission('cinema:create')
+  @Permission('cinema:write')
   createCinema(@Req() req: any, @Body() createCinemaDto: CreateCinemaRequest) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -82,7 +82,7 @@ export class CinemaController {
    */
   @Patch('cinema/:cinemaId')
   @UseGuards(ClerkAuthGuard)
-  //@Permission('cinema:create')
+  @Permission('cinema:write')
   updateCinema(
     @Req() req: any,
     @Param('cinemaId') cinemaId: string,
@@ -99,7 +99,7 @@ export class CinemaController {
    */
   @Delete('cinema/:cinemaId')
   @UseGuards(ClerkAuthGuard)
-  //@Permission('cinema:create')
+  @Permission('cinema:write')
   deleteCinema(@Req() req: any, @Param('cinemaId') cinemaId: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {

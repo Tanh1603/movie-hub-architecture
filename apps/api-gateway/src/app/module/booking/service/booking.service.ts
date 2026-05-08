@@ -122,6 +122,29 @@ export class BookingService {
     );
   }
 
+  async getShowtimeContext(showtimeId: string): Promise<{
+    showtimeId: string;
+    cinemaId: string;
+  }> {
+    return lastValueFrom(
+      this.bookingClient.send(BookingMessage.GET_SHOWTIME_CONTEXT, {
+        showtimeId,
+      })
+    );
+  }
+
+  async getAdminBookingContext(bookingId: string): Promise<{
+    bookingId: string;
+    showtimeId: string;
+    cinemaId: string;
+  }> {
+    return lastValueFrom(
+      this.bookingClient.send(BookingMessage.GET_ADMIN_BOOKING_CONTEXT, {
+        bookingId,
+      })
+    );
+  }
+
   async updateStatus(
     bookingId: string,
     status: BookingStatus,

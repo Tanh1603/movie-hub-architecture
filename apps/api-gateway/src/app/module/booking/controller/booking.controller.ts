@@ -35,6 +35,36 @@ import { PaginationQuery } from '@movie-hub/shared-types/common';
 export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
 
+  private async enforceShowtimeOwnership(
+    req: any,
+    showtimeId: string
+  ): Promise<void> {
+    const userCinemaId = req.staffContext?.cinemaId;
+    if (!userCinemaId) return;
+
+    const context = await this.bookingService.getShowtimeContext(showtimeId);
+    if (context.cinemaId !== userCinemaId) {
+      throw new ForbiddenException(
+        'You can only access showtimes in your own cinema'
+      );
+    }
+  }
+
+  private async enforceBookingOwnership(
+    req: any,
+    bookingId: string
+  ): Promise<void> {
+    const userCinemaId = req.staffContext?.cinemaId;
+    if (!userCinemaId) return;
+
+    const context = await this.bookingService.getAdminBookingContext(bookingId);
+    if (context.cinemaId !== userCinemaId) {
+      throw new ForbiddenException(
+        'You can only manage bookings in your own cinema'
+      );
+    }
+  }
+
   @Post()
   @UseGuards(ClerkAuthGuard)
   async create(
@@ -127,8 +157,7 @@ export class BookingController {
     @Param('showtimeId') showtimeId: string,
     @Query('status') status?: BookingStatus
   ) {
-    // TODO: For full RBAC, verify that the showtime belongs to the user's cinema
-    // This requires fetching showtime details to check cinemaId
+    await this.enforceShowtimeOwnership(req, showtimeId);
     return this.bookingService.findByShowtime(showtimeId, status);
   }
 
@@ -153,29 +182,28 @@ export class BookingController {
     @Body('status') status: BookingStatus,
     @Body('reason') reason?: string
   ) {
-    // TODO: For full RBAC, verify that the booking belongs to the user's cinema
-    // This requires fetching booking details to check cinemaId
+    await this.enforceBookingOwnership(req, bookingId);
     return this.bookingService.updateStatus(bookingId, status, reason);
   }
 
   @Post('admin/:id/confirm')
   @UseGuards(ClerkAuthGuard)
   async confirmBooking(@Req() req: any, @Param('id') bookingId: string) {
-    // TODO: For full RBAC, verify that the booking belongs to the user's cinema
+    await this.enforceBookingOwnership(req, bookingId);
     return this.bookingService.confirmBooking(bookingId);
   }
 
   @Post('admin/:id/complete')
   @UseGuards(ClerkAuthGuard)
   async completeBooking(@Req() req: any, @Param('id') bookingId: string) {
-    // TODO: For full RBAC, verify that the booking belongs to the user's cinema
+    await this.enforceBookingOwnership(req, bookingId);
     return this.bookingService.completeBooking(bookingId);
   }
 
   @Post('admin/:id/expire')
   @UseGuards(ClerkAuthGuard)
   async expireBooking(@Req() req: any, @Param('id') bookingId: string) {
-    // TODO: For full RBAC, verify that the booking belongs to the user's cinema
+    await this.enforceBookingOwnership(req, bookingId);
     return this.bookingService.expireBooking(bookingId);
   }
 

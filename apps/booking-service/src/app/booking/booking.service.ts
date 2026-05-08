@@ -2231,4 +2231,40 @@ export class BookingService {
       return [];
     }
   }
+
+  async getShowtimeContext(showtimeId: string): Promise<{
+    showtimeId: string;
+    cinemaId: string;
+  }> {
+    const showtimeData = await this.getShowtimeDetails(showtimeId);
+    return {
+      showtimeId,
+      cinemaId: showtimeData.cinemaId,
+    };
+  }
+
+  async getAdminBookingContext(bookingId: string): Promise<{
+    bookingId: string;
+    showtimeId: string;
+    cinemaId: string;
+  }> {
+    const booking = await this.prisma.bookings.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        showtime_id: true,
+      },
+    });
+
+    if (!booking) {
+      throw new BadRequestException('Booking not found');
+    }
+
+    const showtimeData = await this.getShowtimeDetails(booking.showtime_id);
+    return {
+      bookingId: booking.id,
+      showtimeId: booking.showtime_id,
+      cinemaId: showtimeData.cinemaId,
+    };
+  }
 }

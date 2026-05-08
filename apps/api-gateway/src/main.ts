@@ -14,6 +14,7 @@ import { AppModule } from './app/app.module';
 import { TransformInterceptor } from './app/common/interceptor/transform.interceptor';
 import { GlobalExceptionFilter } from './app/exception/global-exception.filter';
 import { RedisIoAdapter } from './app/module/realtime/adapter/redis-io.adapter';
+import { sensitiveRateLimitMiddleware } from './app/common/middleware/sensitive-rate-limit.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -23,6 +24,7 @@ async function bootstrap() {
   });
 
   app.use(cookieParser());
+  app.use(sensitiveRateLimitMiddleware);
   app.enableVersioning({
     type: VersioningType.URI,
     prefix: 'v',
