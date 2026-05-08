@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import Joi from 'joi';
 import { StaffModule } from './staff/staff.module';
 import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     StaffModule,
     UserModule,
     ConfigModule.forRoot({
