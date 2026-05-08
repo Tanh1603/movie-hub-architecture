@@ -1,3 +1,6 @@
+---
+id: c27255ad-be9f-4546-a913-d1b1a963ec73
+---
 # Advanced C4 Architecture Patterns
 
 This guide covers advanced patterns for documenting complex architectures including microservices, event-driven systems, deployments, and API documentation.

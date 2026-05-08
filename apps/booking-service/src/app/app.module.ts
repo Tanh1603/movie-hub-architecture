@@ -13,6 +13,7 @@ import { TicketModule } from './ticket/ticket.module';
 import { RefundModule } from './refund/refund.module';
 import { BookingRedisModule } from './redis/redis.module';
 import { NotificationModule } from './notification/notification.module';
+import { OutboxModule } from './outbox/outbox.module';
 import Joi from 'joi';
 
 @Module({
@@ -43,6 +44,7 @@ import Joi from 'joi';
     }),
     BookingRedisModule,
     NotificationModule,
+    OutboxModule,
     BookingModule,
     PaymentModule,
     ConcessionModule,

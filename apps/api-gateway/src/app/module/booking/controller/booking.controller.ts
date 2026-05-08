@@ -39,9 +39,10 @@ export class BookingController {
   @UseGuards(ClerkAuthGuard)
   async create(
     @CurrentUserId() userId: string,
-    @Body() createBookingDto: CreateBookingDto
+    @Body() createBookingDto: CreateBookingDto,
+    @Req() request: any
   ) {
-    return this.bookingService.createBooking(userId, createBookingDto);
+    return this.bookingService.createBooking(userId, createBookingDto, request);
   }
 
   @Get()
@@ -49,20 +50,26 @@ export class BookingController {
   async findAll(
     @CurrentUserId() userId: string,
     @Query('status') status?: BookingStatus,
-    @Query() pagination?: PaginationQuery
+    @Query() pagination?: PaginationQuery,
+    @Req() request?: any
   ) {
     return this.bookingService.findAllByUser(
       userId,
       status,
       pagination?.page,
-      pagination?.limit
+      pagination?.limit,
+      request
     );
   }
 
   @Get(':id')
   @UseGuards(ClerkAuthGuard)
-  async findOne(@CurrentUserId() userId: string, @Param('id') id: string) {
-    return this.bookingService.findOne(id, userId);
+  async findOne(
+    @CurrentUserId() userId: string,
+    @Param('id') id: string,
+    @Req() request: any
+  ) {
+    return this.bookingService.findOne(id, userId, request);
   }
 
   @Post(':id/cancel')
@@ -70,15 +77,20 @@ export class BookingController {
   async cancel(
     @CurrentUserId() userId: string,
     @Param('id') id: string,
-    @Body('reason') reason?: string
+    @Body('reason') reason?: string,
+    @Req() request?: any
   ) {
-    return this.bookingService.cancelBooking(id, userId, reason);
+    return this.bookingService.cancelBooking(id, userId, reason, request);
   }
 
   @Get(':id/summary')
   @UseGuards(ClerkAuthGuard)
-  async getSummary(@CurrentUserId() userId: string, @Param('id') id: string) {
-    return this.bookingService.getBookingSummary(id, userId);
+  async getSummary(
+    @CurrentUserId() userId: string,
+    @Param('id') id: string,
+    @Req() request: any
+  ) {
+    return this.bookingService.getBookingSummary(id, userId, request);
   }
 
   /**
@@ -91,7 +103,8 @@ export class BookingController {
   async checkUserBookingAtShowtime(
     @CurrentUserId() userId: string,
     @Param('showtimeId') showtimeId: string,
-    @Query('includeStatuses') includeStatuses?: string
+    @Query('includeStatuses') includeStatuses?: string,
+    @Req() request?: any
   ) {
     // Parse comma-separated statuses if provided
     const statuses = includeStatuses
@@ -101,7 +114,8 @@ export class BookingController {
     return this.bookingService.findUserBookingByShowtime(
       showtimeId,
       userId,
-      statuses
+      statuses,
+      request
     );
   }
 
@@ -117,7 +131,7 @@ export class BookingController {
     if (userCinemaId) {
       filters.cinemaId = userCinemaId;
     }
-    return this.bookingService.adminFindAll(filters);
+    return this.bookingService.adminFindAll(filters, req);
   }
 
   @Get('admin/showtime/:showtimeId')
@@ -129,7 +143,7 @@ export class BookingController {
   ) {
     // TODO: For full RBAC, verify that the showtime belongs to the user's cinema
     // This requires fetching showtime details to check cinemaId
-    return this.bookingService.findByShowtime(showtimeId, status);
+    return this.bookingService.findByShowtime(showtimeId, status, req);
   }
 
   @Get('admin/date-range')
@@ -142,7 +156,7 @@ export class BookingController {
     if (userCinemaId) {
       filters.cinemaId = userCinemaId;
     }
-    return this.bookingService.findByDateRange(filters);
+    return this.bookingService.findByDateRange(filters, req);
   }
 
   @Put('admin/:id/status')
@@ -155,28 +169,28 @@ export class BookingController {
   ) {
     // TODO: For full RBAC, verify that the booking belongs to the user's cinema
     // This requires fetching booking details to check cinemaId
-    return this.bookingService.updateStatus(bookingId, status, reason);
+    return this.bookingService.updateStatus(bookingId, status, reason, req);
   }
 
   @Post('admin/:id/confirm')
   @UseGuards(ClerkAuthGuard)
   async confirmBooking(@Req() req: any, @Param('id') bookingId: string) {
     // TODO: For full RBAC, verify that the booking belongs to the user's cinema
-    return this.bookingService.confirmBooking(bookingId);
+    return this.bookingService.confirmBooking(bookingId, req);
   }
 
   @Post('admin/:id/complete')
   @UseGuards(ClerkAuthGuard)
   async completeBooking(@Req() req: any, @Param('id') bookingId: string) {
     // TODO: For full RBAC, verify that the booking belongs to the user's cinema
-    return this.bookingService.completeBooking(bookingId);
+    return this.bookingService.completeBooking(bookingId, req);
   }
 
   @Post('admin/:id/expire')
   @UseGuards(ClerkAuthGuard)
   async expireBooking(@Req() req: any, @Param('id') bookingId: string) {
     // TODO: For full RBAC, verify that the booking belongs to the user's cinema
-    return this.bookingService.expireBooking(bookingId);
+    return this.bookingService.expireBooking(bookingId, req);
   }
 
   @Get('admin/statistics')
@@ -189,7 +203,7 @@ export class BookingController {
     if (userCinemaId) {
       filters.cinemaId = userCinemaId;
     }
-    return this.bookingService.getStatistics(filters);
+    return this.bookingService.getStatistics(filters, req);
   }
 
   @Get('admin/revenue-report')
@@ -202,7 +216,7 @@ export class BookingController {
     if (userCinemaId) {
       filters.cinemaId = userCinemaId;
     }
-    return this.bookingService.getRevenueReport(filters);
+    return this.bookingService.getRevenueReport(filters, req);
   }
 
   // ==================== BOOKING ACTIONS ====================
@@ -212,9 +226,10 @@ export class BookingController {
   async updateBooking(
     @CurrentUserId() userId: string,
     @Param('id') id: string,
-    @Body() dto: UpdateBookingDto
+    @Body() dto: UpdateBookingDto,
+    @Req() request: any
   ) {
-    return this.bookingService.updateBooking(id, userId, dto);
+    return this.bookingService.updateBooking(id, userId, dto, request);
   }
 
   @Post(':id/reschedule')
@@ -222,9 +237,10 @@ export class BookingController {
   async rescheduleBooking(
     @CurrentUserId() userId: string,
     @Param('id') id: string,
-    @Body() dto: RescheduleBookingDto
+    @Body() dto: RescheduleBookingDto,
+    @Req() request: any
   ) {
-    return this.bookingService.rescheduleBooking(id, userId, dto);
+    return this.bookingService.rescheduleBooking(id, userId, dto, request);
   }
 
   @Get(':id/refund-calculation')
@@ -233,9 +249,10 @@ export class BookingController {
   @Header('X-Deprecation-Notice', 'Use POST /refunds/booking/:id/voucher')
   async calculateRefund(
     @CurrentUserId() userId: string,
-    @Param('id') id: string
+    @Param('id') id: string,
+    @Req() request: any
   ) {
-    return this.bookingService.calculateRefund(id, userId);
+    return this.bookingService.calculateRefund(id, userId, request);
   }
 
   @Post(':id/cancel-with-refund')
@@ -245,13 +262,14 @@ export class BookingController {
   async cancelWithRefund(
     @CurrentUserId() userId: string,
     @Param('id') id: string,
-    @Body() dto: CancelBookingWithRefundDto
+    @Body() dto: CancelBookingWithRefundDto,
+    @Req() request: any
   ) {
-    return this.bookingService.cancelWithRefund(id, userId, dto);
+    return this.bookingService.cancelWithRefund(id, userId, dto, request);
   }
 
   @Get('cancellation-policy')
-  async getCancellationPolicy() {
-    return this.bookingService.getCancellationPolicy();
+  async getCancellationPolicy(@Req() request: any) {
+    return this.bookingService.getCancellationPolicy(request);
   }
 }

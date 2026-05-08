@@ -25,5 +25,9 @@ export interface BookingConfirmedEvent {
    */
   seatIds: string[];
 
-
+  _meta?: {
+    correlationId: string;
+    requestId: string;
+    userId?: string;
+  };
 }

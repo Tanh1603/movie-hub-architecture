@@ -3,6 +3,7 @@
  * This is only a minimal backend to get started.
  */
 
+import { LoggingInterceptor } from '@movie-hub/shared-types/common/logging.interceptor';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
@@ -12,6 +13,7 @@ import { AllExceptionsFilter } from './filter/all-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableShutdownHooks();
 
   const config = app.get(ConfigService);
 
@@ -24,6 +26,7 @@ async function bootstrap() {
   });
 
   app.useGlobalFilters(new AllExceptionsFilter());
+  app.useGlobalInterceptors(new LoggingInterceptor('Booking-Service'));
 
   await app.startAllMicroservices();
 

@@ -17,6 +17,7 @@ import { RedisIoAdapter } from './app/module/realtime/adapter/redis-io.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableShutdownHooks();
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix, {
     exclude: ['/socket.io/(.*)'],

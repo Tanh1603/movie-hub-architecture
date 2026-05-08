@@ -10,4 +10,22 @@ export class HealthController {
       uptime: process.uptime(),
     };
   }
+
+  @Get('live')
+  live() {
+    return {
+      status: 'live',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    };
+  }
+
+  @Get('ready')
+  ready() {
+    return {
+      status: 'ready',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    };
+  }
 }
