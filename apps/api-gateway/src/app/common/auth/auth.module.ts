@@ -3,9 +3,22 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { SERVICE_NAME } from '@movie-hub/shared-types';
 import { ClerkAuthGuard } from '../guard/clerk-auth.guard';
+import { OptionalClerkAuthGuard } from '../guard/optional-clerk-auth.guard';
+import { RedisModule } from '@movie-hub/shared-redis';
+import { TokenValidationService } from './token-validation.service';
+import { BruteForceProtectionService } from './brute-force-protection.service';
 
 @Module({
   imports: [
+    RedisModule.forRootAsync({
+      name: 'auth',
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        url:
+          configService.get<string>('REDIS_URL') ||
+          `redis://${configService.get<string>('REDIS_HOST') || 'localhost'}:${configService.get<number>('REDIS_PORT') || 6379}`,
+      }),
+    }),
     ClientsModule.registerAsync([
       {
         name: SERVICE_NAME.USER,
@@ -20,7 +33,18 @@ import { ClerkAuthGuard } from '../guard/clerk-auth.guard';
       },
     ]),
   ],
-  providers: [ClerkAuthGuard],
-  exports: [ClientsModule, ClerkAuthGuard],
+  providers: [
+    ClerkAuthGuard,
+    OptionalClerkAuthGuard,
+    TokenValidationService,
+    BruteForceProtectionService,
+  ],
+  exports: [
+    ClientsModule,
+    ClerkAuthGuard,
+    OptionalClerkAuthGuard,
+    TokenValidationService,
+    BruteForceProtectionService,
+  ],
 })
 export class AuthModule {}
