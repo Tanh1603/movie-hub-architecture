@@ -2,6 +2,10 @@ export const UserMessage = {
   GET_PERMISSIONS: 'user.getPermissions',
   GET_USERS: 'user.getAll',
   GET_USER_DETAIL: 'user.getDetail',
+  AUTH: {
+    PROCESS_CLERK_WEBHOOK: 'auth.clerk.webhook.process',
+    BOOTSTRAP_SUPER_ADMIN: 'auth.superAdmin.bootstrap',
+  },
   STAFF: {
     GET_LIST: 'staff.list',
     CREATED: 'staff.created',

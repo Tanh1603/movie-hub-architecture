@@ -74,4 +74,13 @@ export class UserController {
     return this.rbacService.removeUserRole(data);
   }
 
+  @MessagePattern(UserMessage.AUTH.PROCESS_CLERK_WEBHOOK)
+  async processClerkWebhook(@Payload() data: unknown) {
+    return this.userService.processClerkWebhook(data as any);
+  }
+
+  @MessagePattern(UserMessage.AUTH.BOOTSTRAP_SUPER_ADMIN)
+  async bootstrapSuperAdmin(@Payload() data: { correlationId?: string }) {
+    return this.userService.bootstrapDefaultSuperAdmin(data?.correlationId);
+  }
 }

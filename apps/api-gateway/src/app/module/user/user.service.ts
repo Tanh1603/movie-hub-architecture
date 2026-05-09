@@ -44,4 +44,18 @@ export class UserService {
       this.userClient.send(UserMessage.GET_PERMISSIONS, { userId })
     );
   }
+
+  async processClerkWebhook(payload: unknown) {
+    return lastValueFrom(
+      this.userClient.send(UserMessage.AUTH.PROCESS_CLERK_WEBHOOK, payload)
+    );
+  }
+
+  async bootstrapSuperAdmin(correlationId?: string) {
+    return lastValueFrom(
+      this.userClient.send(UserMessage.AUTH.BOOTSTRAP_SUPER_ADMIN, {
+        correlationId,
+      })
+    );
+  }
 }

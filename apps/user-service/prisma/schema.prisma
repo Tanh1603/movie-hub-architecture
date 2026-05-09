@@ -143,6 +143,7 @@ enum PermissionScope {
 model Staff {
   id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   cinemaId String @db.Uuid
+  clerkUserId String? @unique @map("clerk_user_id")
 
   fullName  String        @map("full_name")
   email     String        @unique
@@ -186,4 +187,15 @@ model ClerkSyncTask {
 
   @@index([status, nextRetryAt])
   @@map("clerk_sync_tasks")
+}
+
+model ClerkWebhookEvent {
+  id         String   @id @default(cuid())
+  eventId    String   @unique @map("event_id")
+  eventType  String   @map("event_type")
+  payload    Json     @db.JsonB
+  processedAt DateTime @default(now()) @map("processed_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("clerk_webhook_events")
 }

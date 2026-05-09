@@ -30,10 +30,34 @@ export class StaffService {
   async create(
     createStaffDto: CreateStaffRequest
   ): Promise<ServiceResult<StaffResponse>> {
+    const clerkUserId = await this.clerkSyncService.ensureClerkUserForStaff({
+      email: createStaffDto.email,
+      fullName: createStaffDto.fullName,
+      position: createStaffDto.position,
+      cinemaId: createStaffDto.cinemaId,
+      status: createStaffDto.status,
+    });
+
     const staff = await this.prisma.$transaction(async (tx) => {
-      const created = await tx.staff.create({
-        data: {
+      const created = await tx.staff.upsert({
+        where: { email: createStaffDto.email },
+        update: {
+          fullName: createStaffDto.fullName,
+          phone: createStaffDto.phone,
+          gender: createStaffDto.gender as unknown as Gender,
+          dob: createStaffDto.dob,
+          position: createStaffDto.position as unknown as StaffPosition,
+          status: createStaffDto.status as unknown as StaffStatus,
+          workType: createStaffDto.workType as unknown as WorkType,
+          shiftType: createStaffDto.shiftType as unknown as ShiftType,
+          salary: createStaffDto.salary,
+          hireDate: createStaffDto.hireDate,
           cinemaId: createStaffDto.cinemaId,
+          clerkUserId,
+        },
+        create: {
+          cinemaId: createStaffDto.cinemaId,
+          clerkUserId,
           fullName: createStaffDto.fullName,
           email: createStaffDto.email,
           phone: createStaffDto.phone,
@@ -62,19 +86,6 @@ export class StaffService {
           hireDate: true,
         },
       });
-
-      // Persist sync task in the same DB transaction to avoid losing Clerk work.
-      await this.clerkSyncService.enqueueUpsert(
-        {
-          email: created.email,
-          fullName: created.fullName,
-          position: String(created.position),
-          cinemaId: created.cinemaId,
-          status: String(created.status),
-        },
-        tx
-      );
-
       return created;
     });
 
@@ -209,6 +220,27 @@ export class StaffService {
     id: string,
     updateStaffDto: UpdateStaffRequest
   ): Promise<ServiceResult<StaffResponse>> {
+    const current = await this.prisma.staff.findUnique({
+      where: { id },
+      select: { email: true, fullName: true, cinemaId: true, status: true, position: true },
+    });
+    if (!current) {
+      throw new RpcException({
+        summary: 'Update staff failed',
+        statusCode: 404,
+        code: 'STAFF_NOT_FOUND',
+        message: 'Staff does not exist',
+      });
+    }
+
+    const clerkUserId = await this.clerkSyncService.ensureClerkUserForStaff({
+      email: current.email,
+      fullName: updateStaffDto.fullName ?? current.fullName,
+      position: String(updateStaffDto.position ?? current.position),
+      cinemaId: current.cinemaId,
+      status: String(updateStaffDto.status ?? current.status),
+    });
+
     const staff = await this.prisma.$transaction(async (tx) => {
       const updated = await tx.staff.update({
         where: { id },
@@ -227,6 +259,7 @@ export class StaffService {
             (updateStaffDto.shiftType as unknown as ShiftType) ?? undefined,
           salary: updateStaffDto.salary,
           hireDate: updateStaffDto.hireDate,
+          clerkUserId,
         },
         select: {
           id: true,
@@ -244,18 +277,6 @@ export class StaffService {
           hireDate: true,
         },
       });
-
-      await this.clerkSyncService.enqueueUpsert(
-        {
-          email: updated.email,
-          fullName: updated.fullName,
-          position: String(updated.position),
-          cinemaId: updated.cinemaId,
-          status: String(updated.status),
-        },
-        tx
-      );
-
       return updated;
     });
 

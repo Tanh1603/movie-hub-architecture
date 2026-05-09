@@ -33,6 +33,7 @@ import { HealthController } from './health.controller';
         CLERK_ISSUER: Joi.string().optional(),
         CLERK_AUDIENCE: Joi.string().optional(),
         CLERK_AUTHORIZED_PARTIES: Joi.string().optional(),
+        CLERK_WEBHOOK_SECRET: Joi.string().optional(),
       }),
     }),
     UserModule,

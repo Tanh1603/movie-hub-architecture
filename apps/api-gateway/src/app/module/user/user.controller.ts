@@ -79,5 +79,12 @@ export class UserController {
   getUserEffectivePermissions(@Param('userId') userId: string) {
     return this.userService.getUserEffectivePermissions(userId);
   }
+
+  @Post('rbac/bootstrap-super-admin')
+  @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'rbac', action: 'update', scope: 'global' })
+  bootstrapSuperAdmin(@Req() req: any) {
+    return this.userService.bootstrapSuperAdmin(req?.correlationId);
+  }
 }
 

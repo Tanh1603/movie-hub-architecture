@@ -8,7 +8,9 @@ import { Logger, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+
 import { readFileSync } from 'fs';
+
 import * as yaml from 'js-yaml';
 import { AppModule } from './app/app.module';
 import { TransformInterceptor } from './app/common/interceptor/transform.interceptor';
@@ -17,13 +19,16 @@ import { RedisIoAdapter } from './app/module/realtime/adapter/redis-io.adapter';
 import { sensitiveRateLimitMiddleware } from './app/common/middleware/sensitive-rate-limit.middleware';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    rawBody: true,
+  });
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix, {
     exclude: ['/socket.io/(.*)'],
   });
 
   app.use(cookieParser());
+
   app.use(sensitiveRateLimitMiddleware);
   app.enableVersioning({
     type: VersioningType.URI,

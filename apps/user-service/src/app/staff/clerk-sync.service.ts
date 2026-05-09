@@ -1,6 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { clerkClient } from '@clerk/clerk-sdk-node';
 import {
   ClerkSyncAction,
   ClerkSyncStatus,
@@ -10,6 +9,7 @@ import {
 import { PrismaService } from '../prisma.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { CLERK_CLIENT } from '../clerk.module';
 
 type UpsertPayload = {
   email: string;
@@ -20,7 +20,8 @@ type UpsertPayload = {
 };
 
 type DeletePayload = {
-  email: string;
+  email?: string;
+  clerkUserId?: string;
 };
 
 @Injectable()
@@ -29,7 +30,8 @@ export class ClerkSyncService {
 
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    @Inject(CLERK_CLIENT) private readonly clerkClient: any
   ) {}
 
   async enqueueUpsert(payload: UpsertPayload, tx?: Prisma.TransactionClient) {
@@ -50,6 +52,45 @@ export class ClerkSyncService {
         payload,
       },
     });
+  }
+
+  async ensureClerkUserForStaff(payload: UpsertPayload): Promise<string> {
+    const userList = await this.clerkClient.users.getUserList({
+      emailAddress: [payload.email],
+    });
+
+    const metadata = {
+      role: payload.position,
+      cinemaId: payload.cinemaId,
+      staffStatus: payload.status,
+    };
+
+    let userId: string;
+    if (userList.data.length === 0) {
+      const [firstName, ...lastNameParts] = payload.fullName.split(' ');
+      const defaultStaffPassword = process.env.DEFAULT_STAFF_INITIAL_PASSWORD;
+      if (!defaultStaffPassword) {
+        throw new Error('DEFAULT_STAFF_INITIAL_PASSWORD is required to create staff');
+      }
+      const created = await this.clerkClient.users.createUser({
+        emailAddress: [payload.email],
+        firstName,
+        lastName: lastNameParts.join(' '),
+        password: defaultStaffPassword,
+        skipPasswordChecks: true,
+        publicMetadata: metadata,
+      });
+      userId = created.id;
+    } else {
+      const currentUser = userList.data[0];
+      await this.clerkClient.users.updateUser(currentUser.id, {
+        publicMetadata: metadata,
+      });
+      userId = currentUser.id;
+    }
+
+    await this.syncPositionRole(userId, payload.position);
+    return userId;
   }
 
   @Cron('*/30 * * * * *')
@@ -116,7 +157,7 @@ export class ClerkSyncService {
 
   private async executeTask(action: ClerkSyncAction, payload: Prisma.JsonValue) {
     if (action === ClerkSyncAction.UPSERT) {
-      await this.syncUpsert(payload as unknown as UpsertPayload);
+      await this.ensureClerkUserForStaff(payload as unknown as UpsertPayload);
       return;
     }
 
@@ -125,41 +166,17 @@ export class ClerkSyncService {
     }
   }
 
-  private async syncUpsert(payload: UpsertPayload) {
-    const userList = await clerkClient.users.getUserList({
-      emailAddress: [payload.email],
-    });
-
-    const metadata = {
-      role: payload.position,
-      cinemaId: payload.cinemaId,
-      staffStatus: payload.status,
-    };
-
-    let userId: string;
-    if (userList.data.length === 0) {
-      const [firstName, ...lastNameParts] = payload.fullName.split(' ');
-      const created = await clerkClient.users.createUser({
-        emailAddress: [payload.email],
-        firstName,
-        lastName: lastNameParts.join(' '),
-        skipPasswordChecks: true,
-        publicMetadata: metadata,
-      });
-      userId = created.id;
-    } else {
-      const currentUser = userList.data[0];
-      await clerkClient.users.updateUser(currentUser.id, {
-        publicMetadata: metadata,
-      });
-      userId = currentUser.id;
+  private async syncDelete(payload: DeletePayload) {
+    if (payload.clerkUserId) {
+      await this.clerkClient.users.deleteUser(payload.clerkUserId);
+      return;
     }
 
-    await this.syncPositionRole(userId, payload.position);
-  }
+    if (!payload.email) {
+      return;
+    }
 
-  private async syncDelete(payload: DeletePayload) {
-    const userList = await clerkClient.users.getUserList({
+    const userList = await this.clerkClient.users.getUserList({
       emailAddress: [payload.email],
     });
 
@@ -167,7 +184,7 @@ export class ClerkSyncService {
       return;
     }
 
-    await clerkClient.users.deleteUser(userList.data[0].id);
+    await this.clerkClient.users.deleteUser(userList.data[0].id);
   }
 
   private calculateNextRetry(attempts: number, maxedOut: boolean): Date {

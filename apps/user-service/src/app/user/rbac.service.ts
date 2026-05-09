@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   AssignUserRoleRequest,
   PermissionView,
@@ -11,6 +11,8 @@ import { UserService } from './user.service';
 
 @Injectable()
 export class RbacService {
+  private readonly logger = new Logger(RbacService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly userService: UserService
@@ -134,6 +136,19 @@ export class RbacService {
       return;
     }
 
+    if (input.role === 'SUPER_ADMIN') {
+      const superAdminCount = await this.prisma.userRole.count({
+        where: { roleId: role.id },
+      });
+      const targetHasRole = await this.prisma.userRole.findFirst({
+        where: { userId: input.userId, roleId: role.id },
+        select: { id: true },
+      });
+      if (targetHasRole && superAdminCount <= 1) {
+        throw new Error('Cannot remove the last SUPER_ADMIN');
+      }
+    }
+
     await this.prisma.userRole.deleteMany({
       where: {
         userId: input.userId,
@@ -142,6 +157,9 @@ export class RbacService {
     });
 
     await this.userService.invalidatePermissionsCache(input.userId);
+    this.logger.log(
+      `Removed role=${input.role} from userId=${input.userId} (cache invalidated)`
+    );
   }
 
   async getEffectivePermissions(userId: string): Promise<string[]> {
@@ -159,4 +177,3 @@ export class RbacService {
     );
   }
 }
-
