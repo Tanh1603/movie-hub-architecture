@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { SERVICE_NAME } from '@movie-hub/shared-types';
 import { ClerkAuthGuard } from '../guard/clerk-auth.guard';
 import { OptionalClerkAuthGuard } from '../guard/optional-clerk-auth.guard';
+import { RoleGuard } from '../guard/role.guard';
 import { RedisModule } from '@movie-hub/shared-redis';
 import { TokenValidationService } from './token-validation.service';
 import { BruteForceProtectionService } from './brute-force-protection.service';
@@ -36,6 +37,7 @@ import { BruteForceProtectionService } from './brute-force-protection.service';
   providers: [
     ClerkAuthGuard,
     OptionalClerkAuthGuard,
+    RoleGuard,
     TokenValidationService,
     BruteForceProtectionService,
   ],
@@ -43,6 +45,7 @@ import { BruteForceProtectionService } from './brute-force-protection.service';
     ClientsModule,
     ClerkAuthGuard,
     OptionalClerkAuthGuard,
+    RoleGuard,
     TokenValidationService,
     BruteForceProtectionService,
   ],

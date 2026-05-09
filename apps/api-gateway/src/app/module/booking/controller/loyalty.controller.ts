@@ -29,7 +29,7 @@ export class LoyaltyController {
    */
   @Get('balance')
   @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @Permission({ resource: 'booking', action: 'read', scope: 'cinema' })
   async getBalance(@CurrentUserId() userId: string) {
     return this.loyaltyService.getBalance(userId);
   }
@@ -40,7 +40,7 @@ export class LoyaltyController {
    */
   @Get('transactions')
   @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @Permission({ resource: 'booking', action: 'read', scope: 'cinema' })
   async getTransactions(
     @CurrentUserId() userId: string,
     @Query('type') type?: LoyaltyTransactionType,
@@ -56,7 +56,7 @@ export class LoyaltyController {
    */
   @Post('earn')
   @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
   @HttpCode(HttpStatus.OK)
   async earnPoints(
     @CurrentUserId() userId: string,
@@ -78,7 +78,7 @@ export class LoyaltyController {
    */
   @Post('redeem')
   @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
   @HttpCode(HttpStatus.OK)
   async redeemPoints(
     @CurrentUserId() userId: string,
@@ -94,3 +94,5 @@ export class LoyaltyController {
     );
   }
 }
+
+

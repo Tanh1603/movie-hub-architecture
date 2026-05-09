@@ -36,14 +36,14 @@ export class HallController {
 
   @Get('hall/:hallId')
   @UseGuards(ClerkAuthGuard)
-  @Permission('cinema:read')
+  @Permission({ resource: 'cinema', action: 'read', scope: 'cinema' })
   getHallById(@Param('hallId') hallId: string) {
     return this.hallService.getHallById(hallId);
   }
 
   @Get('cinema/:cinemaId')
   @UseGuards(ClerkAuthGuard)
-  @Permission('cinema:read')
+  @Permission({ resource: 'cinema', action: 'read', scope: 'cinema' })
   getHallsOfCinema(
     @Req() req: any,
     @Param('cinemaId') cinemaId: string,
@@ -64,7 +64,7 @@ export class HallController {
    */
   @Post('hall')
   @UseGuards(ClerkAuthGuard)
-  @Permission('cinema:write')
+  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
   createHall(@Req() req: any, @Body() createHallRequest: CreateHallRequest) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId && createHallRequest.cinemaId !== userCinemaId) {
@@ -80,7 +80,7 @@ export class HallController {
    */
   @Patch('hall/:hallId')
   @UseGuards(ClerkAuthGuard)
-  @Permission('cinema:write')
+  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
   async updateHall(
     @Req() req: any,
     @Param('hallId') hallId: string,
@@ -105,7 +105,7 @@ export class HallController {
    */
   @Delete('hall/:hallId')
   @UseGuards(ClerkAuthGuard)
-  @Permission('cinema:write')
+  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
   async deleteHall(@Req() req: any, @Param('hallId') hallId: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -126,7 +126,7 @@ export class HallController {
    */
   @Patch('seat/:seatId/status')
   @UseGuards(ClerkAuthGuard)
-  @Permission('cinema:write')
+  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
   async updateSeatStatus(
     @Req() req: any,
     @Param('seatId') seatId: string,
@@ -143,3 +143,5 @@ export class HallController {
     return this.hallService.updateSeatStatus(seatId, updateSeatStatusRequest);
   }
 }
+
+

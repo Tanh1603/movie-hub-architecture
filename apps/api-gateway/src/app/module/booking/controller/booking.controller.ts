@@ -13,8 +13,11 @@ import {
 } from '@nestjs/common';
 import { BookingService } from '../service/booking.service';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
+import { RoleGuard } from '../../../common/guard/role.guard';
 import { Permission } from '../../../common/decorator/permission.decorator';
 import { CurrentUserId } from '../../../common/decorator/current-user-id.decorator';
+import { Roles } from '../../../common/decorator/roles.decorator';
+import { AppRole } from '@movie-hub/shared-types';
 import {
   CreateBookingDto,
   BookingStatus,
@@ -69,7 +72,8 @@ export class BookingController {
   }
 
   @Post()
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
   async create(
     @CurrentUserId() userId: string,
     @Body() createBookingDto: CreateBookingDto
@@ -78,7 +82,8 @@ export class BookingController {
   }
 
   @Get()
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
   async findAll(
     @CurrentUserId() userId: string,
     @Query('status') status?: BookingStatus,
@@ -93,13 +98,15 @@ export class BookingController {
   }
 
   @Get(':id')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
   async findOne(@CurrentUserId() userId: string, @Param('id') id: string) {
     return this.bookingService.findOne(id, userId);
   }
 
   @Post(':id/cancel')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
   async cancel(
     @CurrentUserId() userId: string,
     @Param('id') id: string,
@@ -109,7 +116,8 @@ export class BookingController {
   }
 
   @Get(':id/summary')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
   async getSummary(@CurrentUserId() userId: string, @Param('id') id: string) {
     return this.bookingService.getBookingSummary(id, userId);
   }
@@ -120,7 +128,8 @@ export class BookingController {
    * Used when entering showtime screen
    */
   @Get('showtime/:showtimeId/check')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
   async checkUserBookingAtShowtime(
     @CurrentUserId() userId: string,
     @Param('showtimeId') showtimeId: string,
@@ -141,8 +150,9 @@ export class BookingController {
   // ==================== ADMIN ENDPOINTS ====================
 
   @Get('admin/all')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.STAFF)
+  @Permission({ resource: 'booking', action: 'read', scope: 'cinema' })
   async adminFindAll(
     @Req() req: any,
     @Query() filters: AdminFindAllBookingsDto
@@ -155,8 +165,9 @@ export class BookingController {
   }
 
   @Get('admin/showtime/:showtimeId')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.STAFF)
+  @Permission({ resource: 'booking', action: 'read', scope: 'cinema' })
   async findByShowtime(
     @Req() req: any,
     @Param('showtimeId') showtimeId: string,
@@ -167,8 +178,9 @@ export class BookingController {
   }
 
   @Get('admin/date-range')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.STAFF)
+  @Permission({ resource: 'booking', action: 'read', scope: 'cinema' })
   async findByDateRange(
     @Req() req: any,
     @Query() filters: FindBookingsByDateRangeDto
@@ -181,8 +193,9 @@ export class BookingController {
   }
 
   @Put('admin/:id/status')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
   async updateStatus(
     @Req() req: any,
     @Param('id') bookingId: string,
@@ -194,32 +207,36 @@ export class BookingController {
   }
 
   @Post('admin/:id/confirm')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
   async confirmBooking(@Req() req: any, @Param('id') bookingId: string) {
     await this.enforceBookingOwnership(req, bookingId);
     return this.bookingService.confirmBooking(bookingId);
   }
 
   @Post('admin/:id/complete')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
   async completeBooking(@Req() req: any, @Param('id') bookingId: string) {
     await this.enforceBookingOwnership(req, bookingId);
     return this.bookingService.completeBooking(bookingId);
   }
 
   @Post('admin/:id/expire')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
   async expireBooking(@Req() req: any, @Param('id') bookingId: string) {
     await this.enforceBookingOwnership(req, bookingId);
     return this.bookingService.expireBooking(bookingId);
   }
 
   @Get('admin/statistics')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'booking', action: 'read', scope: 'cinema' })
   async getStatistics(
     @Req() req: any,
     @Query() filters: GetBookingStatisticsDto
@@ -232,8 +249,9 @@ export class BookingController {
   }
 
   @Get('admin/revenue-report')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'booking', action: 'read', scope: 'cinema' })
   async getRevenueReport(
     @Req() req: any,
     @Query() filters: GetRevenueReportDto
@@ -248,7 +266,8 @@ export class BookingController {
   // ==================== BOOKING ACTIONS ====================
 
   @Put(':id')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
   async updateBooking(
     @CurrentUserId() userId: string,
     @Param('id') id: string,
@@ -258,7 +277,8 @@ export class BookingController {
   }
 
   @Post(':id/reschedule')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
   async rescheduleBooking(
     @CurrentUserId() userId: string,
     @Param('id') id: string,
@@ -268,7 +288,8 @@ export class BookingController {
   }
 
   @Get(':id/refund-calculation')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
   @Header('Deprecation', 'true')
   @Header('X-Deprecation-Notice', 'Use POST /refunds/booking/:id/voucher')
   async calculateRefund(
@@ -279,7 +300,8 @@ export class BookingController {
   }
 
   @Post(':id/cancel-with-refund')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
   @Header('Deprecation', 'true')
   @Header('X-Deprecation-Notice', 'Use POST /refunds/booking/:id/voucher')
   async cancelWithRefund(
@@ -295,3 +317,5 @@ export class BookingController {
     return this.bookingService.getCancellationPolicy();
   }
 }
+
+

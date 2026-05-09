@@ -47,14 +47,14 @@ export class ConcessionController {
 
   @Post()
   @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
   async create(@Body() createConcessionDto: CreateConcessionDto) {
     return this.concessionService.create(createConcessionDto);
   }
 
   @Put(':id')
   @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
   async update(
     @Param('id') id: string,
     @Body() updateConcessionDto: UpdateConcessionDto
@@ -64,14 +64,14 @@ export class ConcessionController {
 
   @Delete(':id')
   @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
   async delete(@Param('id') id: string) {
     return this.concessionService.delete(id);
   }
 
   @Patch(':id/inventory')
   @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
   async updateInventory(
     @Param('id') id: string,
     @Body('quantity') quantity: number
@@ -79,3 +79,5 @@ export class ConcessionController {
     return this.concessionService.updateInventory(id, quantity);
   }
 }
+
+

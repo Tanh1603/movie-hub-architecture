@@ -29,7 +29,7 @@ export class TicketPricingController {
 
   @Patch('pricing/:pricingId')
   @UseGuards(ClerkAuthGuard)
-  @Permission('cinema:write')
+  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
   async updateTicketPricing(
     @Req() req: any,
     @Param('pricingId') pricingId: string,
@@ -45,3 +45,5 @@ export class TicketPricingController {
     );
   }
 }
+
+

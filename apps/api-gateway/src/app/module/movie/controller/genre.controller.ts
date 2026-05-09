@@ -27,7 +27,7 @@ export class GenreController {
 
   @Post()
   @UseGuards(ClerkAuthGuard)
-  @Permission('movie:write')
+  @Permission({ resource: 'movie', action: 'update', scope: 'cinema' })
   async create(@Req() req: any, @Body() request: GenreRequest) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -48,7 +48,7 @@ export class GenreController {
 
   @Put(':id')
   @UseGuards(ClerkAuthGuard)
-  @Permission('movie:write')
+  @Permission({ resource: 'movie', action: 'update', scope: 'cinema' })
   async update(
     @Req() req: any,
     @Param('id') id: string,
@@ -63,7 +63,7 @@ export class GenreController {
 
   @Delete(':id')
   @UseGuards(ClerkAuthGuard)
-  @Permission('movie:write')
+  @Permission({ resource: 'movie', action: 'update', scope: 'cinema' })
   async remove(@Req() req: any, @Param('id') id: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -72,3 +72,5 @@ export class GenreController {
     return this.genreService.remove(id);
   }
 }
+
+

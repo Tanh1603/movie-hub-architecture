@@ -30,9 +30,20 @@ export class UserService {
             },
           },
         },
-        select: { name: true },
+        select: {
+          resource: { select: { code: true } },
+          action: true,
+          scope: true,
+        },
       })
-      .then((r) => r.map((p) => p.name));
+      .then((rows) =>
+        rows.map(
+          (p) =>
+            `${p.resource.code}:${String(p.action).toLowerCase()}:${String(
+              p.scope
+            ).toLowerCase()}`
+        )
+      );
 
     await this.cacheManager.set(cacheKey, permissions);
     return permissions;

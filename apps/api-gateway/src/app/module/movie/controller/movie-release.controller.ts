@@ -23,7 +23,7 @@ export class MovieReleaseController {
 
   @Post()
   @UseGuards(ClerkAuthGuard)
-  @Permission('movie:write')
+  @Permission({ resource: 'movie', action: 'update', scope: 'cinema' })
   async createMovieRelease(
     @Req() req: any,
     @Body() request: CreateMovieReleaseRequest
@@ -37,7 +37,7 @@ export class MovieReleaseController {
 
   @Put(':id')
   @UseGuards(ClerkAuthGuard)
-  @Permission('movie:write')
+  @Permission({ resource: 'movie', action: 'update', scope: 'cinema' })
   async updateMovieRelease(
     @Req() req: any,
     @Param('id') id: string,
@@ -52,7 +52,7 @@ export class MovieReleaseController {
 
   @Delete(':id')
   @UseGuards(ClerkAuthGuard)
-  @Permission('movie:write')
+  @Permission({ resource: 'movie', action: 'update', scope: 'cinema' })
   async remove(@Req() req: any, @Param('id') id: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -62,3 +62,5 @@ export class MovieReleaseController {
     return null;
   }
 }
+
+

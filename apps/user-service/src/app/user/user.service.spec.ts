@@ -30,10 +30,10 @@ describe('UserService', () => {
 
   // Sample test data
   const samplePermissions = [
-    { name: 'read' },
-    { name: 'write' },
-    { name: 'delete' },
-    { name: 'admin' },
+    { resource: { code: 'booking' }, action: 'READ', scope: 'OWN' },
+    { resource: { code: 'booking' }, action: 'UPDATE', scope: 'OWN' },
+    { resource: { code: 'ticket' }, action: 'READ', scope: 'OWN' },
+    { resource: { code: 'dashboard' }, action: 'READ', scope: 'GLOBAL' },
   ];
 
   const sampleUsers = {
@@ -92,7 +92,7 @@ describe('UserService', () => {
     describe('cache hit scenarios', () => {
       it('should return cached permissions when available', async () => {
         const userId = 'test-user-123';
-        const cachedPermissions = ['read', 'write'];
+        const cachedPermissions = ['booking:read:own', 'booking:update:own'];
 
         mockCacheManager.get.mockResolvedValue(cachedPermissions);
 
@@ -125,17 +125,13 @@ describe('UserService', () => {
       it('should handle complex permission arrays from cache', async () => {
         const userId = 'admin-user';
         const complexPermissions = [
-          'user:read',
-          'user:write',
-          'user:delete',
-          'movie:read',
-          'movie:write',
-          'movie:delete',
-          'cinema:read',
-          'cinema:write',
-          'cinema:manage',
-          'system:admin',
-          'system:config',
+          'user:read:own',
+          'user:update:own',
+          'movie:read:global',
+          'movie:update:cinema',
+          'cinema:read:cinema',
+          'cinema:manage:cinema',
+          'dashboard:read:global',
         ];
 
         mockCacheManager.get.mockResolvedValue(complexPermissions);
@@ -143,7 +139,7 @@ describe('UserService', () => {
         const result = await service.getPermissions(userId);
 
         expect(result).toEqual(complexPermissions);
-        expect(result).toHaveLength(11);
+        expect(result).toHaveLength(7);
         expect(mockCacheManager.get).toHaveBeenCalledWith(
           `permissions:${userId}`
         );
@@ -153,8 +149,8 @@ describe('UserService', () => {
     describe('cache miss scenarios', () => {
       it('should fetch permissions from database when cache is empty', async () => {
         const userId = 'test-user-456';
-        const dbPermissions = [{ name: 'read' }, { name: 'write' }];
-        const expectedPermissions = ['read', 'write'];
+        const dbPermissions = [{ resource: { code: 'booking' }, action: 'READ', scope: 'OWN' }, { resource: { code: 'booking' }, action: 'UPDATE', scope: 'OWN' }];
+        const expectedPermissions = ['booking:read:own', 'booking:update:own'];
 
         mockCacheManager.get.mockResolvedValue(null);
         mockPrismaService.permission.findMany.mockResolvedValue(dbPermissions);
@@ -177,7 +173,11 @@ describe('UserService', () => {
               },
             },
           },
-          select: { name: true },
+          select: {
+          resource: { select: { code: true } },
+          action: true,
+          scope: true,
+        },
         });
         expect(mockCacheManager.set).toHaveBeenCalledWith(
           `permissions:${userId}`,
@@ -206,7 +206,11 @@ describe('UserService', () => {
               },
             },
           },
-          select: { name: true },
+          select: {
+          resource: { select: { code: true } },
+          action: true,
+          scope: true,
+        },
         });
         expect(mockCacheManager.set).toHaveBeenCalledWith(
           `permissions:${userId}`,
@@ -224,17 +228,17 @@ describe('UserService', () => {
 
         const result = await service.getPermissions(userId);
 
-        expect(result).toEqual(['read', 'write', 'delete', 'admin']);
+        expect(result).toEqual(['booking:read:own', 'booking:update:own', 'ticket:read:own', 'dashboard:read:global']);
         expect(result).toHaveLength(4);
         expect(mockCacheManager.set).toHaveBeenCalledWith(
           `permissions:${userId}`,
-          ['read', 'write', 'delete', 'admin']
+          ['booking:read:own', 'booking:update:own', 'ticket:read:own', 'dashboard:read:global']
         );
       });
 
       it('should cache permissions after database fetch', async () => {
         const userId = 'cache-test-user';
-        const dbPermissions = [{ name: 'test-permission' }];
+        const dbPermissions = [{ resource: { code: 'booking' }, action: 'READ', scope: 'OWN' }];
 
         mockCacheManager.get.mockResolvedValue(null);
         mockPrismaService.permission.findMany.mockResolvedValue(dbPermissions);
@@ -243,7 +247,7 @@ describe('UserService', () => {
 
         expect(mockCacheManager.set).toHaveBeenCalledWith(
           `permissions:${userId}`,
-          ['test-permission']
+          ['booking:read:own']
         );
         expect(mockCacheManager.set).toHaveBeenCalledTimes(1);
       });
@@ -252,7 +256,7 @@ describe('UserService', () => {
     describe('cache key generation', () => {
       it('should generate correct cache key for regular user IDs', async () => {
         const userId = 'regular-user-123';
-        mockCacheManager.get.mockResolvedValue(['read']);
+        mockCacheManager.get.mockResolvedValue(['booking:read:own']);
 
         await service.getPermissions(userId);
 
@@ -263,7 +267,7 @@ describe('UserService', () => {
 
       it('should handle special characters in user IDs', async () => {
         const userId = 'user@example.com';
-        mockCacheManager.get.mockResolvedValue(['read']);
+        mockCacheManager.get.mockResolvedValue(['booking:read:own']);
 
         await service.getPermissions(userId);
 
@@ -274,7 +278,7 @@ describe('UserService', () => {
 
       it('should handle UUID user IDs', async () => {
         const userId = '123e4567-e89b-12d3-a456-426614174000';
-        mockCacheManager.get.mockResolvedValue(['read']);
+        mockCacheManager.get.mockResolvedValue(['booking:read:own']);
 
         await service.getPermissions(userId);
 
@@ -299,7 +303,7 @@ describe('UserService', () => {
 
       it('should handle cache set errors gracefully', async () => {
         const userId = 'cache-set-error-user';
-        const dbPermissions = [{ name: 'test-permission' }];
+        const dbPermissions = [{ resource: { code: 'booking' }, action: 'READ', scope: 'OWN' }];
 
         mockCacheManager.get.mockResolvedValue(null);
         mockCacheManager.set.mockRejectedValue(new Error('Cache set failed'));
@@ -366,12 +370,12 @@ describe('UserService', () => {
 
         mockCacheManager.get.mockResolvedValue(undefined);
         mockPrismaService.permission.findMany.mockResolvedValue([
-          { name: 'permission' },
+          { resource: { code: 'booking' }, action: 'READ', scope: 'OWN' },
         ]);
 
         const result = await service.getPermissions(userId);
 
-        expect(result).toEqual(['permission']);
+        expect(result).toEqual(['booking:read:own']);
         expect(mockPrismaService.permission.findMany).toHaveBeenCalled();
       });
     });
@@ -379,7 +383,7 @@ describe('UserService', () => {
     describe('concurrent access', () => {
       it('should handle concurrent permission requests for same user', async () => {
         const userId = 'concurrent-user';
-        const permissions = ['read', 'write'];
+        const permissions = ['booking:read:own', 'booking:update:own'];
 
         mockCacheManager.get.mockResolvedValue(permissions);
 
@@ -399,7 +403,7 @@ describe('UserService', () => {
 
       it('should handle concurrent requests for different users', async () => {
         const userIds = ['user-1', 'user-2', 'user-3'];
-        const permissions = ['read'];
+        const permissions = ['booking:read:own'];
 
         mockCacheManager.get.mockResolvedValue(permissions);
 
@@ -598,7 +602,7 @@ describe('UserService', () => {
 
     it('should handle mixed operations correctly', async () => {
       const userId = 'integration-user';
-      const permissions = ['read', 'write'];
+      const permissions = ['booking:read:own', 'booking:update:own'];
 
       mockCacheManager.get.mockResolvedValue(permissions);
       mockClerkUserList.mockResolvedValue(sampleUsers);
@@ -631,7 +635,7 @@ describe('UserService', () => {
 
   describe('memory and resource management', () => {
     it('should not cause memory leaks with repeated calls', async () => {
-      mockCacheManager.get.mockResolvedValue(['read']);
+      mockCacheManager.get.mockResolvedValue(['booking:read:own']);
       mockClerkUserList.mockResolvedValue(sampleUsers);
 
       // Simulate many repeated calls
@@ -646,9 +650,13 @@ describe('UserService', () => {
 
     it('should handle large data sets efficiently', async () => {
       const largePermissions = Array.from({ length: 1000 }, (_, i) => ({
-        name: `permission-${i}`,
+        resource: { code: `resource-${i}` },
+        action: 'READ',
+        scope: 'OWN',
       }));
-      const expectedResult = largePermissions.map((p) => p.name);
+      const expectedResult = largePermissions.map(
+        (p) => `${p.resource.code}:read:own`
+      );
 
       mockCacheManager.get.mockResolvedValue(null);
       mockPrismaService.permission.findMany.mockResolvedValue(largePermissions);
@@ -660,3 +668,4 @@ describe('UserService', () => {
     });
   });
 });
+

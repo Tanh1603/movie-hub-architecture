@@ -11,7 +11,10 @@ import {
 } from '@nestjs/common';
 import { RefundService } from '../service/refund.service';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
+import { RoleGuard } from '../../../common/guard/role.guard';
 import { Permission } from '../../../common/decorator/permission.decorator';
+import { Roles } from '../../../common/decorator/roles.decorator';
+import { AppRole } from '@movie-hub/shared-types';
 import {
   CreateRefundDto,
   FindAllRefundsDto,
@@ -28,36 +31,41 @@ export class RefundController {
   constructor(private readonly refundService: RefundService) {}
 
   @Post()
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:cancel')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
+  @Permission({ resource: 'refund', action: 'create', scope: 'own' })
   async create(@Body() createRefundDto: CreateRefundDto) {
     return this.refundService.createRefund(createRefundDto);
   }
 
   @Get()
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.STAFF)
+  @Permission({ resource: 'refund', action: 'read', scope: 'cinema' })
   async findAll(@Query() filters: FindAllRefundsDto) {
     return this.refundService.findAll(filters);
   }
 
   @Get(':id')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.STAFF)
+  @Permission({ resource: 'refund', action: 'read', scope: 'cinema' })
   async findOne(@Param('id') id: string) {
     return this.refundService.findOne(id);
   }
 
   @Get('payment/:paymentId')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.STAFF)
+  @Permission({ resource: 'refund', action: 'read', scope: 'cinema' })
   async findByPayment(@Param('paymentId') paymentId: string) {
     return this.refundService.findByPayment(paymentId);
   }
 
   @Put(':id/process')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'refund', action: 'update', scope: 'cinema' })
   async process(
     @Param('id') refundId: string,
     @Body() processDto: ProcessRefundDto
@@ -66,8 +74,9 @@ export class RefundController {
   }
 
   @Put(':id/approve')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.ADMIN)
+  @Permission({ resource: 'refund', action: 'approve', scope: 'global' })
   async approve(
     @Param('id') refundId: string,
     @Body() approveDto: ApproveRefundDto
@@ -76,8 +85,9 @@ export class RefundController {
   }
 
   @Put(':id/reject')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.ADMIN)
+  @Permission({ resource: 'refund', action: 'approve', scope: 'global' })
   async reject(
     @Param('id') refundId: string,
     @Body() rejectDto: RejectRefundDto
@@ -90,8 +100,9 @@ export class RefundController {
    * User receives a voucher code for 100% of ticket value
    */
   @Post('booking/:bookingId/voucher')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:cancel')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
+  @Permission({ resource: 'refund', action: 'create', scope: 'own' })
   async processAsVoucher(
     @Param('bookingId') bookingId: string,
     @Req() req: { userId: string },
@@ -104,3 +115,4 @@ export class RefundController {
     );
   }
 }
+

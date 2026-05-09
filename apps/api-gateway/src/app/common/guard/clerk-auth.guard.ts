@@ -2,8 +2,14 @@ import { Injectable, CanActivate, ExecutionContext, Inject, Logger } from '@nest
 import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ClientProxy } from '@nestjs/microservices';
-import { PERMISSION_KEY } from '../decorator/permission.decorator';
-import { SERVICE_NAME, UserMessage } from '@movie-hub/shared-types';
+import {
+  PERMISSION_KEY,
+} from '../decorator/permission.decorator';
+import {
+  PermissionRequirement,
+  SERVICE_NAME,
+  UserMessage,
+} from '@movie-hub/shared-types';
 import { lastValueFrom } from 'rxjs';
 import { TokenValidationService } from '../auth/token-validation.service';
 import { BruteForceProtectionService } from '../auth/brute-force-protection.service';
@@ -24,7 +30,7 @@ export class ClerkAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request & Record<string, any>>();
     const correlationId = this.getCorrelationId(request);
 
-    const requiredPermission = this.reflector.get<string>(
+    const requiredPermission = this.reflector.get<PermissionRequirement>(
       PERMISSION_KEY,
       context.getHandler()
     );
@@ -111,10 +117,13 @@ export class ClerkAuthGuard implements CanActivate {
         )
       );
 
-      const hasPermission = permissions.includes(requiredPermission);
+      const hasPermission = this.hasRequiredPermission(
+        permissions,
+        requiredPermission
+      );
       if (!hasPermission) {
         this.logger.warn(
-          `Missing permission userId=${userId} required=${requiredPermission} correlationId=${correlationId}`
+          `Missing permission userId=${userId} required=${JSON.stringify(requiredPermission)} correlationId=${correlationId}`
         );
         throw new ForbiddenException('Insufficient permissions');
       }
@@ -166,5 +175,19 @@ export class ClerkAuthGuard implements CanActivate {
     }
 
     return `req-${Date.now()}`;
+  }
+
+  private hasRequiredPermission(
+    userPermissions: string[],
+    required: PermissionRequirement
+  ): boolean {
+    const normalizedAction = required.action.toLowerCase();
+    const normalizedScope = (required.scope || 'global').toLowerCase();
+    const candidates = new Set<string>([
+      `${required.resource.toLowerCase()}:${normalizedAction}:${normalizedScope}`,
+      `${required.resource.toLowerCase()}:${normalizedAction}`,
+    ]);
+
+    return userPermissions.some((permission) => candidates.has(permission));
   }
 }

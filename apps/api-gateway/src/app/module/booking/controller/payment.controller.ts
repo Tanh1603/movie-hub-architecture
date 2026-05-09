@@ -14,9 +14,13 @@ import {
   DefaultValuePipe,
 } from '@nestjs/common';
 import { PaymentService } from '../service/payment.service';
+import { BookingService } from '../service/booking.service';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
+import { RoleGuard } from '../../../common/guard/role.guard';
 import { CurrentUserId } from '../../../common/decorator/current-user-id.decorator';
 import { Permission } from '../../../common/decorator/permission.decorator';
+import { Roles } from '../../../common/decorator/roles.decorator';
+import { AppRole } from '@movie-hub/shared-types';
 import { CreatePaymentDto, AdminFindAllPaymentsDto, PaymentStatus } from '@movie-hub/shared-types';
 import { Request } from 'express';
 
@@ -25,7 +29,10 @@ import { Request } from 'express';
   path: 'payments',
 })
 export class PaymentController {
-  constructor(private readonly paymentService: PaymentService) {}
+  constructor(
+    private readonly paymentService: PaymentService,
+    private readonly bookingService: BookingService
+  ) {}
 
   // ==================== PUBLIC ENDPOINTS (NO AUTH) ====================
   // MUST be before :id route to avoid route conflicts
@@ -57,15 +64,17 @@ export class PaymentController {
   // ==================== ADMIN ENDPOINTS ====================
 
   @Get('admin/all')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.STAFF)
+  @Permission({ resource: 'payment', action: 'read', scope: 'cinema' })
   async adminFindAll(@Query() filters: AdminFindAllPaymentsDto) {
     return this.paymentService.adminFindAll(filters);
   }
 
   @Get('admin/status/:status')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.STAFF)
+  @Permission({ resource: 'payment', action: 'read', scope: 'cinema' })
   async findByStatus(
     @Param('status') status: PaymentStatus,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
@@ -75,15 +84,17 @@ export class PaymentController {
   }
 
   @Put('admin/:id/cancel')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'payment', action: 'update', scope: 'cinema' })
   async cancelPayment(@Param('id') paymentId: string) {
     return this.paymentService.cancelPayment(paymentId);
   }
 
   @Get('admin/statistics')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'payment', action: 'read', scope: 'cinema' })
   async getStatistics(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
@@ -103,14 +114,18 @@ export class PaymentController {
    * Authenticated endpoint - requires valid user session
    */
   @Post('bookings/:bookingId')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
+  @Permission({ resource: 'payment', action: 'update', scope: 'own' })
   async createPayment(
     @CurrentUserId() userId: string,
     @Param('bookingId') bookingId: string,
     @Body() createPaymentDto: CreatePaymentDto,
     @Req() request: Request
   ) {
+    // Ownership check: customer can only initiate payment for their own booking.
+    await this.bookingService.findOne(bookingId, userId);
+
     const ipAddr =
       (request.headers['x-forwarded-for'] as string)?.split(',')[0] ||
       request.ip ||
@@ -124,12 +139,15 @@ export class PaymentController {
    * Authenticated endpoint
    */
   @Get('booking/:bookingId')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
+  @Permission({ resource: 'payment', action: 'read', scope: 'own' })
   async getPaymentsByBooking(
     @CurrentUserId() userId: string,
     @Param('bookingId') bookingId: string
   ) {
+    // Ownership check: do not disclose payment records of another user's booking.
+    await this.bookingService.findOne(bookingId, userId);
     return this.paymentService.getPaymentByBooking(bookingId);
   }
 
@@ -140,8 +158,9 @@ export class PaymentController {
    */
   @Get(':id')
   @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @Permission({ resource: 'payment', action: 'read', scope: 'own' })
   async getPayment(@CurrentUserId() userId: string, @Param('id') id: string) {
     return this.paymentService.getPayment(id);
   }
 }
+

@@ -68,7 +68,7 @@ export class CinemaController {
    */
   @Post('cinema')
   @UseGuards(ClerkAuthGuard)
-  @Permission('cinema:write')
+  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
   createCinema(@Req() req: any, @Body() createCinemaDto: CreateCinemaRequest) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -82,7 +82,7 @@ export class CinemaController {
    */
   @Patch('cinema/:cinemaId')
   @UseGuards(ClerkAuthGuard)
-  @Permission('cinema:write')
+  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
   updateCinema(
     @Req() req: any,
     @Param('cinemaId') cinemaId: string,
@@ -99,7 +99,7 @@ export class CinemaController {
    */
   @Delete('cinema/:cinemaId')
   @UseGuards(ClerkAuthGuard)
-  @Permission('cinema:write')
+  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
   deleteCinema(@Req() req: any, @Param('cinemaId') cinemaId: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -266,3 +266,5 @@ export class CinemaController {
     return this.cinemaService.getAllMoviesWithShowtimes(query);
   }
 }
+
+

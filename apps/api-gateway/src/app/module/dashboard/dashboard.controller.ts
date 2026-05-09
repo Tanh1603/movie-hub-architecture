@@ -8,8 +8,11 @@ import {
 } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { ClerkAuthGuard } from '../../common/guard/clerk-auth.guard';
+import { RoleGuard } from '../../common/guard/role.guard';
 import { TransformInterceptor } from '../../common/interceptor/transform.interceptor';
 import { Permission } from '../../common/decorator/permission.decorator';
+import { Roles } from '../../common/decorator/roles.decorator';
+import { AppRole } from '@movie-hub/shared-types';
 
 /**
  * Dashboard Controller
@@ -21,7 +24,8 @@ import { Permission } from '../../common/decorator/permission.decorator';
   version: '1',
   path: 'dashboard',
 })
-@UseGuards(ClerkAuthGuard)
+@UseGuards(ClerkAuthGuard, RoleGuard)
+@Roles(AppRole.ADMIN)
 @UseInterceptors(new TransformInterceptor())
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
@@ -31,7 +35,7 @@ export class DashboardController {
    * Returns KPI summary: total movies, cinemas, revenue, bookings, etc.
    */
   @Get('stats')
-  @Permission('admin:access')
+  @Permission({ resource: 'dashboard', action: 'read', scope: 'global' })
   async getStats(@Req() req: any, @Query('cinemaId') cinemaId?: string) {
     const activeCinemaId = req.staffContext?.cinemaId || cinemaId;
     return { data: await this.dashboardService.getStats(activeCinemaId) };
@@ -42,7 +46,7 @@ export class DashboardController {
    * Returns revenue report with optional date filters
    */
   @Get('revenue')
-  @Permission('admin:access')
+  @Permission({ resource: 'dashboard', action: 'read', scope: 'global' })
   async getRevenueReport(
     @Req() req: any,
     @Query('startDate') startDate?: string,
@@ -65,7 +69,7 @@ export class DashboardController {
    * Returns top movies by bookings with movie metadata
    */
   @Get('top-movies')
-  @Permission('admin:access')
+  @Permission({ resource: 'dashboard', action: 'read', scope: 'global' })
   async getTopMovies(
     @Req() req: any,
     @Query('limit') limit?: string,
@@ -90,7 +94,7 @@ export class DashboardController {
    * Returns top cinemas by revenue with cinema metadata
    */
   @Get('top-cinemas')
-  @Permission('admin:access')
+  @Permission({ resource: 'dashboard', action: 'read', scope: 'global' })
   async getTopCinemas(
     @Req() req: any,
     @Query('limit') limit?: string,
@@ -116,7 +120,7 @@ export class DashboardController {
    */
   @Get('recent-bookings')
   @Get('recent-bookings')
-  @Permission('admin:access')
+  @Permission({ resource: 'dashboard', action: 'read', scope: 'global' })
   async getRecentBookings(
     @Req() req: any,
     @Query('limit') limit?: string,
@@ -137,7 +141,7 @@ export class DashboardController {
    * Returns latest reviews with movie titles
    */
   @Get('recent-reviews')
-  @Permission('admin:access')
+  @Permission({ resource: 'dashboard', action: 'read', scope: 'global' })
   async getRecentReviews(@Query('limit') limit?: string) {
     const parsedLimit = limit ? parseInt(limit, 10) : 10;
     return { data: await this.dashboardService.getRecentReviews(parsedLimit) };
@@ -149,7 +153,7 @@ export class DashboardController {
    */
   @Get('occupancy')
   @Get('occupancy')
-  @Permission('admin:access')
+  @Permission({ resource: 'dashboard', action: 'read', scope: 'global' })
   async getOccupancy(
     @Req() req: any,
     @Query('date') date?: string,

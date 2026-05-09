@@ -30,7 +30,7 @@ export class ReviewController {
 
   @Delete(':id')
   @UseGuards(ClerkAuthGuard)
-  @Permission('movie:write')
+  @Permission({ resource: 'movie', action: 'update', scope: 'cinema' })
   async remove(@Req() req: any, @Param('id') id: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -39,3 +39,5 @@ export class ReviewController {
     return this.reviewService.remove(id);
   }
 }
+
+

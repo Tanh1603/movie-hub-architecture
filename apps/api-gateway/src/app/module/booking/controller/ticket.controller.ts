@@ -12,8 +12,11 @@ import {
 } from '@nestjs/common';
 import { TicketService } from '../service/ticket.service';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
+import { RoleGuard } from '../../../common/guard/role.guard';
 import { CurrentUserId } from '../../../common/decorator/current-user-id.decorator';
 import { Permission } from '../../../common/decorator/permission.decorator';
+import { Roles } from '../../../common/decorator/roles.decorator';
+import { AppRole } from '@movie-hub/shared-types';
 import { AdminFindAllTicketsDto, BulkValidateTicketsDto } from '@movie-hub/shared-types';
 
 @Controller({
@@ -28,8 +31,9 @@ export class TicketController {
    * Authenticated endpoint
    */
   @Get(':id')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
+  @Permission({ resource: 'ticket', action: 'read', scope: 'own' })
   async getTicket(@CurrentUserId() userId: string, @Param('id') id: string) {
     return this.ticketService.findOne(id);
   }
@@ -39,8 +43,9 @@ export class TicketController {
    * Authenticated endpoint
    */
   @Get('code/:ticketCode')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
+  @Permission({ resource: 'ticket', action: 'read', scope: 'own' })
   async getTicketByCode(
     @CurrentUserId() userId: string,
     @Param('ticketCode') ticketCode: string
@@ -53,8 +58,9 @@ export class TicketController {
    * This endpoint checks if a ticket is valid for entry
    */
   @Post(':id/validate')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.STAFF)
+  @Permission({ resource: 'ticket', action: 'validate', scope: 'cinema' })
   @HttpCode(HttpStatus.OK)
   async validateTicket(
     @CurrentUserId() userId: string,
@@ -74,8 +80,9 @@ export class TicketController {
    * This is called after successful entry scan
    */
   @Post(':id/use')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.STAFF)
+  @Permission({ resource: 'ticket', action: 'update', scope: 'cinema' })
   @HttpCode(HttpStatus.OK)
   async useTicket(@CurrentUserId() userId: string, @Param('id') ticketId: string) {
     return this.ticketService.useTicket(ticketId);
@@ -86,8 +93,9 @@ export class TicketController {
    * Returns base64 encoded QR code image
    */
   @Get(':id/qr')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
+  @Permission({ resource: 'ticket', action: 'read', scope: 'own' })
   async generateQRCode(
     @CurrentUserId() userId: string,
     @Param('id') ticketId: string
@@ -99,37 +107,42 @@ export class TicketController {
   // ==================== ADMIN ENDPOINTS ====================
 
   @Get('admin/all')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.STAFF)
+  @Permission({ resource: 'ticket', action: 'read', scope: 'cinema' })
   async adminFindAll(@Query() filters: AdminFindAllTicketsDto) {
     return this.ticketService.adminFindAll(filters);
   }
 
   @Get('admin/showtime/:showtimeId')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.STAFF)
+  @Permission({ resource: 'ticket', action: 'read', scope: 'cinema' })
   async findByShowtime(@Param('showtimeId') showtimeId: string) {
     return this.ticketService.findByShowtime(showtimeId);
   }
 
   @Get('admin/booking/:bookingId')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:read')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.STAFF)
+  @Permission({ resource: 'ticket', action: 'read', scope: 'cinema' })
   async findByBooking(@Param('bookingId') bookingId: string) {
     return this.ticketService.findByBooking(bookingId);
   }
 
   @Post('admin/bulk-validate')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.STAFF)
+  @Permission({ resource: 'ticket', action: 'validate', scope: 'cinema' })
   @HttpCode(HttpStatus.OK)
   async bulkValidate(@Body() bulkValidateDto: BulkValidateTicketsDto) {
     return this.ticketService.bulkValidate(bulkValidateDto);
   }
 
   @Put('admin/:id/cancel')
-  @UseGuards(ClerkAuthGuard)
-  @Permission('booking:write')
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'ticket', action: 'update', scope: 'cinema' })
   async cancelTicket(
     @Param('id') ticketId: string,
     @Body('reason') reason?: string
@@ -137,3 +150,4 @@ export class TicketController {
     return this.ticketService.cancelTicket(ticketId, reason);
   }
 }
+
