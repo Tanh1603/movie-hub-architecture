@@ -13,3 +13,4 @@ export type PermissionRequirement = {
   scope?: PermissionScope;
 };
 
+export * from './admin';

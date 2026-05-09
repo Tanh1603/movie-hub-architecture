@@ -3,10 +3,19 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { UserService } from './user.service';
 import { Prisma } from '../../../generated/prisma';
+import { RbacService } from './rbac.service';
+import {
+  AssignUserRoleRequest,
+  RemoveUserRoleRequest,
+  UpsertRolePermissionsRequest,
+} from '@movie-hub/shared-types';
 
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly rbacService: RbacService
+  ) {}
 
   @MessagePattern(UserMessage.GET_PERMISSIONS)
   async getPermissions(data: { userId: string }) {
@@ -39,4 +48,30 @@ export class UserController {
   ) {
     return this.userService.updateSettingVariable(data);
   }
+
+  @MessagePattern(UserMessage.RBAC.LIST_ROLES)
+  async listRoles() {
+    return this.rbacService.listRoles();
+  }
+
+  @MessagePattern(UserMessage.RBAC.LIST_PERMISSIONS)
+  async listPermissions() {
+    return this.rbacService.listPermissions();
+  }
+
+  @MessagePattern(UserMessage.RBAC.UPSERT_ROLE_PERMISSIONS)
+  async upsertRolePermissions(@Payload() data: UpsertRolePermissionsRequest) {
+    return this.rbacService.upsertRolePermissions(data);
+  }
+
+  @MessagePattern(UserMessage.RBAC.ASSIGN_USER_ROLE)
+  async assignUserRole(@Payload() data: AssignUserRoleRequest) {
+    return this.rbacService.assignUserRole(data);
+  }
+
+  @MessagePattern(UserMessage.RBAC.REMOVE_USER_ROLE)
+  async removeUserRole(@Payload() data: RemoveUserRoleRequest) {
+    return this.rbacService.removeUserRole(data);
+  }
+
 }

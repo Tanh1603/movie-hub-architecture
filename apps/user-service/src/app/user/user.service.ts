@@ -49,6 +49,10 @@ export class UserService {
     return permissions;
   }
 
+  async invalidatePermissionsCache(userId: string): Promise<void> {
+    await this.cacheManager.del(`permissions:${userId}`);
+  }
+
   async getUser() {
     return clerkClient.users.getUserList();
   }

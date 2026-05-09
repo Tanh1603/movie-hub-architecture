@@ -14,6 +14,13 @@ export const UserMessage = {
     GET_LIST: 'config.list',
     UPDATED: 'config.updated',
   },
+  RBAC: {
+    LIST_ROLES: 'rbac.roles.list',
+    LIST_PERMISSIONS: 'rbac.permissions.list',
+    UPSERT_ROLE_PERMISSIONS: 'rbac.rolePermissions.upsert',
+    ASSIGN_USER_ROLE: 'rbac.userRole.assign',
+    REMOVE_USER_ROLE: 'rbac.userRole.remove',
+  },
 };
 
 export const MovieServiceMessage = {

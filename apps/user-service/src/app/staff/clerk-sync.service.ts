@@ -1,12 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { clerkClient } from '@clerk/clerk-sdk-node';
 import {
   ClerkSyncAction,
   ClerkSyncStatus,
   Prisma,
+  StaffPosition,
 } from '../../../generated/prisma';
 import { PrismaService } from '../prisma.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 type UpsertPayload = {
   email: string;
@@ -24,7 +27,10 @@ type DeletePayload = {
 export class ClerkSyncService {
   private readonly logger = new Logger(ClerkSyncService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache
+  ) {}
 
   async enqueueUpsert(payload: UpsertPayload, tx?: Prisma.TransactionClient) {
     const client = tx ?? this.prisma;
@@ -130,21 +136,26 @@ export class ClerkSyncService {
       staffStatus: payload.status,
     };
 
+    let userId: string;
     if (userList.data.length === 0) {
       const [firstName, ...lastNameParts] = payload.fullName.split(' ');
-      await clerkClient.users.createUser({
+      const created = await clerkClient.users.createUser({
         emailAddress: [payload.email],
         firstName,
         lastName: lastNameParts.join(' '),
         skipPasswordChecks: true,
         publicMetadata: metadata,
       });
-      return;
+      userId = created.id;
+    } else {
+      const currentUser = userList.data[0];
+      await clerkClient.users.updateUser(currentUser.id, {
+        publicMetadata: metadata,
+      });
+      userId = currentUser.id;
     }
 
-    await clerkClient.users.updateUser(userList.data[0].id, {
-      publicMetadata: metadata,
-    });
+    await this.syncPositionRole(userId, payload.position);
   }
 
   private async syncDelete(payload: DeletePayload) {
@@ -175,5 +186,51 @@ export class ClerkSyncService {
     }
 
     return 'Unknown Clerk sync error';
+  }
+
+  private async syncPositionRole(userId: string, positionRaw: string): Promise<void> {
+    const position = positionRaw as StaffPosition;
+    const roleName = position;
+
+    await this.prisma.$transaction(async (tx) => {
+      const role = await tx.role.upsert({
+        where: { name: roleName },
+        update: {},
+        create: { name: roleName },
+      });
+
+      const positionRoleNames = Object.values(StaffPosition);
+      const stale = await tx.userRole.findMany({
+        where: {
+          userId,
+          role: {
+            name: { in: positionRoleNames.filter((name) => name !== roleName) },
+          },
+        },
+        select: { id: true },
+      });
+
+      if (stale.length > 0) {
+        await tx.userRole.deleteMany({
+          where: { id: { in: stale.map((item) => item.id) } },
+        });
+      }
+
+      const assigned = await tx.userRole.findFirst({
+        where: { userId, roleId: role.id },
+        select: { id: true },
+      });
+
+      if (!assigned) {
+        await tx.userRole.create({
+          data: {
+            userId,
+            roleId: role.id,
+          },
+        });
+      }
+    });
+
+    await this.cacheManager.del(`permissions:${userId}`);
   }
 }

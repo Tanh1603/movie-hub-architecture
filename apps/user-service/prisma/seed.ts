@@ -58,6 +58,8 @@ const permissions: PermissionSeed[] = [
   { name: 'showtime:read:cinema', resourceCode: 'showtime', action: PermissionAction.READ, scope: PermissionScope.CINEMA },
   { name: 'showtime:update:cinema', resourceCode: 'showtime', action: PermissionAction.UPDATE, scope: PermissionScope.CINEMA },
   { name: 'dashboard:read:global', resourceCode: 'dashboard', action: PermissionAction.READ, scope: PermissionScope.GLOBAL },
+  { name: 'rbac:read:global', resourceCode: 'rbac', action: PermissionAction.READ, scope: PermissionScope.GLOBAL },
+  { name: 'rbac:update:global', resourceCode: 'rbac', action: PermissionAction.UPDATE, scope: PermissionScope.GLOBAL },
 ];
 
 const rolePermissionMatrix: Record<string, string[]> = {
@@ -100,6 +102,47 @@ const rolePermissionMatrix: Record<string, string[]> = {
     'ticket:read:own',
     'refund:create:own',
   ],
+  SUPER_ADMIN: permissions.map((permission) => permission.name),
+  CINEMA_MANAGER: [
+    'user:read:global',
+    'booking:read:cinema',
+    'booking:update:cinema',
+    'movie:update:cinema',
+    'cinema:read:cinema',
+    'cinema:update:cinema',
+    'payment:read:cinema',
+    'payment:update:cinema',
+    'ticket:read:cinema',
+    'ticket:validate:cinema',
+    'ticket:update:cinema',
+    'refund:read:cinema',
+    'refund:update:cinema',
+    'showtime:read:cinema',
+    'showtime:update:cinema',
+  ],
+  ASSISTANT_MANAGER: [
+    'booking:read:cinema',
+    'booking:update:cinema',
+    'payment:read:cinema',
+    'ticket:read:cinema',
+    'ticket:validate:cinema',
+    'ticket:update:cinema',
+    'refund:read:cinema',
+    'showtime:read:cinema',
+    'showtime:update:cinema',
+  ],
+  TICKET_CLERK: [
+    'booking:read:cinema',
+    'payment:read:cinema',
+    'ticket:read:cinema',
+    'ticket:validate:cinema',
+    'ticket:update:cinema',
+  ],
+  CONCESSION_STAFF: ['booking:read:cinema', 'booking:update:cinema'],
+  USHER: ['ticket:read:cinema', 'ticket:validate:cinema'],
+  PROJECTIONIST: ['showtime:read:cinema', 'showtime:update:cinema'],
+  CLEANER: [],
+  SECURITY: ['ticket:read:cinema', 'ticket:validate:cinema'],
 };
 
 async function main() {
@@ -143,6 +186,15 @@ async function main() {
     cinema_manager: await prisma.role.create({ data: { name: 'cinema_manager' } }),
     staff: await prisma.role.create({ data: { name: 'staff' } }),
     customer: await prisma.role.create({ data: { name: 'customer' } }),
+    SUPER_ADMIN: await prisma.role.create({ data: { name: 'SUPER_ADMIN' } }),
+    CINEMA_MANAGER: await prisma.role.create({ data: { name: 'CINEMA_MANAGER' } }),
+    ASSISTANT_MANAGER: await prisma.role.create({ data: { name: 'ASSISTANT_MANAGER' } }),
+    TICKET_CLERK: await prisma.role.create({ data: { name: 'TICKET_CLERK' } }),
+    CONCESSION_STAFF: await prisma.role.create({ data: { name: 'CONCESSION_STAFF' } }),
+    USHER: await prisma.role.create({ data: { name: 'USHER' } }),
+    PROJECTIONIST: await prisma.role.create({ data: { name: 'PROJECTIONIST' } }),
+    CLEANER: await prisma.role.create({ data: { name: 'CLEANER' } }),
+    SECURITY: await prisma.role.create({ data: { name: 'SECURITY' } }),
   };
 
   for (const [roleName, permissionNames] of Object.entries(rolePermissionMatrix)) {

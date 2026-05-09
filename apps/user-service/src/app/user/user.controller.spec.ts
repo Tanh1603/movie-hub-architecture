@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
+import { RbacService } from './rbac.service';
 
 describe('UserController', () => {
   let controller: UserController;
   let mockUserService: jest.Mocked<UserService>;
+  let mockRbacService: jest.Mocked<RbacService>;
 
   beforeEach(async () => {
     // Create mocked service
@@ -12,10 +14,21 @@ describe('UserController', () => {
       getPermissions: jest.fn(),
       getUser: jest.fn(),
     } as unknown as jest.Mocked<UserService>;
+    mockRbacService = {
+      listRoles: jest.fn(),
+      listPermissions: jest.fn(),
+      upsertRolePermissions: jest.fn(),
+      assignUserRole: jest.fn(),
+      removeUserRole: jest.fn(),
+      getEffectivePermissions: jest.fn(),
+    } as unknown as jest.Mocked<RbacService>;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UserController],
-      providers: [{ provide: UserService, useValue: mockUserService }],
+      providers: [
+        { provide: UserService, useValue: mockUserService },
+        { provide: RbacService, useValue: mockRbacService },
+      ],
     }).compile();
 
     controller = module.get<UserController>(UserController);
