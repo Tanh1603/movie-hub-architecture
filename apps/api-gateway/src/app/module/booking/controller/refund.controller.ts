@@ -40,7 +40,7 @@ export class RefundController {
 
   @Get()
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.STAFF)
+  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
   @Permission({ resource: 'refund', action: 'read', scope: 'cinema' })
   async findAll(@Query() filters: FindAllRefundsDto) {
     return this.refundService.findAll(filters);
@@ -48,7 +48,7 @@ export class RefundController {
 
   @Get(':id')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.STAFF)
+  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
   @Permission({ resource: 'refund', action: 'read', scope: 'cinema' })
   async findOne(@Param('id') id: string) {
     return this.refundService.findOne(id);
@@ -56,7 +56,7 @@ export class RefundController {
 
   @Get('payment/:paymentId')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.STAFF)
+  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
   @Permission({ resource: 'refund', action: 'read', scope: 'cinema' })
   async findByPayment(@Param('paymentId') paymentId: string) {
     return this.refundService.findByPayment(paymentId);
@@ -115,4 +115,6 @@ export class RefundController {
     );
   }
 }
+
+
 

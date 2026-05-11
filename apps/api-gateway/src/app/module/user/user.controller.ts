@@ -4,7 +4,10 @@ import { ClerkAuthGuard } from '../../common/guard/clerk-auth.guard';
 import { Permission } from '../../common/decorator/permission.decorator';
 import {
   AssignUserRoleRequest,
+  PermissionAction,
   RemoveUserRoleRequest,
+  PermissionResource,
+  PermissionScope,
   UpsertRolePermissionsRequest,
 } from '@movie-hub/shared-types';
 
@@ -14,14 +17,22 @@ export class UserController {
 
   @Get()
   @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'user', action: 'read', scope: 'global' })
+  @Permission({
+    resource: PermissionResource.USER,
+    action: PermissionAction.READ,
+    scope: PermissionScope.GLOBAL,
+  })
   getUser() {
     return this.userService.getUsers();
   }
 
   @Get('me')
   @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'user', action: 'read', scope: 'global' })
+  @Permission({
+    resource: PermissionResource.USER,
+    action: PermissionAction.READ,
+    scope: PermissionScope.GLOBAL,
+  })
   getMe(@Req() req: any) {
     return {
       userId: req.userId,
@@ -31,21 +42,33 @@ export class UserController {
 
   @Get('rbac/roles')
   @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'rbac', action: 'read', scope: 'global' })
+  @Permission({
+    resource: PermissionResource.RBAC,
+    action: PermissionAction.READ,
+    scope: PermissionScope.GLOBAL,
+  })
   listRoles() {
     return this.userService.listRoles();
   }
 
   @Get('rbac/permissions')
   @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'rbac', action: 'read', scope: 'global' })
+  @Permission({
+    resource: PermissionResource.RBAC,
+    action: PermissionAction.READ,
+    scope: PermissionScope.GLOBAL,
+  })
   listPermissions() {
     return this.userService.listPermissions();
   }
 
   @Put('rbac/roles/:role/permissions')
   @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'rbac', action: 'update', scope: 'global' })
+  @Permission({
+    resource: PermissionResource.RBAC,
+    action: PermissionAction.UPDATE,
+    scope: PermissionScope.GLOBAL,
+  })
   upsertRolePermissions(
     @Param('role') role: string,
     @Body() body: { permissions: string[] }
@@ -59,7 +82,11 @@ export class UserController {
 
   @Post('rbac/users/:userId/roles/:role')
   @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'rbac', action: 'update', scope: 'global' })
+  @Permission({
+    resource: PermissionResource.RBAC,
+    action: PermissionAction.UPDATE,
+    scope: PermissionScope.GLOBAL,
+  })
   assignUserRole(@Param('userId') userId: string, @Param('role') role: string) {
     const payload: AssignUserRoleRequest = { userId, role };
     return this.userService.assignUserRole(payload);
@@ -67,7 +94,11 @@ export class UserController {
 
   @Delete('rbac/users/:userId/roles/:role')
   @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'rbac', action: 'update', scope: 'global' })
+  @Permission({
+    resource: PermissionResource.RBAC,
+    action: PermissionAction.UPDATE,
+    scope: PermissionScope.GLOBAL,
+  })
   removeUserRole(@Param('userId') userId: string, @Param('role') role: string) {
     const payload: RemoveUserRoleRequest = { userId, role };
     return this.userService.removeUserRole(payload);
@@ -75,14 +106,22 @@ export class UserController {
 
   @Get('rbac/users/:userId/permissions')
   @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'rbac', action: 'read', scope: 'global' })
+  @Permission({
+    resource: PermissionResource.RBAC,
+    action: PermissionAction.READ,
+    scope: PermissionScope.GLOBAL,
+  })
   getUserEffectivePermissions(@Param('userId') userId: string) {
     return this.userService.getUserEffectivePermissions(userId);
   }
 
   @Post('rbac/bootstrap-super-admin')
   @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'rbac', action: 'update', scope: 'global' })
+  @Permission({
+    resource: PermissionResource.RBAC,
+    action: PermissionAction.UPDATE,
+    scope: PermissionScope.GLOBAL,
+  })
   bootstrapSuperAdmin(@Req() req: any) {
     return this.userService.bootstrapSuperAdmin(req?.correlationId);
   }

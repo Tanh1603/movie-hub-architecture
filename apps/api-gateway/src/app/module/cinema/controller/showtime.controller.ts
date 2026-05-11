@@ -80,7 +80,7 @@ export class ShowtimeController {
 
   @Post('showtime')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.STAFF)
+  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
   @Permission({ resource: 'showtime', action: 'update', scope: 'cinema' })
   @UsePipes(new ZodValidationPipe(createShowtimeSchema))
   createShowtime(@Req() req: any, @Body() body: CreateShowtimeRequest) {
@@ -95,7 +95,7 @@ export class ShowtimeController {
 
   @Post('/batch')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.STAFF)
+  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
   @Permission({ resource: 'showtime', action: 'update', scope: 'cinema' })
   @UsePipes(new ZodValidationPipe(batchCreateShowtimesSchema))
   createBatchShowtimes(
@@ -113,7 +113,7 @@ export class ShowtimeController {
 
   @Patch('/showtime/:id')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.STAFF)
+  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
   @Permission({ resource: 'showtime', action: 'update', scope: 'cinema' })
   async updateShowtime(
     @Req() req: any,
@@ -135,7 +135,7 @@ export class ShowtimeController {
 
   @Delete('/showtime/:id')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.STAFF)
+  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
   @Permission({ resource: 'showtime', action: 'update', scope: 'cinema' })
   async deleteShowtime(@Req() req: any, @Param('id') showtimeId: string) {
     const userCinemaId = req.staffContext?.cinemaId;
@@ -151,4 +151,6 @@ export class ShowtimeController {
     return this.showtimeService.deleteShowtime(showtimeId);
   }
 }
+
+
 

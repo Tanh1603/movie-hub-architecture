@@ -1,16 +1,16 @@
 export enum AppRole {
-  CUSTOMER = 'CUSTOMER',
-  STAFF = 'STAFF',
-  CINEMA_MANAGER = 'CINEMA_MANAGER',
+  SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN = 'ADMIN',
+  CINEMA_MANAGER = 'CINEMA_MANAGER',
+  ASSISTANT_MANAGER = 'ASSISTANT_MANAGER',
+  TICKET_CLERK = 'TICKET_CLERK',
+  CONCESSION_STAFF = 'CONCESSION_STAFF',
+  USHER = 'USHER',
+  PROJECTIONIST = 'PROJECTIONIST',
+  CLEANER = 'CLEANER',
+  SECURITY = 'SECURITY',
+  CUSTOMER = 'CUSTOMER',
 }
 
-export type PermissionScope = 'own' | 'cinema' | 'global';
-
-export type PermissionRequirement = {
-  resource: string;
-  action: string;
-  scope?: PermissionScope;
-};
-
 export * from './admin';
+export * from './permission.constants';

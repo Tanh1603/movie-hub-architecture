@@ -29,6 +29,7 @@ const resources = [
   { code: 'movie', description: 'Movie management resources' },
   { code: 'dashboard', description: 'Dashboard and reporting resources' },
   { code: 'rbac', description: 'RBAC administration resources' },
+  { code: 'config', description: 'System configuration resources' },
   { code: 'admin', description: 'Global administrative resources' },
 ];
 
@@ -60,6 +61,8 @@ const permissions: PermissionSeed[] = [
   { name: 'dashboard:read:global', resourceCode: 'dashboard', action: PermissionAction.READ, scope: PermissionScope.GLOBAL },
   { name: 'rbac:read:global', resourceCode: 'rbac', action: PermissionAction.READ, scope: PermissionScope.GLOBAL },
   { name: 'rbac:update:global', resourceCode: 'rbac', action: PermissionAction.UPDATE, scope: PermissionScope.GLOBAL },
+  { name: 'config:read:global', resourceCode: 'config', action: PermissionAction.READ, scope: PermissionScope.GLOBAL },
+  { name: 'config:update:global', resourceCode: 'config', action: PermissionAction.UPDATE, scope: PermissionScope.GLOBAL },
 ];
 
 const rolePermissionMatrix: Record<string, string[]> = {

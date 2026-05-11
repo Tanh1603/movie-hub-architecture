@@ -30,9 +30,9 @@ describe('RoleGuard', () => {
     expect(allowed).toBe(true);
   });
 
-  it('rejects customer role for staff endpoint', () => {
+  it('rejects customer role for operational endpoint', () => {
     const reflector = {
-      getAllAndOverride: jest.fn().mockReturnValueOnce([AppRole.STAFF]),
+      getAllAndOverride: jest.fn().mockReturnValueOnce([AppRole.TICKET_CLERK]),
     } as unknown as Reflector;
 
     const guard = new RoleGuard(reflector);

@@ -13,6 +13,19 @@ import { Request } from 'express';
 @Injectable()
 export class RoleGuard implements CanActivate {
   private readonly logger = new Logger(RoleGuard.name);
+  private static readonly KNOWN_ROLES = new Set<string>([
+    AppRole.SUPER_ADMIN,
+    AppRole.ADMIN,
+    AppRole.CINEMA_MANAGER,
+    AppRole.ASSISTANT_MANAGER,
+    AppRole.TICKET_CLERK,
+    AppRole.CONCESSION_STAFF,
+    AppRole.USHER,
+    AppRole.PROJECTIONIST,
+    AppRole.CLEANER,
+    AppRole.SECURITY,
+    AppRole.CUSTOMER,
+  ]);
 
   constructor(private readonly reflector: Reflector) {}
 
@@ -42,7 +55,7 @@ export class RoleGuard implements CanActivate {
     }
 
     const hasRole = requiredRoles.some((role) =>
-      this.hasRoleByHierarchy(userRole, role)
+      this.hasRoleByPolicy(userRole, role)
     );
 
     if (!hasRole) {
@@ -59,11 +72,19 @@ export class RoleGuard implements CanActivate {
   }
 
   private normalizeRole(rawRole: unknown): AppRole | null {
+    if (typeof rawRole !== 'string' || rawRole.length === 0) {
+      return null;
+    }
+
+    if (!RoleGuard.KNOWN_ROLES.has(rawRole)) {
+      return null;
+    }
+
     if (rawRole === AppRole.CUSTOMER) {
       return AppRole.CUSTOMER;
     }
 
-    if (rawRole === AppRole.ADMIN || rawRole === 'SUPER_ADMIN') {
+    if (rawRole === AppRole.ADMIN || rawRole === AppRole.SUPER_ADMIN) {
       return AppRole.ADMIN;
     }
 
@@ -71,21 +92,43 @@ export class RoleGuard implements CanActivate {
       return AppRole.CINEMA_MANAGER;
     }
 
-    if (typeof rawRole === 'string' && rawRole.length > 0) {
-      return AppRole.STAFF;
-    }
-
-    return null;
+    return rawRole as AppRole;
   }
 
-  private hasRoleByHierarchy(actual: AppRole, required: AppRole): boolean {
-    const rank = {
-      [AppRole.CUSTOMER]: 1,
-      [AppRole.STAFF]: 2,
-      [AppRole.CINEMA_MANAGER]: 3,
-      [AppRole.ADMIN]: 4,
-    };
+  private hasRoleByPolicy(actual: AppRole, required: AppRole): boolean {
+    if (actual === required) {
+      return true;
+    }
 
-    return rank[actual] >= rank[required];
+    if (actual === AppRole.ADMIN) {
+      return true;
+    }
+
+    // Cinema manager has full authority within cinema operational roles.
+    if (actual === AppRole.CINEMA_MANAGER) {
+      return (
+        required === AppRole.ASSISTANT_MANAGER ||
+        required === AppRole.TICKET_CLERK ||
+        required === AppRole.CONCESSION_STAFF ||
+        required === AppRole.USHER ||
+        required === AppRole.PROJECTIONIST ||
+        required === AppRole.CLEANER ||
+        required === AppRole.SECURITY
+      );
+    }
+
+    // Assistant manager can act on front-line operational roles.
+    if (actual === AppRole.ASSISTANT_MANAGER) {
+      return (
+        required === AppRole.TICKET_CLERK ||
+        required === AppRole.CONCESSION_STAFF ||
+        required === AppRole.USHER ||
+        required === AppRole.PROJECTIONIST ||
+        required === AppRole.CLEANER ||
+        required === AppRole.SECURITY
+      );
+    }
+
+    return false;
   }
 }

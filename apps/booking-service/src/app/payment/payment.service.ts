@@ -531,12 +531,26 @@ export class PaymentService {
     }
   }
 
-  async findOne(id: string): Promise<ServiceResult<PaymentDetailDto>> {
+  async findOne(
+    id: string,
+    userId?: string
+  ): Promise<ServiceResult<PaymentDetailDto>> {
     const payment = await this.prisma.payments.findUnique({
       where: { id },
+      include: {
+        booking: {
+          select: {
+            user_id: true,
+          },
+        },
+      },
     });
 
     if (!payment) {
+      throw new Error('Payment not found');
+    }
+
+    if (userId && payment.booking.user_id !== userId) {
       throw new Error('Payment not found');
     }
 

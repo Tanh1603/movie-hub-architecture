@@ -29,10 +29,10 @@ export class PaymentService {
     }
   }
 
-  async getPayment(id: string) {
+  async getPayment(id: string, userId?: string) {
     try {
       return await firstValueFrom(
-        this.bookingClient.send(PaymentMessage.FIND_ONE, { id })
+        this.bookingClient.send(PaymentMessage.FIND_ONE, { id, userId })
       );
     } catch (error) {
       throw new RpcException(error);

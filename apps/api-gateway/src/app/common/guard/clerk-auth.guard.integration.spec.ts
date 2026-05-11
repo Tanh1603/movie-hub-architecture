@@ -4,7 +4,7 @@ import { ClerkAuthGuard } from './clerk-auth.guard';
 import { TokenValidationService } from '../auth/token-validation.service';
 import { BruteForceProtectionService } from '../auth/brute-force-protection.service';
 import { UserMessage } from '@movie-hub/shared-types';
-import { UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 
 type RedisValue = {
   value: string;
@@ -105,7 +105,7 @@ describe('ClerkAuthGuard integration scenarios', () => {
     jest.setSystemTime(new Date('2026-05-09T10:00:00.000Z'));
 
     reflector = {
-      get: jest.fn().mockReturnValue(undefined),
+      getAllAndOverride: jest.fn().mockReturnValue(undefined),
     } as unknown as Reflector;
 
     tokenValidationService = {
@@ -121,6 +121,9 @@ describe('ClerkAuthGuard integration scenarios', () => {
       send: jest.fn((pattern: string) => {
         if (pattern === UserMessage.GET_USER_DETAIL) {
           return of({ email: 'customer@example.com' });
+        }
+        if (pattern === UserMessage.GET_USER_ROLES) {
+          return of(['CUSTOMER']);
         }
         if (pattern === UserMessage.STAFF.FIND_BY_EMAIL) {
           return throwError(() => new Error('not staff'));
@@ -148,6 +151,7 @@ describe('ClerkAuthGuard integration scenarios', () => {
         getRequest: () => request,
       }),
       getHandler: () => ({}),
+      getClass: () => ({}),
     };
   }
 
@@ -263,5 +267,122 @@ describe('ClerkAuthGuard integration scenarios', () => {
     expect(allowed).toBe(true);
     expect(requestAfterUnlock.headers['x-user-id']).toBe('user_123');
     expect(requestAfterUnlock.headers['x-user-role']).toBe('CUSTOMER');
+  });
+
+  it('prefers RBAC role over staff position when both are present', async () => {
+    tokenValidationService.validateTokenOrThrow.mockResolvedValueOnce({
+      sub: 'user_123',
+      iss: 'https://example.clerk.accounts.dev',
+    } as any);
+
+    userClient.send.mockImplementation((pattern: string) => {
+      if (pattern === UserMessage.GET_USER_ROLES) {
+        return of(['SUPER_ADMIN']);
+      }
+      if (pattern === UserMessage.GET_USER_DETAIL) {
+        return of({ email: 'admin@example.com' });
+      }
+      if (pattern === UserMessage.STAFF.FIND_BY_EMAIL) {
+        return of({
+          data: {
+            id: 'staff_1',
+            cinemaId: 'cinema_1',
+            position: 'TICKET_CLERK',
+          },
+        });
+      }
+      return of([]);
+    });
+
+    const request: any = {
+      headers: { authorization: 'Bearer valid-token' },
+      cookies: {},
+      ip: '10.0.0.6',
+    };
+
+    const allowed = await guard.canActivate(executionContextForRequest(request));
+    expect(allowed).toBe(true);
+    expect(request.headers['x-user-role']).toBe('SUPER_ADMIN');
+    expect(request.headers['x-cinema-id']).toBe('cinema_1');
+    expect(request.staffContext).toEqual({
+      staffId: 'staff_1',
+      cinemaId: 'cinema_1',
+      role: 'TICKET_CLERK',
+    });
+  });
+
+  it('enforces permission metadata from reflector and allows matching permission', async () => {
+    (reflector.getAllAndOverride as jest.Mock).mockReturnValueOnce({
+      resource: 'config',
+      action: 'read',
+      scope: 'global',
+    });
+    tokenValidationService.validateTokenOrThrow.mockResolvedValueOnce({
+      sub: 'user_123',
+      iss: 'https://example.clerk.accounts.dev',
+    } as any);
+
+    userClient.send.mockImplementation((pattern: string) => {
+      if (pattern === UserMessage.GET_USER_ROLES) {
+        return of(['SUPER_ADMIN']);
+      }
+      if (pattern === UserMessage.GET_USER_DETAIL) {
+        return of({ email: 'admin@example.com' });
+      }
+      if (pattern === UserMessage.STAFF.FIND_BY_EMAIL) {
+        return throwError(() => new Error('not staff'));
+      }
+      if (pattern === UserMessage.GET_PERMISSIONS) {
+        return of(['config:read:global']);
+      }
+      return of([]);
+    });
+
+    const request: any = {
+      headers: { authorization: 'Bearer valid-token' },
+      cookies: {},
+      ip: '10.0.0.7',
+    };
+
+    const allowed = await guard.canActivate(executionContextForRequest(request));
+    expect(allowed).toBe(true);
+  });
+
+  it('rejects when required permission is missing', async () => {
+    (reflector.getAllAndOverride as jest.Mock).mockReturnValueOnce({
+      resource: 'config',
+      action: 'update',
+      scope: 'global',
+    });
+    tokenValidationService.validateTokenOrThrow.mockResolvedValueOnce({
+      sub: 'user_123',
+      iss: 'https://example.clerk.accounts.dev',
+    } as any);
+
+    userClient.send.mockImplementation((pattern: string) => {
+      if (pattern === UserMessage.GET_USER_ROLES) {
+        return of(['CUSTOMER']);
+      }
+      if (pattern === UserMessage.GET_USER_DETAIL) {
+        return of({ email: 'customer@example.com' });
+      }
+      if (pattern === UserMessage.STAFF.FIND_BY_EMAIL) {
+        return throwError(() => new Error('not staff'));
+      }
+      if (pattern === UserMessage.GET_PERMISSIONS) {
+        return of(['config:read:global']);
+      }
+      return of([]);
+    });
+
+    const request: any = {
+      headers: { authorization: 'Bearer valid-token' },
+      cookies: {},
+      ip: '10.0.0.8',
+    };
+
+    await expect(
+      guard.canActivate(executionContextForRequest(request))
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 });

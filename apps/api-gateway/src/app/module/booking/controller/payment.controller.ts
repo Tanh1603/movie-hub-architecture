@@ -65,7 +65,7 @@ export class PaymentController {
 
   @Get('admin/all')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.STAFF)
+  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
   @Permission({ resource: 'payment', action: 'read', scope: 'cinema' })
   async adminFindAll(@Query() filters: AdminFindAllPaymentsDto) {
     return this.paymentService.adminFindAll(filters);
@@ -73,7 +73,7 @@ export class PaymentController {
 
   @Get('admin/status/:status')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.STAFF)
+  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
   @Permission({ resource: 'payment', action: 'read', scope: 'cinema' })
   async findByStatus(
     @Param('status') status: PaymentStatus,
@@ -160,7 +160,9 @@ export class PaymentController {
   @UseGuards(ClerkAuthGuard)
   @Permission({ resource: 'payment', action: 'read', scope: 'own' })
   async getPayment(@CurrentUserId() userId: string, @Param('id') id: string) {
-    return this.paymentService.getPayment(id);
+    return this.paymentService.getPayment(id, userId);
   }
 }
+
+
 

@@ -30,8 +30,8 @@ export class PaymentController {
   }
 
   @MessagePattern('payment.findOne')
-  async findOne(@Payload() payload: { id: string }) {
-    return this.paymentService.findOne(payload.id);
+  async findOne(@Payload() payload: { id: string; userId?: string }) {
+    return this.paymentService.findOne(payload.id, payload.userId);
   }
 
   @MessagePattern('payment.findByBooking')

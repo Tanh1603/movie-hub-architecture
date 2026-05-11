@@ -22,6 +22,11 @@ export class UserController {
     return this.userService.getPermissions(data.userId);
   }
 
+  @MessagePattern(UserMessage.GET_USER_ROLES)
+  async getUserRoles(data: { userId: string }) {
+    return this.userService.getUserRoles(data.userId);
+  }
+
   @MessagePattern(UserMessage.GET_USERS)
   getUser() {
     return this.userService.getUser();

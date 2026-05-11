@@ -1,5 +1,6 @@
 export const UserMessage = {
   GET_PERMISSIONS: 'user.getPermissions',
+  GET_USER_ROLES: 'user.getRoles',
   GET_USERS: 'user.getAll',
   GET_USER_DETAIL: 'user.getDetail',
   AUTH: {

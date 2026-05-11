@@ -6,6 +6,7 @@ import {
   PERMISSION_KEY,
 } from '../decorator/permission.decorator';
 import {
+  AppRole,
   PermissionRequirement,
   SERVICE_NAME,
   UserMessage,
@@ -18,6 +19,19 @@ import { Request } from 'express';
 @Injectable()
 export class ClerkAuthGuard implements CanActivate {
   private readonly logger = new Logger(ClerkAuthGuard.name);
+  private static readonly ROLE_PRECEDENCE: AppRole[] = [
+    AppRole.SUPER_ADMIN,
+    AppRole.ADMIN,
+    AppRole.CINEMA_MANAGER,
+    AppRole.ASSISTANT_MANAGER,
+    AppRole.TICKET_CLERK,
+    AppRole.CONCESSION_STAFF,
+    AppRole.USHER,
+    AppRole.PROJECTIONIST,
+    AppRole.CLEANER,
+    AppRole.SECURITY,
+    AppRole.CUSTOMER,
+  ];
 
   constructor(
     private readonly reflector: Reflector,
@@ -30,10 +44,11 @@ export class ClerkAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request & Record<string, any>>();
     const correlationId = this.getCorrelationId(request);
 
-    const requiredPermission = this.reflector.get<PermissionRequirement>(
-      PERMISSION_KEY,
-      context.getHandler()
-    );
+    const requiredPermission =
+      this.reflector.getAllAndOverride<PermissionRequirement>(PERMISSION_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]);
 
     const token = this.extractToken(request);
     if (!token) {
@@ -63,9 +78,23 @@ export class ClerkAuthGuard implements CanActivate {
 
     if (request.userId) {
       try {
-        const userDetail = await lastValueFrom(
-          this.userClient.send(UserMessage.GET_USER_DETAIL, request.userId)
-        );
+        const [userRoles, userDetail] = await Promise.all([
+          lastValueFrom(
+            this.userClient.send<string[], { userId: string }>(
+              UserMessage.GET_USER_ROLES,
+              { userId: request.userId }
+            )
+          ).catch(() => [] as string[]),
+          lastValueFrom(
+            this.userClient.send(UserMessage.GET_USER_DETAIL, request.userId)
+          ).catch(() => null),
+        ]);
+
+        const effectiveRole = this.pickEffectiveRole(userRoles);
+        if (effectiveRole) {
+          request.userRoles = userRoles;
+          request.headers['x-user-role'] = effectiveRole;
+        }
 
         if (userDetail?.email) {
           try {
@@ -79,11 +108,13 @@ export class ClerkAuthGuard implements CanActivate {
                 cinemaId: staffResult.data.cinemaId,
                 role: staffResult.data.position,
               };
-              request.headers['x-user-role'] = String(staffResult.data.position);
               request.headers['x-cinema-id'] = String(staffResult.data.cinemaId);
+              if (!request.headers['x-user-role']) {
+                request.headers['x-user-role'] = String(staffResult.data.position);
+              }
             }
           } catch {
-            // Not a staff account; keep default CUSTOMER role.
+            // Not a staff account; keep RBAC role or default CUSTOMER role.
           }
         }
       } catch {
@@ -92,7 +123,7 @@ export class ClerkAuthGuard implements CanActivate {
     }
 
     if (!request.headers['x-user-role']) {
-      request.headers['x-user-role'] = 'CUSTOMER';
+      request.headers['x-user-role'] = AppRole.CUSTOMER;
     }
 
     if (!this.hasValidUserContextHeaders(request)) {
@@ -189,5 +220,19 @@ export class ClerkAuthGuard implements CanActivate {
     ]);
 
     return userPermissions.some((permission) => candidates.has(permission));
+  }
+
+  private pickEffectiveRole(userRoles: string[]): AppRole | null {
+    if (!Array.isArray(userRoles) || userRoles.length === 0) {
+      return null;
+    }
+
+    for (const role of ClerkAuthGuard.ROLE_PRECEDENCE) {
+      if (userRoles.includes(role)) {
+        return role;
+      }
+    }
+
+    return null;
   }
 }

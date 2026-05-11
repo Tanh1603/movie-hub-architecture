@@ -45,6 +45,12 @@ export class UserService {
     );
   }
 
+  async getUserRoles(userId: string) {
+    return lastValueFrom(
+      this.userClient.send(UserMessage.GET_USER_ROLES, { userId })
+    );
+  }
+
   async processClerkWebhook(payload: unknown) {
     return lastValueFrom(
       this.userClient.send(UserMessage.AUTH.PROCESS_CLERK_WEBHOOK, payload)

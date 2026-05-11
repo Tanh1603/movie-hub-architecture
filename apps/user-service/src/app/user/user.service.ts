@@ -52,6 +52,20 @@ export class UserService {
     return permissions;
   }
 
+  async getUserRoles(userId: string): Promise<string[]> {
+    const roles = await this.prismaService.userRole.findMany({
+      where: { userId },
+      select: {
+        role: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+    return roles.map((row) => row.role.name);
+  }
+
   async invalidatePermissionsCache(userId: string): Promise<void> {
     await this.cacheManager.del(`permissions:${userId}`);
   }
