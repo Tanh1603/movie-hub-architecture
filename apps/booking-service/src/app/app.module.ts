@@ -13,6 +13,7 @@ import { TicketModule } from './ticket/ticket.module';
 import { RefundModule } from './refund/refund.module';
 import { BookingRedisModule } from './redis/redis.module';
 import { NotificationModule } from './notification/notification.module';
+import { HealthController } from './health.controller';
 import Joi from 'joi';
 
 @Module({
@@ -23,10 +24,13 @@ import Joi from 'joi';
       validationSchema: Joi.object({
         TCP_HOST: Joi.string().required(),
         TCP_PORT: Joi.number().required(),
+        HTTP_PORT: Joi.number().optional(),
         DATABASE_URL: Joi.string().required(),
         CINEMA_HOST: Joi.string().default('localhost'),
         CINEMA_PORT: Joi.number().default(3003),
-        NODE_ENV: Joi.string().valid('development', 'production').default('development'),
+        NODE_ENV: Joi.string()
+          .valid('development', 'production')
+          .default('development'),
         LOG_LEVEL: Joi.string().default('debug'),
         // Email configuration (optional)
         EMAIL_ENABLED: Joi.string().default('false'),
@@ -51,7 +55,7 @@ import Joi from 'joi';
     TicketModule,
     RefundModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [AppService, PrismaService],
 })
 export class AppModule {}

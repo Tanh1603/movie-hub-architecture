@@ -5,3 +5,4 @@ export * from './cinema';
 export * from './booking';
 export * from './common';
 export * from './user';
+export * from './health';

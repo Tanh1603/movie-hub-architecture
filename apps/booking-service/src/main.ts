@@ -14,6 +14,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = app.get(ConfigService);
+  const httpPort = config.get<number>('HTTP_PORT') || 3005;
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.TCP,
@@ -26,6 +27,7 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
 
   await app.startAllMicroservices();
+  await app.listen(httpPort);
 
   Logger.log(`🚀 Booking service run successfully`);
 }

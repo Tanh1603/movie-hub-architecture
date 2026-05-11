@@ -13,6 +13,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = await app.get(ConfigService);
+  const httpPort = config.get<number>('HTTP_PORT') || 3007;
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.TCP,
@@ -23,6 +24,7 @@ async function bootstrap() {
   });
 
   await app.startAllMicroservices();
+  await app.listen(httpPort);
 
   Logger.log(`🚀 Movie service run successfully`);
 }
