@@ -11,6 +11,7 @@
 7. `phase-07-replica-failover-rollout.md`
 8. `phase-08-retry-timeout-resilience.md`
 9. `phase-09-postgresql-backup-restore.md`
+   9.1 `phase-09.1-cron-backup-retention.md`
 10. `phase-10-monitoring-alerting-runbook.md`
 
 ## Dependency Graph
@@ -20,6 +21,7 @@ Phase 01 -> Phase 02 -> Phase 03 -> Phase 04 -> Phase 05
 Phase 05 -> Phase 06 -> Phase 07
 Phase 01 -> Phase 08
 Phase 03 -> Phase 09
+Phase 09 -> Phase 09.1
 Phase 03 -> Phase 10
 Phase 04 -> Phase 10
 Phase 07 -> Phase 10
@@ -30,6 +32,7 @@ Phase 07 -> Phase 10
 - Execute strictly from Phase 01 to Phase 10 for lowest operational risk.
 - Phase 08 may start after Phase 01, but should merge after Phase 03 to reduce integration churn.
 - Phase 09 and Phase 10 must run after health/readiness phases to ensure accurate operational signals and restore gates.
+- Phase 09.1 must follow Phase 09 because it reuses the existing PostgreSQL backup scripts.
 
 ## Estimated Complexity
 
@@ -61,7 +64,7 @@ Phase 07 -> Phase 10
 - Reliability:
   - ADD: 2.7.1, 2.7.2, 2.7.4
   - SAD: 8.7, 8.9
-  - Phases: 08-09
+  - Phases: 08-09.1
 - Observability / Auditability:
   - ADD: 2.8.1, 2.8.2, 2.8.3
   - SAD: 8.3, 8.4

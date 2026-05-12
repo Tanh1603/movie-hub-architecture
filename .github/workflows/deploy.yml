@@ -169,8 +169,6 @@ jobs:
             -var="environment=${{ github.event.inputs.environment || 'dev' }}" \
             -var="clerk_secret_key=${{ secrets.CLERK_SECRET_KEY }}" \
             -var="clerk_publishable_key=${{ secrets.CLERK_PUBLISHABLE_KEY }}" \
-            -var="redis_host=${{ secrets.REDIS_HOST }}" \
-            -var="redis_port=${{ secrets.REDIS_PORT }}" \
             -var="redis_connection_string=${{ secrets.REDIS_CONNECTION_STRING }}" \
             -var='database_urls=${{ secrets.DATABASE_URLS }}' \
             -var='email_config=${{ secrets.EMAIL_CONFIG }}' \

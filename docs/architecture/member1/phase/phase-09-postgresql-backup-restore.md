@@ -2,221 +2,346 @@
 
 ## Objective
 
-Muc tieu la xay dung quy trinh backup/restore PostgreSQL co the van hanh duoc, dung thu tu khoi phuc transaction core, va co script validation ro rang. Phase nay tap trung vao data reliability, khong tron voi monitoring hoac retry logic.
+Implement simple operational PostgreSQL backup/restore procedures with deterministic restore order, lightweight validation scripts, and concise recovery runbooks.
+
+This phase focuses only on data recovery reliability.
+
+Restore order is fixed:
+
+1. booking-service
+2. cinema-service
+3. movie-service
+4. user-service
+
+---
 
 ## Non-Goals
 
-- Do NOT create centralized backup orchestration or management framework.
-- Do NOT implement automatic failover or detection logic.
-- Do NOT add backup encryption or advanced compression logic.
-- Do NOT create custom restore scheduling; use existing cloud provider backup services where available.
-- Do NOT add correlation IDs or synthetic tracing to backup/restore workflow.
+Do NOT implement:
 
-## Operational Latency Budget
+- orchestration frameworks
+- backup platforms
+- automatic failover
+- cloud automation
+- Kubernetes operators
+- monitoring integrations
+- ORM/Prisma validation logic
+- application code changes
+- CI/CD redesign
 
-- Backup operation: complete within target SLA (15 min for booking, 60 min for others)
-- Restore validation: complete within 5 minutes for consistency checks
-- Post-restore readiness gate: health checks stable within 2 minutes
+---
 
-## Implementation Boundaries
+## Backup Standard
+
+All backups MUST use:
+
+```bash
+pg_dump -Fc
+```
+
+Requirements:
+
+- custom dump format only
+- restore via `pg_restore`
+- no plain SQL dumps
+
+---
+
+## Operational Constraints
 
 Allowed:
 
 - bash scripts
-- simple Node.js validation scripts
-- operational markdown runbooks
-- local staging restore testing
+- shell utilities
+- Docker CLI (`docker exec`, `docker cp`)
+- direct `psql` execution inside PostgreSQL containers
+- `pg_dump` execution inside PostgreSQL containers
+- `pg_restore` execution inside PostgreSQL containers
+- lightweight validation scripts
+- markdown runbooks
 
 Forbidden:
 
-- backup platforms
-- orchestration systems
-- automatic failover
-- cloud provisioning
+- framework abstractions
 - backup schedulers
-- Kubernetes operators
-- monitoring systems
-- application code changes
-- CI/CD redesign
+- infrastructure systems
+- Prisma Client usage
+- service runtime modifications
+
+---
 
 ## Scope
 
-- Operational domains affected:
+Databases:
 
-  - booking-service database
-  - cinema-service database
-  - movie-service database
-  - user-service database
+- booking-service
+- cinema-service
+- movie-service
+- user-service
 
-- Application code:
+Artifacts:
 
-  - no functional changes allowed
-  - no service runtime modification allowed
+- backup scripts
+- restore scripts
+- validation scripts
+- operational runbook
 
-- Infrastructure affected:
-  - PostgreSQL backup scripts
-  - PostgreSQL restore scripts
-  - restore validation scripts
-  - operational runbook documentation
+No application/service code changes allowed.
 
-## Prerequisites
+---
 
-- Database access and environment secrets available in staging.
-- Phase 03 completed (booking readiness health check available for post-restore gating).
+## Critical Validation Targets
+
+### booking-service
+
+Critical tables:
+
+- `Bookings`
+- `Payments`
+- `Tickets`
+- `Refunds`
+- `BookingConcessions`
+- `LoyaltyAccounts`
+- `LoyaltyTransactions`
+
+Validation:
+
+- tables exist
+- non-zero booking/payment data
+- completed bookings must have related payments
+
+Example consistency check:
+
+```sql
+SELECT COUNT(*)
+FROM "Bookings" b
+LEFT JOIN "Payments" p ON p.booking_id = b.id
+WHERE b.payment_status = 'COMPLETED'
+AND p.id IS NULL;
+```
+
+Expected result: `0`
+
+---
+
+### cinema-service
+
+Critical tables:
+
+- `Cinemas`
+- `Halls`
+- `Seats`
+- `Showtimes`
+- `SeatReservations`
+
+Validation:
+
+- non-zero cinema/hall data
+- showtimes linked correctly
+
+---
+
+### movie-service
+
+Critical tables:
+
+- `movies`
+- `movie_releases`
+- `genres`
+- `movie_genres`
+
+Validation:
+
+- non-zero movie data
+- valid movie/genre references
+
+---
+
+### user-service
+
+Critical tables:
+
+- `roles`
+- `permissions`
+- `user_roles`
+- `role_permissions`
+- `staffs`
+- `settings`
+
+Validation:
+
+- roles/permissions exist
+- user_roles non-empty
+- settings accessible
+
+---
 
 ## Tasks
 
-- Create simple backup command examples for:
+### Backup Scripts
 
-  - full PostgreSQL dump
-  - restore from dump
-  - WAL restore notes (documentation only)
+Create:
 
-- Create restore script:
+- `scripts/postgresql-backup-restore/backup-booking.sh`
+- `scripts/postgresql-backup-restore/backup-cinema.sh`
+- `scripts/postgresql-backup-restore/backup-movie.sh`
+- `scripts/postgresql-backup-restore/backup-user.sh`
 
-  - sequential restore order:
-    1. booking
-    2. cinema
-    3. movie
-    4. user
-  - stop immediately on failure
-  - print clear operational logs
+Requirements:
 
-- Create lightweight validation script:
+- use `pg_dump -Fc`
+- timestamp filenames
+- run PostgreSQL tools through Docker containers
+- stop on failure
+- print operational logs
 
-  - verify schema exists
-  - verify critical tables exist
-  - verify row count not zero
-  - verify small booking/payment consistency sample
+---
 
-- Create concise operational runbook:
+### Restore Script
 
-  - corruption scenario
-  - partial restore scenario
-  - full environment recovery scenario
+Create:
 
-- Keep all scripts procedural and simple.
-- Prefer shell commands over abstractions.
+```text
+scripts/postgresql-backup-restore/restore-all.sh
+```
 
-## Expected Deliverables
+Requirements:
 
-- Scripts (new or updated):
-  - `scripts/backup-*.sh` (or existing naming convention)
-  - `scripts/restore-*.sh`
-  - `scripts/validate-restore-*.sh` (or ts/js script if preferred by repo)
-- Runbook docs:
-  - `docs/architecture/member1/runbooks/postgresql-restore.md`
-- Optional CI/staging job config to run restore validation drills.
+- hardcoded restore order:
+  booking → cinema → movie → user
+- use `pg_restore`
+- run PostgreSQL tools through Docker containers
+- stop immediately on failure
+- validate dump existence
+- print logs
+
+---
+
+### Validation Scripts
+
+Create:
+
+- `scripts/postgresql-backup-restore/validate-booking-restore.sh`
+- `scripts/postgresql-backup-restore/validate-cinema-restore.sh`
+- `scripts/postgresql-backup-restore/validate-movie-restore.sh`
+- `scripts/postgresql-backup-restore/validate-user-restore.sh`
+
+Requirements:
+
+- direct SQL only
+- no ORM/Prisma
+- execute validation SQL through containerized `psql`
+- fail immediately on validation error
+- validate:
+
+  - schema existence
+  - critical tables
+  - non-zero datasets
+  - lightweight consistency checks
+
+---
+
+### Runbook
+
+Create:
+
+```text
+docs/architecture/member1/runbooks/postgresql-restore.md
+```
+
+Must include:
+
+- backup commands
+- restore commands
+- validation commands
+- corruption recovery
+- partial restore
+- full environment recovery
+- rollback notes
+- WAL restore notes (documentation only)
+
+Optional dry-run documentation only.
+
+---
 
 ## Acceptance Criteria
 
-- Restore script executes databases in deterministic order.
-- Validation script detects missing critical tables.
-- Validation script detects zero-row critical datasets.
-- Restore failure stops execution immediately.
-- Runbook contains executable shell commands.
-- No application service code modified.
-- No backup orchestration framework introduced.
+- deterministic restore order enforced
+- restore stops on first failure
+- validation detects:
 
-## Validation Steps
+  - missing tables
+  - empty critical datasets
+  - broken consistency
 
-- Execute full staging restore drill from recent backup.
-- Verify schema and critical count/consistency checks.
-- Verify application readiness after restore before reopening traffic.
+- validation uses direct SQL only
+- backup format locked to `pg_dump -Fc`
+- PostgreSQL tooling runs via Docker containers
+- no application code changes
+- no orchestration/platform engineering introduced
 
-## Test Plan
-
-- Unit tests:
-  - parser/validator logic for consistency checks (if script is in TS/JS)
-- Integration tests:
-  - restore script dry-run mode
-- Failure simulation tests:
-  - inject broken snapshot metadata and verify validation fails
-- Staging validation:
-  - monthly full restore drill
-- Operational validation:
-  - capture RTO/RPO observations and corrective actions
-
-## Risks
-
-- Incomplete backup artifacts (snapshot without WAL continuity).
-- Incorrect restore order causing temporary cross-service inconsistency.
-
-## Rollback Strategy
-
-- Revert new backup/restore automation scripts.
-- Fall back to previously documented manual restore process.
-- Keep validation scripts for diagnostics even if automation is rolled back.
-
-## Architecture Alignment
-
-- ADD:
-  - 2.7.1 (consistency under concurrency)
-  - 2.7.4 (compensation integrity)
-- SAD:
-  - 8.9 (backup and restoration)
-  - 9 (ADR: service-per-database ownership)
-- C4:
-  - `c4-containers.md` (database ownership)
-  - `c4-deployment.md` (data tier as failure zone)
+---
 
 # Agent Implementation Prompt
 
 Implement ONLY Phase 09.
 
-This is an OPERATIONS SCRIPT phase.
-Do NOT build platforms or infrastructure systems.
+This is a SMALL operational scripting phase.
 
 STRICTLY FORBIDDEN:
 
 - orchestration frameworks
-- backup management systems
-- cloud automation
+- backup platforms
 - Kubernetes operators
+- cloud automation
+- monitoring systems
+- ORM/Prisma validation logic
 - CI/CD redesign
 - application code changes
-- monitoring integrations
-- distributed recovery systems
 
 Implementation Requirements:
 
-1. Create SIMPLE scripts only:
+1. Create procedural PostgreSQL backup scripts using ONLY:
 
-   - backup examples
-   - restore script
-   - validation script
+```bash
+pg_dump -Fc
+```
 
-2. Keep scripts procedural:
+2. Create deterministic restore script with fixed order:
 
-   - shell-first approach preferred
-   - no framework abstractions
-   - no class hierarchies
+```text
+booking → cinema → movie → user
+```
 
-3. Restore order must be hardcoded:
-   booking → cinema → movie → user
+3. Restore must:
 
-4. Validation checks only:
+- stop immediately on failure
+- validate dump existence
+- print operational logs
+- run through Docker container PostgreSQL tools
 
-   - schema existence
-   - critical tables existence
-   - non-zero row counts
-   - small consistency sample
+4. Create lightweight validation scripts using direct SQL only.
 
-5. Stop restore immediately on first failure.
+Validation scope:
 
-6. Add operational logs using simple stdout printing.
+- schema existence
+- critical table existence
+- non-zero row counts
+- lightweight consistency checks
 
-7. Create concise markdown runbook with:
+5. No Prisma Client or ORM usage allowed.
 
-   - exact shell commands
-   - rollback notes
-   - validation commands
+6. Create concise operational runbook with executable shell commands.
 
-8. Do NOT modify application services.
+7. WAL recovery notes are documentation-only.
+
+8. Optional dry-run documentation only.
+   Do NOT redesign CI/CD workflows.
 
 Success Criteria:
 
 - scripts executable manually
-- restore process deterministic
+- deterministic restore workflow
 - validation catches obvious corruption
 - no platform engineering introduced
+- no service runtime modifications
