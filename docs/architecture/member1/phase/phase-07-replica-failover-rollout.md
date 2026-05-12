@@ -18,10 +18,11 @@ Muc tieu la chuan hoa chinh sach scale/failover/rolling update theo huong deploy
 ## Operational Semantics
 
 - **Replica**: independent instance of service, each with own liveness/readiness probes.
-- **Failover**: if one replica fails probe (2 consecutive failures), remove from traffic via deployment control.
-- **Rollout**: update replicas one at a time, wait for new instance to pass liveness before updating next.
+- **Failover**: if one replica fails liveness probe (2 consecutive failures), remove from traffic via deployment control.
+- **Readiness gate**: before routing traffic to new replica, readiness probe must pass (dependencies connected).
+- **Rollout**: update replicas one at a time, wait for readiness probe to pass before updating next.
 - **Rollout does NOT mean**: service is immediately ready for traffic (readiness gating happens at app level, not deployment level).
-- **Health-driven**: rollout uses liveness probe signals to determine when replica is ready for next update.
+- **Health-driven**: rollout uses readiness probe signals to determine when replica is ready for traffic; liveness signals determine if replica needs restart.
 
 ## Scope
 
@@ -46,17 +47,12 @@ Muc tieu la chuan hoa chinh sach scale/failover/rolling update theo huong deploy
 - Phase 06 completed (graceful shutdown needed before safe rolling updates).
 - Probe configuration stable from Phase 05.
 
-## Tasks
+## Test Plan
 
-- In current deployment config (Terraform, shell scripts, GitHub Actions workflow):
-  - Set replica count to 2 for each of: api-gateway, booking-service, user-service, movie-service, cinema-service.
-  - Configure rolling update: update 1 replica at a time, wait for health green before next replica.
-  - Keep update order deterministic (gateway first, then services).
-- Define rollback trigger:
-  - if health probe fails for 2 consecutive checks, mark replica unhealthy.
-  - if error rate exceeds threshold during rollout, pause and prompt manual review.
-- Do NOT change application code or business logic.
-- Document rollout procedure in one short runbook (one page, shell commands only).
+- Manual rollout verification in staging
+- Verify one replica remains available during deployment
+- Verify unhealthy replica is removed from routing
+- Verify rollback procedure restores stable revision
 
 ## Expected Deliverables
 
@@ -133,11 +129,20 @@ Strict Rules:
 
 1. Inspect current deployment infrastructure (Terraform, shell scripts, GitHub Actions, Jenkins, Docker Compose).
 2. For each service: set replica count to 2 (or min. 2 if higher is already required).
-3. Configure rolling update policy: update 1 replica at a time, wait for liveness probe pass before next replica.
-4. Keep update order deterministic: gateway first, then services.
-5. Define rollback trigger: if liveness probe fails for 2 consecutive checks, mark replica unhealthy; if error rate spikes during rollout, pause and prompt manual review.
+3. Configure rolling update policy:
+   - Update 1 replica at a time (max-parallel: 1)
+   - Wait for readiness probe to pass (dependencies ready) before draining old replica
+   - Wait for liveness probe to stabilize before updating next replica
+   - Order: gateway first, then services (booking, user, movie, cinema)
+4. Configure readiness probe for Terraform Container Apps:
+   - Endpoint: `/health/ready` for each service
+   - Interval: 10s
+   - Timeout: 2s
+   - Failure threshold: 2 consecutive failures
+   - Success threshold: 1 success
+5. Define rollback trigger: if readiness fails during rollout (dependencies unavailable) or error rate spikes >5%, pause and prompt manual review.
 6. Do NOT introduce new orchestration, auto-scaling, or Kubernetes abstractions.
 7. Do NOT modify application code, health probes, or graceful shutdown logic.
 8. Document in 1-page operational runbook: pre-deploy checklist, update command, verification steps, rollback command.
-9. Test: deploy a test change, observe rolling update, verify traffic continuity, verify rollback works.
-10. Validation: all services can deploy with new replica/rollout policy, health probes drive update progression.
+9. Test: deploy a test change, observe rolling update, verify readiness gates before traffic shift, verify rollback works.
+10. Validation: all services can deploy with new replica/rollout policy, readiness probes drive traffic gating, liveness probes handle restart.

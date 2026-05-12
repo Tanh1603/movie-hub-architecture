@@ -22,9 +22,11 @@ Phase nay chi sua runtime/deployment config toi thieu de dong bo voi health endp
 
 ## Operational Semantics
 
-- Docker health checks target `/health/live` only.
-- Liveness probes only verify that the process is responsive.
-- Readiness orchestration remains application-level and is NOT part of Docker Compose probe logic.
+- Docker health checks:
+  - **Liveness probe** (`/health/live`): verify process is responsive, used for restart policy
+  - **Readiness probe** (`/health/ready`): verify dependencies (DB/Redis) are connected, used to prevent routing traffic to unprepared instances
+- Service readiness probes ensure instance receives traffic only after bootstrap dependencies are ready.
+- Database liveness probes ensure database connectivity is healthy.
 - Existing operational timing values should be preserved where already stable.
 
 ---
@@ -56,33 +58,49 @@ Phase nay chi sua runtime/deployment config toi thieu de dong bo voi health endp
 
 ## Tasks
 
-### Docker Compose Healthcheck Migration
+### Docker Compose Service Readiness and Liveness Probes
 
-Update existing service health checks to target the new liveness endpoints:
+Add readiness probes to each service:
 
 - API Gateway:
 
-  - `http://localhost:3000/api/health/live`
+  - Liveness: `http://localhost:3000/api/health/live`
+  - Readiness: `http://localhost:3000/api/health/ready`
 
 - Booking Service:
 
-  - `http://localhost:3005/health/live`
+  - Liveness: `http://localhost:3005/health/live`
+  - Readiness: `http://localhost:3005/health/ready`
 
 - User Service:
 
-  - `http://localhost:3006/health/live`
+  - Liveness: `http://localhost:3006/health/live`
+  - Readiness: `http://localhost:3006/health/ready`
 
 - Movie Service:
 
-  - `http://localhost:3007/health/live`
+  - Liveness: `http://localhost:3007/health/live`
+  - Readiness: `http://localhost:3007/health/ready`
 
 - Cinema Service:
 
-  - `http://localhost:3008/health/live`
+  - Liveness: `http://localhost:3008/health/live`
+  - Readiness: `http://localhost:3008/health/ready`
 
-### Probe Strategy
+### Probe Strategy for Services
 
-Keep the current lightweight Docker probe strategy already used in the repository:
+Configure dual probe setup for services:
+
+**Readiness Probe** (blocks traffic routing, tight thresholds):
+
+```yaml
+interval: 10s
+timeout: 2s
+retries: 2
+start_period: 5s
+```
+
+**Liveness Probe** (triggers container restart, loose thresholds):
 
 ```yaml
 interval: 30s
@@ -91,7 +109,7 @@ retries: 3
 start_period: 10s
 ```
 
-Do NOT aggressively reduce probe thresholds unless current values are proven problematic.
+Do NOT aggressively reduce probe thresholds for liveness unless current values are proven problematic.
 
 ### Tooling
 

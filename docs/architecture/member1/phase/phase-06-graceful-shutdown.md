@@ -84,19 +84,6 @@ Muc tieu la dam bao moi service NestJS xu ly SIGTERM an toan: dung nhan request 
 - Verify no new requests accepted after shutdown begins.
 - Verify DB and Redis connections are closed (no connection leaks).
 
-## Test Plan
-
-- Unit tests:
-  - lifecycle hook invocation behavior (where testable)
-- Integration tests:
-  - process signal test in local container
-- Failure simulation tests:
-  - force slow in-flight request then SIGTERM
-- Staging validation:
-  - rolling restart with active traffic
-- Operational validation:
-  - measure interruption window during controlled restart
-
 ## Risks
 
 - Incorrect shutdown sequence causing dropped requests.
@@ -144,6 +131,5 @@ Strict Rules:
 4. **NO custom logic**: rely on NestJS's built-in `app.close()` to drain requests.
 5. Each service independently handles its own Prisma/Redis cleanup via existing providers.
 6. Logs: simple structured logs with service name, timestamp, shutdown event.
-7. Test: send SIGTERM to running container, verify graceful drain and exit within 35s.
-8. Do NOT modify unrelated application code or business services.
-9. Validation: each service builds without errors, SIGTERM handling works in local docker-compose.
+7. Do NOT modify unrelated application code or business services.
+8. Validation: each service builds without errors, SIGTERM handling works in local docker-compose.

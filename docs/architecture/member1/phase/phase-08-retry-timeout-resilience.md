@@ -129,16 +129,19 @@ Forbidden:
 ## Test Plan
 
 - Unit tests:
-  - retryable error classifier
-  - backoff timing calculator
+
+  - retryable vs non-retryable error behavior
+  - retry attempt limit
+  - timeout handling
+
 - Integration tests:
-  - provider adapter retry with mocked HTTP server
-- Failure simulation tests:
-  - connection reset, timeout, 5xx flood
-- Staging validation:
-  - controlled upstream latency/failure injection
-- Operational validation:
-  - observe retry/timeout metrics in logs and monitoring
+
+  - mocked provider returning 5xx
+  - mocked timeout scenario
+
+- Validation:
+  - verify 4xx responses are not retried
+  - verify total retry count <= 3
 
 ## Risks
 

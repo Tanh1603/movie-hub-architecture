@@ -89,7 +89,7 @@ resource "azurerm_container_app" "user_service" {
   name                         = "user-service"
   container_app_environment_id = azurerm_container_app_environment.main.id
   resource_group_name          = azurerm_resource_group.main.name
-  revision_mode                = "Single"
+  revision_mode                = "Multiple"
   tags                         = merge(var.tags, { Service = "user-service" })
 
   secret {
@@ -139,6 +139,19 @@ resource "azurerm_container_app" "user_service" {
       cpu    = var.services["user-service"].cpu
       memory = var.services["user-service"].memory
 
+      readiness_probe {
+        http_get {
+          path   = "/health/ready"
+          port   = var.services["user-service"].port
+          scheme = "HTTP"
+        }
+        initial_delay = 5
+        interval_seconds = 10
+        timeout_seconds = 2
+        failure_threshold = 2
+        success_threshold = 1
+      }
+
       env {
         name  = "NODE_ENV"
         value = "production"
@@ -177,7 +190,7 @@ resource "azurerm_container_app" "movie_service" {
   name                         = "movie-service"
   container_app_environment_id = azurerm_container_app_environment.main.id
   resource_group_name          = azurerm_resource_group.main.name
-  revision_mode                = "Single"
+  revision_mode                = "Multiple"
   tags                         = merge(var.tags, { Service = "movie-service" })
 
   secret {
@@ -222,6 +235,19 @@ resource "azurerm_container_app" "movie_service" {
       cpu    = var.services["movie-service"].cpu
       memory = var.services["movie-service"].memory
 
+      readiness_probe {
+        http_get {
+          path   = "/health/ready"
+          port   = var.services["movie-service"].port
+          scheme = "HTTP"
+        }
+        initial_delay = 5
+        interval_seconds = 10
+        timeout_seconds = 2
+        failure_threshold = 2
+        success_threshold = 1
+      }
+
       env {
         name  = "NODE_ENV"
         value = "production"
@@ -255,7 +281,7 @@ resource "azurerm_container_app" "cinema_service" {
   name                         = "cinema-service"
   container_app_environment_id = azurerm_container_app_environment.main.id
   resource_group_name          = azurerm_resource_group.main.name
-  revision_mode                = "Single"
+  revision_mode                = "Multiple"
   tags                         = merge(var.tags, { Service = "cinema-service" })
 
   secret {
@@ -299,6 +325,19 @@ resource "azurerm_container_app" "cinema_service" {
       image  = "${azurerm_container_registry.main.login_server}/cinema-service:latest"
       cpu    = var.services["cinema-service"].cpu
       memory = var.services["cinema-service"].memory
+
+      readiness_probe {
+        http_get {
+          path   = "/health/ready"
+          port   = var.services["cinema-service"].port
+          scheme = "HTTP"
+        }
+        initial_delay = 5
+        interval_seconds = 10
+        timeout_seconds = 2
+        failure_threshold = 2
+        success_threshold = 1
+      }
 
       env {
         name  = "NODE_ENV"
@@ -344,7 +383,7 @@ resource "azurerm_container_app" "booking_service" {
   name                         = "booking-service"
   container_app_environment_id = azurerm_container_app_environment.main.id
   resource_group_name          = azurerm_resource_group.main.name
-  revision_mode                = "Single"
+  revision_mode                = "Multiple"
   tags                         = merge(var.tags, { Service = "booking-service" })
 
   secret {
@@ -398,6 +437,19 @@ resource "azurerm_container_app" "booking_service" {
       image  = "${azurerm_container_registry.main.login_server}/booking-service:latest"
       cpu    = var.services["booking-service"].cpu
       memory = var.services["booking-service"].memory
+
+      readiness_probe {
+        http_get {
+          path   = "/health/ready"
+          port   = var.services["booking-service"].port
+          scheme = "HTTP"
+        }
+        initial_delay = 5
+        interval_seconds = 10
+        timeout_seconds = 2
+        failure_threshold = 2
+        success_threshold = 1
+      }
 
       env {
         name  = "NODE_ENV"
@@ -515,7 +567,7 @@ resource "azurerm_container_app" "api_gateway" {
   name                         = "api-gateway"
   container_app_environment_id = azurerm_container_app_environment.main.id
   resource_group_name          = azurerm_resource_group.main.name
-  revision_mode                = "Single"
+  revision_mode                = "Multiple"
   tags                         = merge(var.tags, { Service = "api-gateway" })
 
   secret {
@@ -559,6 +611,19 @@ resource "azurerm_container_app" "api_gateway" {
       image  = "${azurerm_container_registry.main.login_server}/api-gateway:latest"
       cpu    = var.services["api-gateway"].cpu
       memory = var.services["api-gateway"].memory
+
+      readiness_probe {
+        http_get {
+          path   = "/api/health/ready"
+          port   = var.services["api-gateway"].port
+          scheme = "HTTP"
+        }
+        initial_delay = 5
+        interval_seconds = 10
+        timeout_seconds = 2
+        failure_threshold = 2
+        success_threshold = 1
+      }
 
       env {
         name  = "NODE_ENV"

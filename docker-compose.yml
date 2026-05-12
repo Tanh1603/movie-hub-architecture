@@ -8,6 +8,11 @@
 # - Database services use .env.db files in their respective service folders
 # - Production: Cloud only production
 #
+# PROBE ENDPOINTS:
+# - Liveness probe (`/health/live`): used by Docker healthcheck to detect process responsiveness
+# - Readiness probe (`/health/ready`): checks if dependencies (DB/Redis) are ready; used in cloud deployment (Phase 07)
+#   Docker Compose healthcheck uses liveness probe only; readiness is verified in production deployment via infra/terraform
+#
 # USAGE (~~~~!!!!!IMPORTANT!!!!!~~~~)
 #   docker compose up -d            Use base + docker-compose.override.yml (development)
 #   docker compose -f docker-compose.yml up -d   Use base only (production)

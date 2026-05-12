@@ -84,7 +84,7 @@ variable "services" {
       port         = 3000
       cpu          = 0.5
       memory       = "1Gi"
-      min_replicas = 1
+      min_replicas = 2
       max_replicas = 3
       is_external  = true
       health_path  = "/api/health"
@@ -94,7 +94,7 @@ variable "services" {
       port         = 3001
       cpu          = 0.25
       memory       = "0.5Gi"
-      min_replicas = 1
+      min_replicas = 2
       max_replicas = 2
       is_external  = false
       health_path  = ""
@@ -104,7 +104,7 @@ variable "services" {
       port         = 3002
       cpu          = 0.25
       memory       = "0.5Gi"
-      min_replicas = 1
+      min_replicas = 2
       max_replicas = 2
       is_external  = false
       health_path  = ""
@@ -114,7 +114,7 @@ variable "services" {
       port         = 3003
       cpu          = 0.25
       memory       = "0.5Gi"
-      min_replicas = 1
+      min_replicas = 2
       max_replicas = 2
       is_external  = false
       health_path  = ""
@@ -124,7 +124,7 @@ variable "services" {
       port         = 3004
       cpu          = 0.25
       memory       = "0.5Gi"
-      min_replicas = 1
+      min_replicas = 2
       max_replicas = 2
       is_external  = false
       health_path  = ""
