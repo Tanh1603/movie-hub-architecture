@@ -135,11 +135,13 @@ Strict Rules:
    - Wait for liveness probe to stabilize before updating next replica
    - Order: gateway first, then services (booking, user, movie, cinema)
 4. Configure readiness probe for Terraform Container Apps:
-   - Endpoint: `/health/ready` for each service
-   - Interval: 10s
-   - Timeout: 2s
-   - Failure threshold: 2 consecutive failures
-   - Success threshold: 1 success
+
+- Endpoint: `/health/ready` for each service on the service HTTP port, not the TCP transport port
+- Interval: 10s
+- Timeout: 2s
+- Failure threshold: 2 consecutive failures
+- Success threshold: 1 success
+
 5. Define rollback trigger: if readiness fails during rollout (dependencies unavailable) or error rate spikes >5%, pause and prompt manual review.
 6. Do NOT introduce new orchestration, auto-scaling, or Kubernetes abstractions.
 7. Do NOT modify application code, health probes, or graceful shutdown logic.

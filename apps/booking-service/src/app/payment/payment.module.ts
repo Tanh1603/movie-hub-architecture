@@ -7,6 +7,8 @@ import { BookingRedisModule } from '../redis/redis.module';
 import { NotificationModule } from '../notification/notification.module';
 import { TicketModule } from '../ticket/ticket.module';
 import { SERVICE_NAME } from '@movie-hub/shared-types';
+import { PaymentProviderAdapter } from './adapters/payment-provider.adapter';
+import { TcpPaymentProviderAdapter } from './adapters/tcp-payment-provider.adapter';
 
 @Module({
   imports: [
@@ -19,13 +21,20 @@ import { SERVICE_NAME } from '@movie-hub/shared-types';
         transport: Transport.TCP,
         options: {
           host: process.env.USER_HOST || 'localhost',
-          port: parseInt(process.env.USER_PORT) || 3001,
+          port: parseInt(process.env.USER_PORT as string) || 3001,
         },
       },
     ]),
   ],
   controllers: [PaymentController],
-  providers: [PaymentService, PrismaService],
+  providers: [
+    PaymentService,
+    PrismaService,
+    {
+      provide: PaymentProviderAdapter,
+      useClass: TcpPaymentProviderAdapter,
+    },
+  ],
   exports: [PaymentService],
 })
 export class PaymentModule {}

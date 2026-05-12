@@ -1,7 +1,5 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
 import { PrismaService } from '../prisma.service';
 import {
   NotificationService,
@@ -17,14 +15,14 @@ import {
   TicketStatus,
   ServiceResult,
   AdminFindAllPaymentsDto,
-  UserMessage,
   UserDetailDto,
-  SERVICE_NAME,
+  BookingDetailDto,
 } from '@movie-hub/shared-types';
 import * as crypto from 'crypto';
 import * as moment from 'moment';
 import * as querystring from 'qs';
 import { BookingEventService } from '../redis/booking-event.service';
+import { PaymentProviderAdapter } from './adapters/payment-provider.adapter';
 
 @Injectable()
 export class PaymentService {
@@ -38,7 +36,7 @@ export class PaymentService {
     private prisma: PrismaService,
     private configService: ConfigService,
     private bookingEventService: BookingEventService,
-    @Inject(SERVICE_NAME.USER) private userClient: ClientProxy,
+    private paymentProviderAdapter: PaymentProviderAdapter,
     private notificationService: NotificationService,
     private ticketService: TicketService
   ) {
@@ -96,7 +94,7 @@ export class PaymentService {
       data: {
         booking_id: bookingId,
         amount: paymentAmount,
-        payment_method: dto.paymentMethod,
+        payment_method: dto.paymentMethod ?? PaymentMethod.VNPAY,
         status: PaymentStatus.PENDING,
         metadata: {
           returnUrl: dto.returnUrl,
@@ -109,7 +107,7 @@ export class PaymentService {
     const paymentUrl = await this.createVNPayUrl(
       payment.id,
       booking.id,
-      booking.expires_at,
+      booking.expires_at || new Date(Date.now() + 15 * 60 * 1000), // Default to 15 mins if expires_at is null
       paymentAmount,
       ipAddr
     );
@@ -149,7 +147,7 @@ export class PaymentService {
         data: {
           booking_id: booking.id,
           amount: 0,
-          payment_method: dto.paymentMethod,
+          payment_method: dto.paymentMethod ?? PaymentMethod.VNPAY,
           status: PaymentStatus.COMPLETED,
           paid_at: new Date(),
           metadata: {
@@ -890,11 +888,8 @@ export class PaymentService {
       // ✅ ASYNC: Fetch user details from USER service via TCP (event-driven)
       let userDetails: UserDetailDto | null = null;
       try {
-        userDetails = await firstValueFrom(
-          this.userClient.send<UserDetailDto>(
-            UserMessage.GET_USER_DETAIL,
-            fullBooking.user_id
-          )
+        userDetails = await this.paymentProviderAdapter.getUserDetail(
+          fullBooking.user_id
         );
         console.log(
           `[Email] Fetched user details from user service for user ${fullBooking.user_id}`
@@ -945,14 +940,14 @@ export class PaymentService {
       );
 
       // Map to BookingDetailDto format
-      const bookingForEmail = {
+      const bookingForEmail: BookingDetailDto = {
         id: fullBooking.id,
         bookingCode: fullBooking.booking_code,
         showtimeId: fullBooking.showtime_id,
         userId: fullBooking.user_id,
         customerName: customerName,
         customerEmail: customerEmail,
-        customerPhone: customerPhone,
+        customerPhone: customerPhone ?? undefined,
         movieTitle: 'Movie Title', // TODO: Fetch from cinema-service
         cinemaName: 'Cinema Name', // TODO: Fetch from cinema-service
         hallName: 'Hall Name', // TODO: Fetch from cinema-service
@@ -981,12 +976,12 @@ export class PaymentService {
         pointsDiscount: Number(fullBooking.points_discount),
         finalAmount: Number(fullBooking.final_amount),
         totalAmount: Number(fullBooking.final_amount),
-        promotionCode: fullBooking.promotion_code,
+        promotionCode: fullBooking.promotion_code ?? undefined,
         status: fullBooking.status as BookingStatus,
         paymentStatus: fullBooking.payment_status as PaymentStatus,
-        expiresAt: fullBooking.expires_at,
-        cancelledAt: fullBooking.cancelled_at,
-        cancellationReason: fullBooking.cancellation_reason,
+        expiresAt: fullBooking.expires_at ?? undefined,
+        cancelledAt: fullBooking.cancelled_at ?? undefined,
+        cancellationReason: fullBooking.cancellation_reason ?? undefined,
         createdAt: fullBooking.created_at,
         updatedAt: fullBooking.updated_at,
       };

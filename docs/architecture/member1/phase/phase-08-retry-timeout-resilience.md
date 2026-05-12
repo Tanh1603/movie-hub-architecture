@@ -2,53 +2,62 @@
 
 ## Objective
 
-Muc tieu la hien thuc retry va timeout bounded cho external/internal calls theo ADD/SAD, nhung khong tao framework moi. Phase nay uu tien cau hinh/client-level timeout va retry don gian theo pattern hien co cua tung service.
+Implement lightweight retry and timeout resilience for outbound integrations in `booking-service` only, aligned with ADD/SAD and current code structure. This phase uses LOCAL adapter boundaries so provider-specific behavior stays isolated from domain services.
+
+Primary adapter targets:
+
+- `PaymentProviderAdapter` (payment outbound integration)
+- `NotificationProviderAdapter` (notification outbound integration)
+
+Current booking-service context to keep aligned:
+
+- `src/app/payment/payment.service.ts`
+- `src/app/notification/notification.service.ts`
 
 ## Non-Goals
 
-- Do NOT create resilience frameworks (Polly, Resilient HTTP, or equivalents).
-- Do NOT implement circuit breakers or bulkhead isolation.
-- Do NOT add correlation ID generation or synthetic tracing.
-- Do NOT create centralized retry orchestration.
-- Do NOT implement rate limiting or quota management.
-- Do NOT introduce generic resilience patterns or policy engines.
-- Do NOT implement distributed tracing or APM instrumentation.
-- Do NOT create retry registries or dynamic timeout configuration.
+- Do NOT create any shared resilience framework across services.
+- Do NOT create `RetryService`, `ResilienceModule`, `TimeoutModule`, or equivalents.
+- Do NOT use interceptors, decorators, or policy engines for retry/timeout.
+- Do NOT implement circuit breaker, bulkhead, or fallback orchestration.
+- Do NOT expand scope outside `booking-service`.
+- Do NOT introduce cross-service reusable retry libraries in this phase.
 
 ## Operational Latency Budget
 
-- Single external call timeout: <= 30s (total 3 retries within this budget)
+- Single external provider call timeout: <= 30s
 - Single internal service call timeout: <= 10s
 - Health check timeout: 2s
 - Retry delay sequence: 1s, 2s, 4s (jitter ±10% random)
 
 ## Operational Semantics
 
-- **Retry**: explicit bounded logic (3 attempts max, specific errors only, exponential backoff 1/2/4 sec).
-- **Timeout**: hard wall-clock limit per call type (external 30s, internal 10s, health 2s).
-- **Resilience does NOT mean**: circuit breakers, bulkheads, fallbacks, auto-recovery, dynamic retry policies.
-- **Scope**: simple client-level logic, no framework, no shared state across services.
-- **Error handling**: retry 5xx, timeout, connection refused. Skip 4xx (user errors, no value in retry).
+- **Adapter-first outbound calls**: payment and notification outbound calls are executed through local adapters (`PaymentProviderAdapter`, `NotificationProviderAdapter`).
+- **Retry location**: retry loop is implemented inside each adapter method, close to the actual outbound request.
+- **Timeout location**: timeout is configured directly inside adapter request configuration.
+- **Retry policy**: max 3 attempts with bounded exponential backoff `1s -> 2s -> 4s` (optional jitter).
+- **Retryable failures**: timeout, `ECONNRESET`, `ECONNREFUSED`, and HTTP `5xx`.
+- **Non-retryable failures**: `4xx` (except `429` if explicitly needed by adapter), validation errors, and business-rule errors.
+- **No global orchestration**: each adapter owns its own logic; duplication between adapters is acceptable for this phase.
 
 ## Implementation Boundaries
 
 Allowed:
 
-- add inline retry logic inside existing provider adapter
-- add axios/http timeout config
-- add focused unit tests for retry behavior
-- add small helper function local to service module
+- add or refine local adapter classes/interfaces in `booking-service` for outbound provider calls
+- add inline retry loop inside adapter implementation methods
+- add request timeout config directly in adapter request execution
+- add focused adapter-level unit tests for timeout/retry classification
+- keep payment and notification adapter logic independent, even if duplicated
 
 Forbidden:
 
-- creating RetryService, ResilienceService, TimeoutModule, or similar abstractions
-- creating NestJS interceptors/decorators for retry
-- creating shared retry libraries
-- modifying unrelated HTTP clients
-- introducing RxJS-heavy retry pipelines
-- adding circuit breakers, queues, or fallback execution
-- changing service architecture
-- adding global middleware
+- creating `RetryService`, `ResilienceService`, `ResilienceModule`, or similar abstractions
+- creating NestJS interceptors/decorators for retry or timeout
+- creating shared retry helpers/libraries used outside local adapter files
+- introducing RxJS-heavy retry pipelines or policy-based engines
+- adding circuit breakers, queues, saga orchestration, or fallback pipelines
+- modifying services outside `booking-service`
 
 ## Scope
 
@@ -58,8 +67,9 @@ Forbidden:
 
 - Modules affected:
 
-  - existing payment provider adapter
-  - existing notification HTTP client (if already exists)
+  - payment outbound adapter layer (`PaymentProviderAdapter`) used by payment module
+  - notification outbound adapter layer (`NotificationProviderAdapter`) used by notification module
+  - service wiring in `src/app/payment/payment.service.ts` and `src/app/notification/notification.service.ts` only as needed to call adapters
 
 - Infra/manifests affected:
 
@@ -70,88 +80,84 @@ Forbidden:
 
 ## Prerequisites
 
-- Phase 01 completed for shared constants/interfaces if needed.
-- Existing provider adapters identified.
+- Existing outbound payment/notification call points in `booking-service` identified.
+- Local adapter interfaces (or equivalent local provider boundaries) defined in booking modules.
 
 ## Tasks
 
-- Inspect existing outbound HTTP calls in booking-service only.
-- Add explicit timeout values directly in existing HTTP client usage:
-
-  - external provider calls: 30s
-  - internal calls: 10s
-  - health-related calls: 2s
-
-- Add simple inline retry logic ONLY where transient failures are already known to happen:
-
-  - max 3 attempts
-  - fixed backoff sequence: 1s → 2s → 4s
-  - retry only:
-    - timeout
-    - ECONNRESET
-    - ECONNREFUSED
-    - HTTP 5xx
-  - do not retry:
-    - 4xx
-    - validation errors
-    - business rule failures
-
-- Log retry attempt count using existing logger context only.
-- Return safe domain error on final failure.
-
-- Keep implementation local to affected adapter/client.
-- Prefer duplication over abstraction for this phase.
+1. Inspect current outbound integration calls in `booking-service` payment and notification flows.
+2. Introduce or update local adapter boundaries:
+   - `PaymentProviderAdapter`
+   - `NotificationProviderAdapter`
+3. Move outbound request execution behind these adapters (if still called directly elsewhere).
+4. In each adapter implementation, add local timeout configuration:
+   - external provider calls: 30s
+   - internal calls (if any): 10s
+   - health-related calls (if any): 2s
+5. In each adapter implementation, add local bounded retry loop:
+   - max 3 attempts
+   - backoff: `1s -> 2s -> 4s`
+   - retry only timeout/network transient and HTTP `5xx`
+6. Keep retry classification local per adapter; no shared retry utility required.
+7. Log retry attempt metadata using existing local logger only.
+8. Return domain-safe error after final attempt.
+9. Add focused tests at adapter/service boundary for retry and timeout behavior.
 
 ## Expected Deliverables
 
 - Source files (new or updated):
-  - service-level client config files in affected services
-  - provider adapter files for payment/notification/auth boundaries
+  - `booking-service` local payment adapter files (`PaymentProviderAdapter` + implementation)
+  - `booking-service` local notification adapter files (`NotificationProviderAdapter` + implementation)
+  - minimal wiring updates in `payment.service.ts` and `notification.service.ts` where adapter is used
 - Test files:
-  - retry classification and backoff tests
-  - timeout behavior tests
+  - adapter-level retry classification and max-attempt tests
+  - adapter-level timeout behavior tests
 
 ## Acceptance Criteria
 
-- Existing outbound provider call retries at most 3 times.
-- 4xx responses fail immediately without retry.
-- Timeout returns bounded error within configured timeout window.
-- Retry implementation stays local to existing adapter/client files.
-- No new shared retry module or framework abstraction exists.
-- No unrelated service files modified.
+- Payment outbound calls go through `PaymentProviderAdapter` local boundary in `booking-service`.
+- Notification outbound calls go through `NotificationProviderAdapter` local boundary in `booking-service`.
+- Each adapter enforces max 3 retry attempts for retryable failures.
+- HTTP `4xx` fail immediately (except explicitly handled `429` logic if implemented).
+- Timeout behavior is bounded by configured per-call limits.
+- Retry/timeout logic exists inside adapter implementations, not global modules.
+- No `RetryService`, no `ResilienceModule`, no interceptors/decorators, no policy engine, no circuit breaker.
+- No changes outside `booking-service`.
 
 ## Validation Steps
 
-- Simulate provider 503 and verify retry sequence.
-- Simulate provider timeout and verify request returns bounded error within budget.
-- Simulate 4xx errors and verify no retry (except 429).
+- Simulate payment provider `503` and verify adapter retry sequence (`1s -> 2s -> 4s`, max 3).
+- Simulate notification provider timeout and verify bounded failure response.
+- Simulate `4xx` response and verify immediate failure without retry.
+- Confirm adapter wiring is local to booking payment/notification modules.
 
 ## Test Plan
 
 - Unit tests:
 
-  - retryable vs non-retryable error behavior
-  - retry attempt limit
-  - timeout handling
+  - `PaymentProviderAdapter`: retryable vs non-retryable classification
+  - `PaymentProviderAdapter`: max-attempt and timeout behavior
+  - `NotificationProviderAdapter`: retryable vs non-retryable classification
+  - `NotificationProviderAdapter`: max-attempt and timeout behavior
 
 - Integration tests:
 
-  - mocked provider returning 5xx
-  - mocked timeout scenario
+  - mocked payment provider returning `5xx`
+  - mocked notification provider timeout scenario
 
 - Validation:
-  - verify 4xx responses are not retried
-  - verify total retry count <= 3
+  - verify `4xx` responses are not retried
+  - verify total retry count <= 3 per adapter call
 
 ## Risks
 
-- Over-retry causing pressure spikes.
-- Inconsistent timeout values across services.
+- Over-retry can increase outbound pressure during provider degradation.
+- Local duplication can drift if not covered by tests.
 
 ## Rollback Strategy
 
-- Revert retry/timeout config files in affected services only.
-- Restore previous stable timeout settings.
+- Revert local adapter retry/timeout changes in `booking-service` only.
+- Restore previous payment/notification outbound behavior.
 
 ## Architecture Alignment
 
@@ -160,9 +166,9 @@ Forbidden:
   - 2.6.2 (external dependency failure handling)
   - 2.7.2 (distributed consistency under retries)
 - SAD:
-  - 6.1 (booking runtime implication)
-  - 8.7 (error handling and retry)
-  - 10.1 (availability)
+  - service boundary ownership and external adapter isolation
+  - booking runtime bounded path for external calls
+  - fault isolation by keeping provider semantics outside booking core
 - C4:
   - `c4-dynamic-booking.md` (short synchronous path)
   - `c4-context.md` (external provider boundaries)
@@ -174,44 +180,49 @@ Implement ONLY Phase 08 in `booking-service`.
 IMPORTANT:
 This phase is intentionally SMALL and LOCALIZED.
 
+Architecture intent for this phase:
+
+- outbound integrations must be handled via local adapters
+- retry/timeout must live inside adapter implementations
+- duplication between payment and notification adapters is acceptable
+
 Implementation style required:
 
-- inline logic
-- local adapter-level changes
-- duplication is acceptable
-- avoid abstractions
+- local adapter-level changes only
+- simple inline retry loop inside adapter methods
+- direct timeout values in adapter request config
+- lightweight implementation; avoid framework abstractions
 
 STRICTLY FORBIDDEN:
 
-- RetryService
-- ResilienceModule
-- shared retry helpers
+- `RetryService`
+- `ResilienceModule`
+- shared retry framework/helpers across services
 - decorators/interceptors
 - RxJS retry pipelines
 - policy engines
 - circuit breakers
-- fallback execution
-- framework-style patterns
+- fallback orchestration
+- enterprise resilience platform concepts
 
 Implementation Rules:
 
-1. Inspect existing outbound HTTP usage first.
-2. Modify ONLY existing outbound provider adapters/clients.
-3. Add direct timeout values in existing request config.
-4. Add small inline retry loop near the request call.
-5. Maximum retry logic size:
-   - <= 30 LOC per adapter
-6. Do NOT touch unrelated services.
-7. Do NOT refactor HTTP architecture.
-8. Use existing logger only.
-9. Add focused tests only for:
-   - retryable errors
-   - non-retryable errors
-   - timeout handling
+1. Inspect existing outbound payment/notification call points in `booking-service`.
+2. Ensure calls are routed through local adapters:
+   - `PaymentProviderAdapter`
+   - `NotificationProviderAdapter`
+3. Implement retry + timeout inside each adapter implementation method.
+4. Keep logic local and explicit (no shared resilience utilities required).
+5. Use max 3 attempts and backoff `1s -> 2s -> 4s`.
+6. Retry only timeout/network transient/HTTP `5xx`; fail fast on `4xx`.
+7. Keep service-layer changes minimal: call adapter, map result, handle final error.
+8. Use existing logger context only.
+9. Add focused tests for retry classification, retry limit, and timeout behavior.
+10. Do not modify anything outside `booking-service`.
 
 Success Criteria:
 
-- bounded retries
-- bounded timeout
-- no architecture changes
-- no new framework abstractions
+- outbound calls isolated behind local payment/notification adapters
+- bounded retries and bounded timeout enforced locally
+- no shared resilience framework or modules
+- no architecture expansion beyond `booking-service`

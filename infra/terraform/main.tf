@@ -120,7 +120,7 @@ resource "azurerm_container_app" "user_service" {
 
   ingress {
     external_enabled = false
-    target_port      = var.services["user-service"].port
+    target_port      = var.services["user-service"].tcp_port
     transport        = "tcp"
     
     traffic_weight {
@@ -142,7 +142,7 @@ resource "azurerm_container_app" "user_service" {
       readiness_probe {
         http_get {
           path   = "/health/ready"
-          port   = var.services["user-service"].port
+          port   = var.services["user-service"].http_port
           scheme = "HTTP"
         }
         initial_delay = 5
@@ -164,7 +164,12 @@ resource "azurerm_container_app" "user_service" {
 
       env {
         name  = "TCP_PORT"
-        value = tostring(var.services["user-service"].port)
+        value = tostring(var.services["user-service"].tcp_port)
+      }
+
+      env {
+        name  = "HTTP_PORT"
+        value = tostring(var.services["user-service"].http_port)
       }
 
       env {
@@ -216,7 +221,7 @@ resource "azurerm_container_app" "movie_service" {
 
   ingress {
     external_enabled = false
-    target_port      = var.services["movie-service"].port
+    target_port      = var.services["movie-service"].tcp_port
     transport        = "tcp"
     
     traffic_weight {
@@ -238,7 +243,7 @@ resource "azurerm_container_app" "movie_service" {
       readiness_probe {
         http_get {
           path   = "/health/ready"
-          port   = var.services["movie-service"].port
+          port   = var.services["movie-service"].http_port
           scheme = "HTTP"
         }
         initial_delay = 5
@@ -260,7 +265,12 @@ resource "azurerm_container_app" "movie_service" {
 
       env {
         name  = "TCP_PORT"
-        value = tostring(var.services["movie-service"].port)
+        value = tostring(var.services["movie-service"].tcp_port)
+      }
+
+      env {
+        name  = "HTTP_PORT"
+        value = tostring(var.services["movie-service"].http_port)
       }
 
       env {
@@ -307,7 +317,7 @@ resource "azurerm_container_app" "cinema_service" {
 
   ingress {
     external_enabled = false
-    target_port      = var.services["cinema-service"].port
+    target_port      = var.services["cinema-service"].tcp_port
     transport        = "tcp"
     
     traffic_weight {
@@ -329,7 +339,7 @@ resource "azurerm_container_app" "cinema_service" {
       readiness_probe {
         http_get {
           path   = "/health/ready"
-          port   = var.services["cinema-service"].port
+          port   = var.services["cinema-service"].http_port
           scheme = "HTTP"
         }
         initial_delay = 5
@@ -351,7 +361,12 @@ resource "azurerm_container_app" "cinema_service" {
 
       env {
         name  = "TCP_PORT"
-        value = tostring(var.services["cinema-service"].port)
+        value = tostring(var.services["cinema-service"].tcp_port)
+      }
+
+      env {
+        name  = "HTTP_PORT"
+        value = tostring(var.services["cinema-service"].http_port)
       }
 
       env {
@@ -367,7 +382,7 @@ resource "azurerm_container_app" "cinema_service" {
 
       env {
         name  = "MOVIE_PORT"
-        value = tostring(var.services["movie-service"].port)
+        value = tostring(var.services["movie-service"].tcp_port)
       }
 
       env {
@@ -419,7 +434,7 @@ resource "azurerm_container_app" "booking_service" {
 
   ingress {
     external_enabled = false
-    target_port      = var.services["booking-service"].port
+    target_port      = var.services["booking-service"].tcp_port
     transport        = "tcp"
     
     traffic_weight {
@@ -441,7 +456,7 @@ resource "azurerm_container_app" "booking_service" {
       readiness_probe {
         http_get {
           path   = "/health/ready"
-          port   = var.services["booking-service"].port
+          port   = var.services["booking-service"].http_port
           scheme = "HTTP"
         }
         initial_delay = 5
@@ -463,7 +478,12 @@ resource "azurerm_container_app" "booking_service" {
 
       env {
         name  = "TCP_PORT"
-        value = tostring(var.services["booking-service"].port)
+        value = tostring(var.services["booking-service"].tcp_port)
+      }
+
+      env {
+        name  = "HTTP_PORT"
+        value = tostring(var.services["booking-service"].http_port)
       }
 
       env {
@@ -479,7 +499,7 @@ resource "azurerm_container_app" "booking_service" {
 
       env {
         name  = "CINEMA_PORT"
-        value = tostring(var.services["cinema-service"].port)
+        value = tostring(var.services["cinema-service"].tcp_port)
       }
 
       env {
@@ -489,7 +509,7 @@ resource "azurerm_container_app" "booking_service" {
 
       env {
         name  = "USER_PORT"
-        value = tostring(var.services["user-service"].port)
+        value = tostring(var.services["user-service"].tcp_port)
       }
 
       env {
@@ -593,7 +613,7 @@ resource "azurerm_container_app" "api_gateway" {
 
   ingress {
     external_enabled = true
-    target_port      = var.services["api-gateway"].port
+    target_port      = var.services["api-gateway"].http_port
     transport        = "http"
     
     traffic_weight {
@@ -615,7 +635,7 @@ resource "azurerm_container_app" "api_gateway" {
       readiness_probe {
         http_get {
           path   = "/api/health/ready"
-          port   = var.services["api-gateway"].port
+          port   = var.services["api-gateway"].http_port
           scheme = "HTTP"
         }
         initial_delay = 5
@@ -632,7 +652,7 @@ resource "azurerm_container_app" "api_gateway" {
 
       env {
         name  = "PORT"
-        value = tostring(var.services["api-gateway"].port)
+        value = tostring(var.services["api-gateway"].http_port)
       }
 
       env {
@@ -648,7 +668,7 @@ resource "azurerm_container_app" "api_gateway" {
 
       env {
         name  = "USER_PORT"
-        value = tostring(var.services["user-service"].port)
+        value = tostring(var.services["user-service"].tcp_port)
       }
 
       env {
@@ -658,7 +678,7 @@ resource "azurerm_container_app" "api_gateway" {
 
       env {
         name  = "MOVIE_PORT"
-        value = tostring(var.services["movie-service"].port)
+        value = tostring(var.services["movie-service"].tcp_port)
       }
 
       env {
@@ -668,7 +688,7 @@ resource "azurerm_container_app" "api_gateway" {
 
       env {
         name  = "CINEMA_PORT"
-        value = tostring(var.services["cinema-service"].port)
+        value = tostring(var.services["cinema-service"].tcp_port)
       }
 
       env {
@@ -678,7 +698,7 @@ resource "azurerm_container_app" "api_gateway" {
 
       env {
         name  = "BOOKING_PORT"
-        value = tostring(var.services["booking-service"].port)
+        value = tostring(var.services["booking-service"].tcp_port)
       }
 
       env {
@@ -689,8 +709,8 @@ resource "azurerm_container_app" "api_gateway" {
       # Health check
       liveness_probe {
         transport        = "HTTP"
-        path             = "/api/health"
-        port             = var.services["api-gateway"].port
+        path             = "/api/health/live"
+        port             = var.services["api-gateway"].http_port
         
         interval_seconds = 30
         timeout          = 5
@@ -701,8 +721,8 @@ resource "azurerm_container_app" "api_gateway" {
    
       readiness_probe {
         transport        = "HTTP"
-        path             = "/api/health"
-        port             = var.services["api-gateway"].port
+        path             = "/api/health/ready"
+        port             = var.services["api-gateway"].http_port
    
         interval_seconds = 10
         timeout          = 5

@@ -70,18 +70,20 @@ variable "log_analytics_workspace_name" {
 variable "services" {
   description = "Configuration for each microservice"
   type = map(object({
-    port           = number
-    cpu            = number
-    memory         = string
-    min_replicas   = number
-    max_replicas   = number
-    is_external    = bool
-    health_path    = string
-    transport      = string  # "http" or "tcp"
+    tcp_port     = number
+    http_port    = number
+    cpu          = number
+    memory       = string
+    min_replicas = number
+    max_replicas = number
+    is_external  = bool
+    health_path  = string
+    transport    = string  # "http" or "tcp"
   }))
   default = {
     api-gateway = {
-      port         = 3000
+      tcp_port     = 3000
+      http_port    = 3000
       cpu          = 0.5
       memory       = "1Gi"
       min_replicas = 2
@@ -91,7 +93,8 @@ variable "services" {
       transport    = "http"
     }
     user-service = {
-      port         = 3001
+      tcp_port     = 3001
+      http_port    = 3006
       cpu          = 0.25
       memory       = "0.5Gi"
       min_replicas = 2
@@ -101,7 +104,8 @@ variable "services" {
       transport    = "tcp"
     }
     movie-service = {
-      port         = 3002
+      tcp_port     = 3002
+      http_port    = 3007
       cpu          = 0.25
       memory       = "0.5Gi"
       min_replicas = 2
@@ -111,7 +115,8 @@ variable "services" {
       transport    = "tcp"
     }
     cinema-service = {
-      port         = 3003
+      tcp_port     = 3003
+      http_port    = 3008
       cpu          = 0.25
       memory       = "0.5Gi"
       min_replicas = 2
@@ -121,7 +126,8 @@ variable "services" {
       transport    = "tcp"
     }
     booking-service = {
-      port         = 3004
+      tcp_port     = 3004
+      http_port    = 3005
       cpu          = 0.25
       memory       = "0.5Gi"
       min_replicas = 2
