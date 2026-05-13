@@ -4,11 +4,14 @@ import Joi from 'joi';
 import { StaffModule } from './staff/staff.module';
 import { UserModule } from './user/user.module';
 import { HealthController } from './health.controller';
+import { SharedMetricsModule } from '@movie-hub/shared-metrics';
+import { PrismaService } from './prisma.service';
 
 @Module({
   imports: [
     StaffModule,
     UserModule,
+    SharedMetricsModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: 'apps/user-service/.env',
@@ -21,6 +24,6 @@ import { HealthController } from './health.controller';
     }),
   ],
   controllers: [HealthController],
-  providers: [],
+  providers: [PrismaService],
 })
 export class AppModule {}

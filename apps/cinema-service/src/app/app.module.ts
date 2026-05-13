@@ -8,6 +8,8 @@ import { HallModule } from './hall/hall.module';
 import { TicketPricingModule } from './ticket-pricing/ticket-pricing.module';
 import { HealthController } from './health.controller';
 import Joi from 'joi';
+import { SharedMetricsModule } from '@movie-hub/shared-metrics';
+import { PrismaService } from './prisma.service';
 
 @Module({
   imports: [
@@ -26,8 +28,9 @@ import Joi from 'joi';
     RealtimeModule,
     HallModule,
     TicketPricingModule,
+    SharedMetricsModule,
   ],
   controllers: [HealthController],
-  providers: [],
+  providers: [PrismaService],
 })
 export class AppModule {}

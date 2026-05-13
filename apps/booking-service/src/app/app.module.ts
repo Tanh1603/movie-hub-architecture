@@ -15,6 +15,7 @@ import { BookingRedisModule } from './redis/redis.module';
 import { NotificationModule } from './notification/notification.module';
 import { HealthController } from './health.controller';
 import Joi from 'joi';
+import { SharedMetricsModule } from '@movie-hub/shared-metrics';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import Joi from 'joi';
     LoyaltyModule,
     TicketModule,
     RefundModule,
+    SharedMetricsModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService, PrismaService],

@@ -1,0 +1,41 @@
+groups:
+  - name: moviehub-phase-10c-alerts
+    rules:
+      - alert: MovieHubServiceDown
+        expr: up{job=~".*-metrics"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: availability
+        annotations:
+          summary: '{{ $labels.job }} is down'
+          description: 'Prometheus target {{ $labels.instance }} for job {{ $labels.job }} is not responding on /metrics.'
+
+      - alert: MovieHubHighErrorRate
+        expr: |
+          (
+            sum by (job) (rate(moviehub_http_requests_total{status=~"5.."}[5m]))
+            /
+            clamp_min(sum by (job) (rate(moviehub_http_requests_total[5m])), 1e-6)
+          ) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          category: reliability
+        annotations:
+          summary: '{{ $labels.job }} is returning too many 5xx responses'
+          description: 'The 5xx ratio has been above 5% for 10 minutes on {{ $labels.job }}.'
+
+      - alert: MovieHubHighLatencyP95
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (job, le) (rate(moviehub_http_request_duration_seconds_bucket[5m]))
+          ) > 2
+        for: 10m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: '{{ $labels.job }} p95 latency is above 2s'
+          description: 'The 95th percentile HTTP latency has been above 2 seconds for 10 minutes on {{ $labels.job }}.'

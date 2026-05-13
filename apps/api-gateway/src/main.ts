@@ -88,7 +88,7 @@ async function bootstrap() {
 
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix, {
-    exclude: ['/socket.io/(.*)'],
+    exclude: ['/socket.io/(.*)', 'metrics'],
   });
 
   app.use(cookieParser());

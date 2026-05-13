@@ -10,6 +10,7 @@ import { RealtimeModule } from './module/realtime/realtime.module';
 import { BookingModule } from './module/booking/booking.module';
 import { DashboardModule } from './module/dashboard/dashboard.module';
 import { HealthController } from './health.controller';
+import { SharedMetricsModule } from '@movie-hub/shared-metrics';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { HealthController } from './health.controller';
     BookingModule, // Includes: booking, payment, refund, concession, promotion, ticket, loyalty controllers
     RealtimeModule,
     DashboardModule, // BFF aggregation for admin dashboard
+    SharedMetricsModule,
   ],
   controllers: [HealthController],
   providers: [

@@ -1,0 +1,19 @@
+{
+  "name": "shared-metrics",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared-metrics/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/shared-metrics",
+        "main": "libs/shared-metrics/src/index.ts",
+        "tsConfig": "libs/shared-metrics/tsconfig.lib.json",
+        "assets": ["libs/*.md"]
+      }
+    }
+  }
+}

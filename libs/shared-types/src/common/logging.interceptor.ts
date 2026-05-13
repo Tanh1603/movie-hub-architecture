@@ -10,6 +10,15 @@ import { Observable, tap } from 'rxjs';
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
   private logger: Logger;
+  // Paths to exclude from detailed logging
+  private readonly excludedPaths = new Set([
+    '/metrics',
+    '/api/metrics',
+    '/health',
+    '/api/health',
+    '/api/health/live',
+    '/api/health/ready',
+  ]);
 
   constructor(name: string) {
     this.logger = new Logger(name);
@@ -19,12 +28,18 @@ export class LoggingInterceptor implements NestInterceptor {
     const contextType = context.getType();
     let payload;
     let logPrefix = '';
+    let shouldLog = true;
 
     switch (contextType) {
       case 'http': {
         const request = context.switchToHttp().getRequest();
         payload = request.body;
         logPrefix = `HTTP ${request.method} ${request.url}`;
+        // Check if the path should be excluded from logging
+        const url = request.url.split('?')[0]; // Remove query params
+        shouldLog = !Array.from(this.excludedPaths).some((excludedPath) =>
+          url.includes(excludedPath)
+        );
         break;
       }
       case 'rpc': {
@@ -39,19 +54,23 @@ export class LoggingInterceptor implements NestInterceptor {
     }
 
     const now = Date.now();
-    this.logger.debug(
-      `[${logPrefix}] Incoming request with body: ${JSON.stringify(payload)}`
-    );
+    if (shouldLog) {
+      this.logger.debug(
+        `[${logPrefix}] Incoming request with body: ${JSON.stringify(payload)}`
+      );
+    }
 
     return next.handle().pipe(
       tap({
         next: (response) => {
           const responseTime = Date.now() - now;
-          this.logger.debug(
-            `[${logPrefix}] Response (${responseTime}ms): ${JSON.stringify(
-              response
-            )}`
-          );
+          if (shouldLog) {
+            this.logger.debug(
+              `[${logPrefix}] Response (${responseTime}ms): ${JSON.stringify(
+                response
+              )}`
+            );
+          }
         },
         error: (error) => {
           const responseTime = Date.now() - now;
@@ -61,11 +80,13 @@ export class LoggingInterceptor implements NestInterceptor {
               ? { ...error, message: error.message, stack: error.stack }
               : error;
 
-          this.logger.error(
-            `[${logPrefix}] Error (${responseTime}ms): ${JSON.stringify(
-              errorContent
-            )}`
-          );
+          if (shouldLog) {
+            this.logger.error(
+              `[${logPrefix}] Error (${responseTime}ms): ${JSON.stringify(
+                errorContent
+              )}`
+            );
+          }
         },
       })
     );

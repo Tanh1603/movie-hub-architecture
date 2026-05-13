@@ -6,6 +6,7 @@ import { MovieModule } from './module/movie/movie.module';
 import { ReviewModule } from './module/review/review.module';
 import { PrismaModule } from './module/prisma/prisma.module';
 import { HealthController } from './app/health/health.controller';
+import { SharedMetricsModule } from '@movie-hub/shared-metrics';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { HealthController } from './app/health/health.controller';
     GenreModule,
     ReviewModule,
     PrismaModule,
+    SharedMetricsModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: 'apps/movie-service/.env',
