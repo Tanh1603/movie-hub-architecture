@@ -23,11 +23,14 @@ import { Roles } from '../../../common/decorator/roles.decorator';
 import { AppRole } from '@movie-hub/shared-types';
 import { CreatePaymentDto, AdminFindAllPaymentsDto, PaymentStatus } from '@movie-hub/shared-types';
 import { Request } from 'express';
+import { SkipThrottle } from '@nestjs/throttler';
+import { SensitiveThrottle } from '../../../common/decorator/sensitive-throttle.decorator';
 
 @Controller({
   version: '1',
   path: 'payments',
 })
+@SensitiveThrottle()
 export class PaymentController {
   constructor(
     private readonly paymentService: PaymentService,
@@ -44,6 +47,7 @@ export class PaymentController {
    * MUST return JSON: { RspCode: string, Message: string }
    */
   @Get('vnpay/ipn')
+  @SkipThrottle()
   @HttpCode(HttpStatus.OK)
   async vnpayIPN(@Query() query: Record<string, string>) {
     const result = await this.paymentService.handleVNPayIPN(query);
@@ -57,6 +61,7 @@ export class PaymentController {
    * NO authentication required (user may have lost session)
    */
   @Get('vnpay/return')
+  @SkipThrottle()
   async vnpayReturn(@Query() query: Record<string, string>) {
     return this.paymentService.handleVNPayReturn(query);
   }

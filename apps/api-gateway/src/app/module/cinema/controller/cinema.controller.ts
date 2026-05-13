@@ -28,6 +28,7 @@ import {
 import { TransformInterceptor } from '../../../common/interceptor/transform.interceptor';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 import { Permission } from '../../../common/decorator/permission.decorator';
+import { SensitiveThrottle } from '../../../common/decorator/sensitive-throttle.decorator';
 import { PaginationQuery } from '@movie-hub/shared-types/common';
 
 @Controller({
@@ -35,6 +36,7 @@ import { PaginationQuery } from '@movie-hub/shared-types/common';
   path: 'cinemas',
 })
 @UseInterceptors(new TransformInterceptor())
+@SensitiveThrottle()
 export class CinemaController {
   constructor(private readonly cinemaService: CinemaService) {}
 

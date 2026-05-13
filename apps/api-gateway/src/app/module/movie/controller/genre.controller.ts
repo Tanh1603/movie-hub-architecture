@@ -16,12 +16,14 @@ import { TransformInterceptor } from '../../../common/interceptor/transform.inte
 import { GenreService } from '../service/genre.service';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 import { Permission } from '../../../common/decorator/permission.decorator';
+import { SensitiveThrottle } from '../../../common/decorator/sensitive-throttle.decorator';
 
 @Controller({
   version: '1',
   path: 'genres',
 })
 @UseInterceptors(new TransformInterceptor())
+@SensitiveThrottle()
 export class GenreController {
   constructor(private readonly genreService: GenreService) {}
 
@@ -72,5 +74,6 @@ export class GenreController {
     return this.genreService.remove(id);
   }
 }
+
 
 

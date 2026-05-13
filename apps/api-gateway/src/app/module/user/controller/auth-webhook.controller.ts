@@ -2,6 +2,7 @@ import { Controller, Headers, HttpCode, HttpStatus, Logger, Post, Req } from '@n
 import { Request } from 'express';
 import { Webhook } from 'svix';
 import { UserService } from '../user.service';
+import { SkipThrottle } from '@nestjs/throttler';
 
 type ClerkWebhookEnvelope = {
   data?: { id?: string };
@@ -15,6 +16,7 @@ export class AuthWebhookController {
   constructor(private readonly userService: UserService) {}
 
   @Post('webhook')
+  @SkipThrottle()
   @HttpCode(HttpStatus.OK)
   async handleClerkWebhook(
     @Req() req: Request & { rawBody?: Buffer },

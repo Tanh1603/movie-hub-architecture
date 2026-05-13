@@ -30,12 +30,14 @@ import {
   UpdateShowtimeRequest,
 } from '@movie-hub/shared-types';
 import { ZodValidationPipe } from 'nestjs-zod';
+import { SensitiveThrottle } from '../../../common/decorator/sensitive-throttle.decorator';
 
 @Controller({
   version: '1',
   path: 'showtimes',
 })
 @UseInterceptors(new TransformInterceptor())
+@SensitiveThrottle()
 export class ShowtimeController {
   constructor(private readonly showtimeService: ShowtimeService) {}
 
@@ -151,6 +153,7 @@ export class ShowtimeController {
     return this.showtimeService.deleteShowtime(showtimeId);
   }
 }
+
 
 
 

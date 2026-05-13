@@ -5,11 +5,14 @@ import { CinemaModule } from './module/cinema/cinema.module';
 import Joi from 'joi';
 import { MovieModule } from './module/movie/movie.module';
 import { APP_PIPE } from '@nestjs/core';
+import { APP_GUARD } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { RealtimeModule } from './module/realtime/realtime.module';
 import { BookingModule } from './module/booking/booking.module';
 import { DashboardModule } from './module/dashboard/dashboard.module';
 import { HealthController } from './health.controller';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { AppThrottlerGuard } from './common/guard/app-throttler.guard';
 
 @Module({
   imports: [
@@ -42,9 +45,32 @@ import { HealthController } from './health.controller';
     BookingModule, // Includes: booking, payment, refund, concession, promotion, ticket, loyalty controllers
     RealtimeModule,
     DashboardModule, // BFF aggregation for admin dashboard
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: 60_000,
+        limit: 120,
+      },
+      {
+        name: 'sensitiveBurst',
+        ttl: 10_000,
+        limit: 30,
+        blockDuration: 30_000,
+      },
+      {
+        name: 'sensitiveSustained',
+        ttl: 60_000,
+        limit: 80,
+        blockDuration: 120_000,
+      },
+    ]),
   ],
   controllers: [HealthController],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AppThrottlerGuard,
+    },
     {
       provide: APP_PIPE,
       useClass: ZodValidationPipe,

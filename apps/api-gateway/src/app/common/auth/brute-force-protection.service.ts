@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { RedisPubSubService } from '@movie-hub/shared-redis';
 import { Request } from 'express';
+import { createHash } from 'crypto';
 
 @Injectable()
 export class BruteForceProtectionService {
@@ -46,7 +47,7 @@ export class BruteForceProtectionService {
       accountFailures >= this.failureThreshold;
 
     this.logger.warn(
-      `Auth failure tracked ip=${ip} account=${accountKey} ipFailures=${ipFailures} accountFailures=${accountFailures} correlationId=${correlationId}`
+      `Auth failure tracked ip=${this.fingerprint(ip)} account=${this.fingerprint(accountKey)} ipFailures=${ipFailures} accountFailures=${accountFailures} correlationId=${correlationId}`
     );
 
     if (!shouldLock) {
@@ -59,7 +60,7 @@ export class BruteForceProtectionService {
     ]);
 
     this.logger.error(
-      `Temporary auth lockout applied ip=${ip} account=${accountKey} correlationId=${correlationId}`
+      `Temporary auth lockout applied ip=${this.fingerprint(ip)} account=${this.fingerprint(accountKey)} correlationId=${correlationId}`
     );
   }
 
@@ -104,5 +105,8 @@ export class BruteForceProtectionService {
   private lockKeyByAccount(accountKey: string): string {
     return `auth:lock:account:${accountKey}`;
   }
-}
 
+  private fingerprint(value: string): string {
+    return createHash('sha256').update(value).digest('hex').slice(0, 12);
+  }
+}

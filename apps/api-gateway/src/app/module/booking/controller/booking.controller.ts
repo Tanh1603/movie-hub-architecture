@@ -14,6 +14,7 @@ import {
 import { BookingService } from '../service/booking.service';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 import { RoleGuard } from '../../../common/guard/role.guard';
+import { SensitiveThrottle } from '../../../common/decorator/sensitive-throttle.decorator';
 import { Permission } from '../../../common/decorator/permission.decorator';
 import { CurrentUserId } from '../../../common/decorator/current-user-id.decorator';
 import { Roles } from '../../../common/decorator/roles.decorator';
@@ -36,6 +37,7 @@ import { PaginationQuery } from '@movie-hub/shared-types/common';
   version: '1',
   path: 'bookings',
 })
+@SensitiveThrottle()
 export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
 

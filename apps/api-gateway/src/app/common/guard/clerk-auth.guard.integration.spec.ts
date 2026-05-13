@@ -385,4 +385,34 @@ describe('ClerkAuthGuard integration scenarios', () => {
       guard.canActivate(executionContextForRequest(request))
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
+
+  it('returns forbidden when validated token has invalid user context', async () => {
+    tokenValidationService.validateTokenOrThrow.mockResolvedValueOnce({
+      sub: 'invalid-subject',
+      iss: 'https://example.clerk.accounts.dev',
+    } as any);
+
+    userClient.send.mockImplementation((pattern: string) => {
+      if (pattern === UserMessage.GET_USER_ROLES) {
+        return of(['CUSTOMER']);
+      }
+      if (pattern === UserMessage.GET_USER_DETAIL) {
+        return of({ email: 'customer@example.com' });
+      }
+      if (pattern === UserMessage.STAFF.FIND_BY_EMAIL) {
+        return throwError(() => new Error('not staff'));
+      }
+      return of([]);
+    });
+
+    const request: any = {
+      headers: { authorization: 'Bearer valid-token' },
+      cookies: {},
+      ip: '10.0.0.9',
+    };
+
+    await expect(
+      guard.canActivate(executionContextForRequest(request))
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
 });

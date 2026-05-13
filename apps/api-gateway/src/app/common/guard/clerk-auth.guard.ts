@@ -15,6 +15,7 @@ import { lastValueFrom } from 'rxjs';
 import { TokenValidationService } from '../auth/token-validation.service';
 import { BruteForceProtectionService } from '../auth/brute-force-protection.service';
 import { Request } from 'express';
+import { createHash } from 'crypto';
 
 @Injectable()
 export class ClerkAuthGuard implements CanActivate {
@@ -43,6 +44,7 @@ export class ClerkAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request & Record<string, any>>();
     const correlationId = this.getCorrelationId(request);
+    request.headers['x-correlation-id'] = correlationId;
 
     const requiredPermission =
       this.reflector.getAllAndOverride<PermissionRequirement>(PERMISSION_KEY, [
@@ -71,7 +73,7 @@ export class ClerkAuthGuard implements CanActivate {
         correlationId
       );
       this.logger.warn(
-        `Token verification failed account=${accountKey} correlationId=${correlationId}`
+        `Token verification failed account=${this.fingerprint(accountKey)} correlationId=${correlationId}`
       );
       throw new UnauthorizedException('Invalid or expired authentication token');
     }
@@ -128,7 +130,7 @@ export class ClerkAuthGuard implements CanActivate {
 
     if (!this.hasValidUserContextHeaders(request)) {
       this.logger.warn(`Invalid user context headers correlationId=${correlationId}`);
-      throw new UnauthorizedException('Invalid user authentication context');
+      throw new ForbiddenException('Invalid user authentication context');
     }
 
     if (!requiredPermission) {
@@ -234,5 +236,9 @@ export class ClerkAuthGuard implements CanActivate {
     }
 
     return null;
+  }
+
+  private fingerprint(value: string): string {
+    return createHash('sha256').update(value).digest('hex').slice(0, 12);
   }
 }

@@ -15,6 +15,7 @@ import {
 import { TransformInterceptor } from '../../../common/interceptor/transform.interceptor';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 import { Permission } from '../../../common/decorator/permission.decorator';
+import { SensitiveThrottle } from '../../../common/decorator/sensitive-throttle.decorator';
 import {
   CreateHallRequest,
   HallStatusEnum,
@@ -29,6 +30,7 @@ import { lastValueFrom } from 'rxjs';
   path: 'halls',
 })
 @UseInterceptors(new TransformInterceptor())
+@SensitiveThrottle()
 export class HallController {
   constructor(private readonly hallService: HallService) {}
 
@@ -143,5 +145,6 @@ export class HallController {
     return this.hallService.updateSeatStatus(seatId, updateSeatStatusRequest);
   }
 }
+
 
 

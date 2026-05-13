@@ -21,12 +21,14 @@ import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 import { StaffService } from '../service/staff.service';
 import { TransformInterceptor } from '../../../common/interceptor/transform.interceptor';
 import { Permission } from '../../../common/decorator/permission.decorator';
+import { SensitiveThrottle } from '../../../common/decorator/sensitive-throttle.decorator';
 
 @Controller({
   version: '1',
   path: 'staffs',
 })
 @UseInterceptors(new TransformInterceptor())
+@SensitiveThrottle()
 export class StaffController {
   constructor(private readonly staffService: StaffService) {}
 
@@ -104,5 +106,6 @@ export class StaffController {
     return this.staffService.remove(id);
   }
 }
+
 
 

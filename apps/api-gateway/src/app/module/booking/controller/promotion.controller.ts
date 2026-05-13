@@ -15,6 +15,7 @@ import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 import { OptionalClerkAuthGuard } from '../../../common/guard/optional-clerk-auth.guard';
 import { CurrentUserId } from '../../../common/decorator/current-user-id.decorator';
 import { Permission } from '../../../common/decorator/permission.decorator';
+import { SensitiveThrottle } from '../../../common/decorator/sensitive-throttle.decorator';
 import {
   PromotionType,
   ValidatePromotionDto,
@@ -54,6 +55,7 @@ export class PromotionController {
   }
 
   @Post('validate/:code')
+  @SensitiveThrottle()
   @UseGuards(OptionalClerkAuthGuard)
   async validate(
     @Param('code') code: string,
