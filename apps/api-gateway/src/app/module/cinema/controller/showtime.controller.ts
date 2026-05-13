@@ -20,7 +20,7 @@ import { RoleGuard } from '../../../common/guard/role.guard';
 import { CurrentUserId } from '../../../common/decorator/current-user-id.decorator';
 import { Permission } from '../../../common/decorator/permission.decorator';
 import { Roles } from '../../../common/decorator/roles.decorator';
-import { AppRole } from '@movie-hub/shared-types';
+import { AccessRole } from '../../../common/constants/roles.constants';
 import {
   AdminShowtimeFilterDTO,
   BatchCreateShowtimesInput,
@@ -82,7 +82,7 @@ export class ShowtimeController {
 
   @Post('showtime')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
+  @Roles(AccessRole.CINEMA_MANAGER, AccessRole.STAFF)
   @Permission({ resource: 'showtime', action: 'update', scope: 'cinema' })
   @UsePipes(new ZodValidationPipe(createShowtimeSchema))
   createShowtime(@Req() req: any, @Body() body: CreateShowtimeRequest) {
@@ -97,7 +97,7 @@ export class ShowtimeController {
 
   @Post('/batch')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
+  @Roles(AccessRole.CINEMA_MANAGER, AccessRole.STAFF)
   @Permission({ resource: 'showtime', action: 'update', scope: 'cinema' })
   @UsePipes(new ZodValidationPipe(batchCreateShowtimesSchema))
   createBatchShowtimes(
@@ -115,7 +115,7 @@ export class ShowtimeController {
 
   @Patch('/showtime/:id')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
+  @Roles(AccessRole.CINEMA_MANAGER, AccessRole.STAFF)
   @Permission({ resource: 'showtime', action: 'update', scope: 'cinema' })
   async updateShowtime(
     @Req() req: any,
@@ -137,7 +137,7 @@ export class ShowtimeController {
 
   @Delete('/showtime/:id')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
+  @Roles(AccessRole.CINEMA_MANAGER, AccessRole.STAFF)
   @Permission({ resource: 'showtime', action: 'update', scope: 'cinema' })
   async deleteShowtime(@Req() req: any, @Param('id') showtimeId: string) {
     const userCinemaId = req.staffContext?.cinemaId;
@@ -153,6 +153,9 @@ export class ShowtimeController {
     return this.showtimeService.deleteShowtime(showtimeId);
   }
 }
+
+
+
 
 
 

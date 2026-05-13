@@ -14,7 +14,7 @@ import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 import { RoleGuard } from '../../../common/guard/role.guard';
 import { Permission } from '../../../common/decorator/permission.decorator';
 import { Roles } from '../../../common/decorator/roles.decorator';
-import { AppRole } from '@movie-hub/shared-types';
+import { AccessRole } from '../../../common/constants/roles.constants';
 import {
   CreateRefundDto,
   FindAllRefundsDto,
@@ -32,7 +32,7 @@ export class RefundController {
 
   @Post()
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CUSTOMER)
+  @Roles(AccessRole.CUSTOMER)
   @Permission({ resource: 'refund', action: 'create', scope: 'own' })
   async create(@Body() createRefundDto: CreateRefundDto) {
     return this.refundService.createRefund(createRefundDto);
@@ -40,7 +40,7 @@ export class RefundController {
 
   @Get()
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
+  @Roles(AccessRole.CINEMA_MANAGER, AccessRole.STAFF)
   @Permission({ resource: 'refund', action: 'read', scope: 'cinema' })
   async findAll(@Query() filters: FindAllRefundsDto) {
     return this.refundService.findAll(filters);
@@ -48,7 +48,7 @@ export class RefundController {
 
   @Get(':id')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
+  @Roles(AccessRole.CINEMA_MANAGER, AccessRole.STAFF)
   @Permission({ resource: 'refund', action: 'read', scope: 'cinema' })
   async findOne(@Param('id') id: string) {
     return this.refundService.findOne(id);
@@ -56,7 +56,7 @@ export class RefundController {
 
   @Get('payment/:paymentId')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
+  @Roles(AccessRole.CINEMA_MANAGER, AccessRole.STAFF)
   @Permission({ resource: 'refund', action: 'read', scope: 'cinema' })
   async findByPayment(@Param('paymentId') paymentId: string) {
     return this.refundService.findByPayment(paymentId);
@@ -64,7 +64,7 @@ export class RefundController {
 
   @Put(':id/process')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CINEMA_MANAGER)
+  @Roles(AccessRole.CINEMA_MANAGER)
   @Permission({ resource: 'refund', action: 'update', scope: 'cinema' })
   async process(
     @Param('id') refundId: string,
@@ -75,7 +75,7 @@ export class RefundController {
 
   @Put(':id/approve')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.ADMIN)
+  @Roles(AccessRole.ADMIN)
   @Permission({ resource: 'refund', action: 'approve', scope: 'global' })
   async approve(
     @Param('id') refundId: string,
@@ -86,7 +86,7 @@ export class RefundController {
 
   @Put(':id/reject')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.ADMIN)
+  @Roles(AccessRole.ADMIN)
   @Permission({ resource: 'refund', action: 'approve', scope: 'global' })
   async reject(
     @Param('id') refundId: string,
@@ -101,7 +101,7 @@ export class RefundController {
    */
   @Post('booking/:bookingId/voucher')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CUSTOMER)
+  @Roles(AccessRole.CUSTOMER)
   @Permission({ resource: 'refund', action: 'create', scope: 'own' })
   async processAsVoucher(
     @Param('bookingId') bookingId: string,
@@ -115,6 +115,9 @@ export class RefundController {
     );
   }
 }
+
+
+
 
 
 

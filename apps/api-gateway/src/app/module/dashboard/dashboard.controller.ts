@@ -12,7 +12,7 @@ import { RoleGuard } from '../../common/guard/role.guard';
 import { TransformInterceptor } from '../../common/interceptor/transform.interceptor';
 import { Permission } from '../../common/decorator/permission.decorator';
 import { Roles } from '../../common/decorator/roles.decorator';
-import { AppRole } from '@movie-hub/shared-types';
+import { AccessRole } from '../../common/constants/roles.constants';
 
 /**
  * Dashboard Controller
@@ -25,7 +25,7 @@ import { AppRole } from '@movie-hub/shared-types';
   path: 'dashboard',
 })
 @UseGuards(ClerkAuthGuard, RoleGuard)
-@Roles(AppRole.ADMIN)
+@Roles(AccessRole.ADMIN)
 @UseInterceptors(new TransformInterceptor())
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
@@ -165,3 +165,5 @@ export class DashboardController {
     };
   }
 }
+
+

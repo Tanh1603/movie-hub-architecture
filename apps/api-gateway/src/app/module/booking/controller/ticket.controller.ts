@@ -16,7 +16,7 @@ import { RoleGuard } from '../../../common/guard/role.guard';
 import { CurrentUserId } from '../../../common/decorator/current-user-id.decorator';
 import { Permission } from '../../../common/decorator/permission.decorator';
 import { Roles } from '../../../common/decorator/roles.decorator';
-import { AppRole } from '@movie-hub/shared-types';
+import { AccessRole } from '../../../common/constants/roles.constants';
 import { AdminFindAllTicketsDto, BulkValidateTicketsDto } from '@movie-hub/shared-types';
 import { BookingService } from '../service/booking.service';
 
@@ -40,7 +40,7 @@ export class TicketController {
    */
   @Get(':id')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CUSTOMER)
+  @Roles(AccessRole.CUSTOMER)
   @Permission({ resource: 'ticket', action: 'read', scope: 'own' })
   async getTicket(@CurrentUserId() userId: string, @Param('id') id: string) {
     const ticket = await this.ticketService.findOne(id);
@@ -54,7 +54,7 @@ export class TicketController {
    */
   @Get('code/:ticketCode')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CUSTOMER)
+  @Roles(AccessRole.CUSTOMER)
   @Permission({ resource: 'ticket', action: 'read', scope: 'own' })
   async getTicketByCode(
     @CurrentUserId() userId: string,
@@ -71,7 +71,7 @@ export class TicketController {
    */
   @Post(':id/validate')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
+  @Roles(AccessRole.CINEMA_MANAGER, AccessRole.STAFF)
   @Permission({ resource: 'ticket', action: 'validate', scope: 'cinema' })
   @HttpCode(HttpStatus.OK)
   async validateTicket(
@@ -93,7 +93,7 @@ export class TicketController {
    */
   @Post(':id/use')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
+  @Roles(AccessRole.CINEMA_MANAGER, AccessRole.STAFF)
   @Permission({ resource: 'ticket', action: 'update', scope: 'cinema' })
   @HttpCode(HttpStatus.OK)
   async useTicket(@CurrentUserId() userId: string, @Param('id') ticketId: string) {
@@ -106,7 +106,7 @@ export class TicketController {
    */
   @Get(':id/qr')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CUSTOMER)
+  @Roles(AccessRole.CUSTOMER)
   @Permission({ resource: 'ticket', action: 'read', scope: 'own' })
   async generateQRCode(
     @CurrentUserId() userId: string,
@@ -122,7 +122,7 @@ export class TicketController {
 
   @Get('admin/all')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
+  @Roles(AccessRole.CINEMA_MANAGER, AccessRole.STAFF)
   @Permission({ resource: 'ticket', action: 'read', scope: 'cinema' })
   async adminFindAll(@Query() filters: AdminFindAllTicketsDto) {
     return this.ticketService.adminFindAll(filters);
@@ -130,7 +130,7 @@ export class TicketController {
 
   @Get('admin/showtime/:showtimeId')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
+  @Roles(AccessRole.CINEMA_MANAGER, AccessRole.STAFF)
   @Permission({ resource: 'ticket', action: 'read', scope: 'cinema' })
   async findByShowtime(@Param('showtimeId') showtimeId: string) {
     return this.ticketService.findByShowtime(showtimeId);
@@ -138,7 +138,7 @@ export class TicketController {
 
   @Get('admin/booking/:bookingId')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
+  @Roles(AccessRole.CINEMA_MANAGER, AccessRole.STAFF)
   @Permission({ resource: 'ticket', action: 'read', scope: 'cinema' })
   async findByBooking(@Param('bookingId') bookingId: string) {
     return this.ticketService.findByBooking(bookingId);
@@ -146,7 +146,7 @@ export class TicketController {
 
   @Post('admin/bulk-validate')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CINEMA_MANAGER, AppRole.ASSISTANT_MANAGER, AppRole.TICKET_CLERK, AppRole.CONCESSION_STAFF, AppRole.USHER, AppRole.PROJECTIONIST, AppRole.CLEANER, AppRole.SECURITY)
+  @Roles(AccessRole.CINEMA_MANAGER, AccessRole.STAFF)
   @Permission({ resource: 'ticket', action: 'validate', scope: 'cinema' })
   @HttpCode(HttpStatus.OK)
   async bulkValidate(@Body() bulkValidateDto: BulkValidateTicketsDto) {
@@ -155,7 +155,7 @@ export class TicketController {
 
   @Put('admin/:id/cancel')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AppRole.CINEMA_MANAGER)
+  @Roles(AccessRole.CINEMA_MANAGER)
   @Permission({ resource: 'ticket', action: 'update', scope: 'cinema' })
   async cancelTicket(
     @Param('id') ticketId: string,
@@ -164,6 +164,9 @@ export class TicketController {
     return this.ticketService.cancelTicket(ticketId, reason);
   }
 }
+
+
+
 
 
 

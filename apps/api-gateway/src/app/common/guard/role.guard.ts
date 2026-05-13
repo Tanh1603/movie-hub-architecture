@@ -6,32 +6,42 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { AppRole } from '@movie-hub/shared-types';
 import { ROLE_KEY } from '../decorator/roles.decorator';
 import { Request } from 'express';
+import { AccessRole } from '../constants/roles.constants';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
   private readonly logger = new Logger(RoleGuard.name);
   private static readonly KNOWN_ROLES = new Set<string>([
-    AppRole.SUPER_ADMIN,
-    AppRole.ADMIN,
-    AppRole.CINEMA_MANAGER,
-    AppRole.ASSISTANT_MANAGER,
-    AppRole.TICKET_CLERK,
-    AppRole.CONCESSION_STAFF,
-    AppRole.USHER,
-    AppRole.PROJECTIONIST,
-    AppRole.CLEANER,
-    AppRole.SECURITY,
-    AppRole.CUSTOMER,
+    AccessRole.ADMIN,
+    AccessRole.CINEMA_MANAGER,
+    AccessRole.STAFF,
+    AccessRole.CUSTOMER,
   ]);
+  private static readonly ROLE_POLICY: Record<
+    AccessRole,
+    ReadonlySet<AccessRole>
+  > = {
+    [AccessRole.ADMIN]: new Set([
+      AccessRole.ADMIN,
+      AccessRole.CINEMA_MANAGER,
+      AccessRole.STAFF,
+      AccessRole.CUSTOMER,
+    ]),
+    [AccessRole.CINEMA_MANAGER]: new Set([
+      AccessRole.CINEMA_MANAGER,
+      AccessRole.STAFF,
+    ]),
+    [AccessRole.STAFF]: new Set([AccessRole.STAFF]),
+    [AccessRole.CUSTOMER]: new Set([AccessRole.CUSTOMER]),
+  };
 
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles =
-      this.reflector.getAllAndOverride<AppRole[]>(ROLE_KEY, [
+      this.reflector.getAllAndOverride<AccessRole[]>(ROLE_KEY, [
         context.getHandler(),
         context.getClass(),
       ]) || [];
@@ -71,7 +81,7 @@ export class RoleGuard implements CanActivate {
     return true;
   }
 
-  private normalizeRole(rawRole: unknown): AppRole | null {
+  private normalizeRole(rawRole: unknown): AccessRole | null {
     if (typeof rawRole !== 'string' || rawRole.length === 0) {
       return null;
     }
@@ -80,55 +90,15 @@ export class RoleGuard implements CanActivate {
       return null;
     }
 
-    if (rawRole === AppRole.CUSTOMER) {
-      return AppRole.CUSTOMER;
-    }
-
-    if (rawRole === AppRole.ADMIN || rawRole === AppRole.SUPER_ADMIN) {
-      return AppRole.ADMIN;
-    }
-
-    if (rawRole === AppRole.CINEMA_MANAGER) {
-      return AppRole.CINEMA_MANAGER;
-    }
-
-    return rawRole as AppRole;
+    return rawRole as AccessRole;
   }
 
-  private hasRoleByPolicy(actual: AppRole, required: AppRole): boolean {
-    if (actual === required) {
-      return true;
-    }
-
-    if (actual === AppRole.ADMIN) {
-      return true;
-    }
-
-    // Cinema manager has full authority within cinema operational roles.
-    if (actual === AppRole.CINEMA_MANAGER) {
-      return (
-        required === AppRole.ASSISTANT_MANAGER ||
-        required === AppRole.TICKET_CLERK ||
-        required === AppRole.CONCESSION_STAFF ||
-        required === AppRole.USHER ||
-        required === AppRole.PROJECTIONIST ||
-        required === AppRole.CLEANER ||
-        required === AppRole.SECURITY
-      );
-    }
-
-    // Assistant manager can act on front-line operational roles.
-    if (actual === AppRole.ASSISTANT_MANAGER) {
-      return (
-        required === AppRole.TICKET_CLERK ||
-        required === AppRole.CONCESSION_STAFF ||
-        required === AppRole.USHER ||
-        required === AppRole.PROJECTIONIST ||
-        required === AppRole.CLEANER ||
-        required === AppRole.SECURITY
-      );
-    }
-
-    return false;
+  private hasRoleByPolicy(
+    actual: AccessRole,
+    required: AccessRole
+  ): boolean {
+    const allowedRoles = RoleGuard.ROLE_POLICY[actual];
+    return allowedRoles ? allowedRoles.has(required) : false;
   }
 }
+

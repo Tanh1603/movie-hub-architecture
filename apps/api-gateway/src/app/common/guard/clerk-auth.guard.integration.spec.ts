@@ -302,7 +302,7 @@ describe('ClerkAuthGuard integration scenarios', () => {
 
     const allowed = await guard.canActivate(executionContextForRequest(request));
     expect(allowed).toBe(true);
-    expect(request.headers['x-user-role']).toBe('SUPER_ADMIN');
+    expect(request.headers['x-user-role']).toBe('ADMIN');
     expect(request.headers['x-cinema-id']).toBe('cinema_1');
     expect(request.staffContext).toEqual({
       staffId: 'staff_1',

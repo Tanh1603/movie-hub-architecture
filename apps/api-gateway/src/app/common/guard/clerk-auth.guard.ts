@@ -16,6 +16,7 @@ import { TokenValidationService } from '../auth/token-validation.service';
 import { BruteForceProtectionService } from '../auth/brute-force-protection.service';
 import { Request } from 'express';
 import { createHash } from 'crypto';
+import { AccessRole } from '../constants/roles.constants';
 
 @Injectable()
 export class ClerkAuthGuard implements CanActivate {
@@ -112,7 +113,9 @@ export class ClerkAuthGuard implements CanActivate {
               };
               request.headers['x-cinema-id'] = String(staffResult.data.cinemaId);
               if (!request.headers['x-user-role']) {
-                request.headers['x-user-role'] = String(staffResult.data.position);
+                request.headers['x-user-role'] = this.mapStaffPositionToAccessRole(
+                  String(staffResult.data.position)
+                );
               }
             }
           } catch {
@@ -125,7 +128,7 @@ export class ClerkAuthGuard implements CanActivate {
     }
 
     if (!request.headers['x-user-role']) {
-      request.headers['x-user-role'] = AppRole.CUSTOMER;
+      request.headers['x-user-role'] = AccessRole.CUSTOMER;
     }
 
     if (!this.hasValidUserContextHeaders(request)) {
@@ -224,18 +227,41 @@ export class ClerkAuthGuard implements CanActivate {
     return userPermissions.some((permission) => candidates.has(permission));
   }
 
-  private pickEffectiveRole(userRoles: string[]): AppRole | null {
+  private pickEffectiveRole(userRoles: string[]): AccessRole | null {
     if (!Array.isArray(userRoles) || userRoles.length === 0) {
       return null;
     }
 
-    for (const role of ClerkAuthGuard.ROLE_PRECEDENCE) {
-      if (userRoles.includes(role)) {
-        return role;
-      }
+    if (
+      userRoles.includes(AppRole.SUPER_ADMIN) ||
+      userRoles.includes(AppRole.ADMIN)
+    ) {
+      return AccessRole.ADMIN;
+    }
+    if (userRoles.includes(AppRole.CINEMA_MANAGER)) {
+      return AccessRole.CINEMA_MANAGER;
+    }
+    if (userRoles.includes(AppRole.CUSTOMER)) {
+      return AccessRole.CUSTOMER;
+    }
+    if (userRoles.some((role) => ClerkAuthGuard.ROLE_PRECEDENCE.includes(role as AppRole))) {
+      return AccessRole.STAFF;
     }
 
     return null;
+  }
+
+  private mapStaffPositionToAccessRole(position: string): AccessRole {
+    if (position === AppRole.CINEMA_MANAGER) {
+      return AccessRole.CINEMA_MANAGER;
+    }
+    if (position === AppRole.ADMIN || position === AppRole.SUPER_ADMIN) {
+      return AccessRole.ADMIN;
+    }
+    if (position === AppRole.CUSTOMER) {
+      return AccessRole.CUSTOMER;
+    }
+    return AccessRole.STAFF;
   }
 
   private fingerprint(value: string): string {
