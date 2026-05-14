@@ -175,12 +175,14 @@ model ClerkSyncTask {
   id          String          @id @default(cuid())
   action      ClerkSyncAction
   status      ClerkSyncStatus @default(PENDING)
+  syncKey     String          @unique @map("sync_key")
   payload     Json            @db.JsonB
   attempts    Int             @default(0)
-  maxAttempts Int             @default(8) @map("max_attempts")
+  maxAttempts Int             @default(3) @map("max_attempts")
   nextRetryAt DateTime        @default(now()) @map("next_retry_at")
   lockedAt    DateTime?       @map("locked_at")
   lastError   String?         @map("last_error")
+  deadLetteredAt DateTime?    @map("dead_lettered_at")
   completedAt DateTime?       @map("completed_at")
   createdAt   DateTime        @default(now()) @map("created_at")
   updatedAt   DateTime        @updatedAt @map("updated_at")

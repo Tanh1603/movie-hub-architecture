@@ -6,7 +6,7 @@ describe('StaffService integration lifecycle', () => {
     staff: { findUnique: jest.fn() },
   } as any;
   const clerkSyncService = {
-    ensureClerkUserForStaff: jest.fn(),
+    enqueueUpsert: jest.fn(),
     enqueueDelete: jest.fn(),
   } as any;
 
@@ -17,10 +17,11 @@ describe('StaffService integration lifecycle', () => {
     service = new StaffService(prisma, clerkSyncService);
   });
 
-  it('create staff should create/link real Clerk user first', async () => {
-    clerkSyncService.ensureClerkUserForStaff.mockResolvedValue('clerk_123');
+  it('create staff should enqueue clerk sync task in the same transaction', async () => {
+    const txCtx = { staff: { upsert: jest.fn() } };
     prisma.$transaction.mockImplementationOnce(async (fn) =>
       fn({
+        ...txCtx,
         staff: {
           upsert: jest.fn().mockResolvedValue({
             id: 's1',
@@ -38,7 +39,7 @@ describe('StaffService integration lifecycle', () => {
             hireDate: new Date('2020-01-01'),
           }),
         },
-      })
+      } as any)
     );
 
     await service.create({
@@ -56,8 +57,9 @@ describe('StaffService integration lifecycle', () => {
       hireDate: new Date('2020-01-01'),
     } as any);
 
-    expect(clerkSyncService.ensureClerkUserForStaff).toHaveBeenCalledWith(
-      expect.objectContaining({ email: 'staff1@example.com' })
+    expect(clerkSyncService.enqueueUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({ email: 'staff1@example.com' }),
+      expect.any(Object)
     );
   });
 });
