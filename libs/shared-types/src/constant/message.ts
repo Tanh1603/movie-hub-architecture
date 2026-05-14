@@ -162,8 +162,8 @@ export const PaymentMessage = {
   CREATE: 'payment.create',
   FIND_ONE: 'payment.findOne',
   FIND_BY_BOOKING: 'payment.findByBooking',
-  VNPAY_IPN: 'payment.vnpay.ipn',
-  VNPAY_RETURN: 'payment.vnpay.return',
+  PROVIDER_IPN: 'payment.provider.ipn',
+  PROVIDER_RETURN: 'payment.provider.return',
   // Admin operations
   ADMIN_FIND_ALL: 'payment.admin.findAll',
   FIND_BY_STATUS: 'payment.findByStatus',

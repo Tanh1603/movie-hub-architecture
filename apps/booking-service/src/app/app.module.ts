@@ -36,6 +36,10 @@ import Joi from 'joi';
         EMAIL_USER: Joi.string().optional(),
         EMAIL_PASSWORD: Joi.string().optional(),
         EMAIL_FROM: Joi.string().default('MovieHub <noreply@moviehub.com>'),
+        VNPAY_TMN_CODE: Joi.string().optional(),
+        VNPAY_HASH_SECRET: Joi.string().optional(),
+        VNPAY_URL: Joi.string().uri().optional(),
+        VNPAY_RETURN_URL: Joi.string().uri().optional(),
       }),
     }),
     CacheModule.register({

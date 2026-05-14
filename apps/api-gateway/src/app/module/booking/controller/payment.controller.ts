@@ -12,6 +12,7 @@ import {
   HttpStatus,
   ParseIntPipe,
   DefaultValuePipe,
+  BadRequestException,
 } from '@nestjs/common';
 import { PaymentService } from '../service/payment.service';
 import { BookingService } from '../service/booking.service';
@@ -22,6 +23,7 @@ import { Permission } from '../../../common/decorator/permission.decorator';
 import { Roles } from '../../../common/decorator/roles.decorator';
 import { AccessRole } from '../../../common/constants/roles.constants';
 import { CreatePaymentDto, AdminFindAllPaymentsDto, PaymentStatus } from '@movie-hub/shared-types';
+import { PaymentMethod } from '@movie-hub/shared-types';
 import { Request } from 'express';
 import { SkipThrottle } from '@nestjs/throttler';
 import { SensitiveThrottle } from '../../../common/decorator/sensitive-throttle.decorator';
@@ -46,11 +48,15 @@ export class PaymentController {
    * NO authentication required
    * MUST return JSON: { RspCode: string, Message: string }
    */
-  @Get('vnpay/ipn')
+  @Get(':provider/ipn')
   @SkipThrottle()
   @HttpCode(HttpStatus.OK)
-  async vnpayIPN(@Query() query: Record<string, string>) {
-    const result = await this.paymentService.handleVNPayIPN(query);
+  async providerIPN(
+    @Param('provider') providerParam: string,
+    @Query() query: Record<string, string>
+  ) {
+    const provider = this.parseProviderOrThrow(providerParam);
+    const result = await this.paymentService.handleProviderIPN(provider, query);
     // EXCEPTION: Extract data from ServiceResult for VNPay IPN - VNPay expects raw { RspCode, Message }
     return result.data;
   }
@@ -60,10 +66,14 @@ export class PaymentController {
    * PUBLIC endpoint - user is redirected here from VNPay
    * NO authentication required (user may have lost session)
    */
-  @Get('vnpay/return')
+  @Get(':provider/return')
   @SkipThrottle()
-  async vnpayReturn(@Query() query: Record<string, string>) {
-    return this.paymentService.handleVNPayReturn(query);
+  async providerReturn(
+    @Param('provider') providerParam: string,
+    @Query() query: Record<string, string>
+  ) {
+    const provider = this.parseProviderOrThrow(providerParam);
+    return this.paymentService.handleProviderReturn(provider, query);
   }
 
   // ==================== ADMIN ENDPOINTS ====================
@@ -166,6 +176,16 @@ export class PaymentController {
   @Permission({ resource: 'payment', action: 'read', scope: 'own' })
   async getPayment(@CurrentUserId() userId: string, @Param('id') id: string) {
     return this.paymentService.getPayment(id, userId);
+  }
+
+  private parseProviderOrThrow(providerParam: string): PaymentMethod {
+    const normalized = providerParam?.trim().toUpperCase();
+    if (normalized in PaymentMethod) {
+      return PaymentMethod[normalized as keyof typeof PaymentMethod];
+    }
+    throw new BadRequestException(
+      `Unsupported payment provider: ${providerParam}`
+    );
   }
 }
 

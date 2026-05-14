@@ -1560,7 +1560,7 @@ Base Path: `/api/v1/payments`
 
 ### VNPay Webhook Endpoints (PUBLIC)
 
-### `[GET] /api/v1/payments/vnpay/ipn`
+### `[GET] /api/v1/payments/:provider/ipn`
 
 **Description:** VNPay IPN callback (Instant Payment Notification)  
 **Auth:** No (Public webhook)
@@ -1578,7 +1578,7 @@ Base Path: `/api/v1/payments`
 
 ---
 
-### `[GET] /api/v1/payments/vnpay/return`
+### `[GET] /api/v1/payments/:provider/return`
 
 **Description:** VNPay return URL (user redirect after payment)  
 **Auth:** No (Public)

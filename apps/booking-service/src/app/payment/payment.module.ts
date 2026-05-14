@@ -7,6 +7,10 @@ import { BookingRedisModule } from '../redis/redis.module';
 import { NotificationModule } from '../notification/notification.module';
 import { TicketModule } from '../ticket/ticket.module';
 import { SERVICE_NAME } from '@movie-hub/shared-types';
+import { VNPayPaymentAdapter } from './adapters/vnpay-payment.adapter';
+import { PaymentAdapter } from './adapters/payment-adapter.interface';
+
+export const PAYMENT_ADAPTERS = 'PAYMENT_ADAPTERS';
 
 @Module({
   imports: [
@@ -25,7 +29,16 @@ import { SERVICE_NAME } from '@movie-hub/shared-types';
     ]),
   ],
   controllers: [PaymentController],
-  providers: [PaymentService, PrismaService],
+  providers: [
+    PaymentService,
+    PrismaService,
+    VNPayPaymentAdapter,
+    {
+      provide: PAYMENT_ADAPTERS,
+      useFactory: (vnpayAdapter: VNPayPaymentAdapter): PaymentAdapter[] => [vnpayAdapter],
+      inject: [VNPayPaymentAdapter],
+    },
+  ],
   exports: [PaymentService],
 })
 export class PaymentModule {}

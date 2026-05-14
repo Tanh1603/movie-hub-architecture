@@ -7,6 +7,8 @@ import {
   FindPaymentsByStatusDto,
   FindPaymentsByDateRangeDto,
   GetPaymentStatisticsDto,
+  PaymentMessage,
+  PaymentMethod,
 } from '@movie-hub/shared-types';
 
 @Controller()
@@ -39,14 +41,18 @@ export class PaymentController {
     return this.paymentService.findByBooking(payload.bookingId);
   }
 
-  @MessagePattern('payment.vnpay.ipn')
-  async handleVNPayIPN(@Payload() payload: { params: Record<string, string> }) {
-    return this.paymentService.handleVNPayIPN(payload.params);
+  @MessagePattern(PaymentMessage.PROVIDER_IPN)
+  async handleProviderIPN(
+    @Payload() payload: { provider: PaymentMethod; params: Record<string, string> }
+  ) {
+    return this.paymentService.handleProviderIPN(payload.provider, payload.params);
   }
 
-  @MessagePattern('payment.vnpay.return')
-  async handleVNPayReturn(@Payload() payload: { params: Record<string, string> }) {
-    return this.paymentService.handleVNPayReturn(payload.params);
+  @MessagePattern(PaymentMessage.PROVIDER_RETURN)
+  async handleProviderReturn(
+    @Payload() payload: { provider: PaymentMethod; params: Record<string, string> }
+  ) {
+    return this.paymentService.handleProviderReturn(payload.provider, payload.params);
   }
 
   // ==================== ADMIN OPERATIONS ====================

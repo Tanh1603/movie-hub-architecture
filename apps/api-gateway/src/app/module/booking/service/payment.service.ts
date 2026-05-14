@@ -7,6 +7,7 @@ import {
   PaymentMessage,
   AdminFindAllPaymentsDto,
   PaymentStatus,
+  PaymentMethod,
 } from '@movie-hub/shared-types';
 
 @Injectable()
@@ -49,20 +50,20 @@ export class PaymentService {
     }
   }
 
-  async handleVNPayIPN(params: Record<string, string>) {
+  async handleProviderIPN(provider: PaymentMethod, params: Record<string, string>) {
     try {
       return await firstValueFrom(
-        this.bookingClient.send(PaymentMessage.VNPAY_IPN, { params })
+        this.bookingClient.send(PaymentMessage.PROVIDER_IPN, { provider, params })
       );
     } catch (error) {
       throw new RpcException(error);
     }
   }
 
-  async handleVNPayReturn(params: Record<string, string>) {
+  async handleProviderReturn(provider: PaymentMethod, params: Record<string, string>) {
     try {
       return await firstValueFrom(
-        this.bookingClient.send(PaymentMessage.VNPAY_RETURN, { params })
+        this.bookingClient.send(PaymentMessage.PROVIDER_RETURN, { provider, params })
       );
     } catch (error) {
       throw new RpcException(error);
