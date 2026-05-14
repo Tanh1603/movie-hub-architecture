@@ -1,17 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { BookingDetailDto } from '@movie-hub/shared-types';
-import { NotificationProviderAdapter } from './adapters/notification-provider.adapter';
-
-export interface EmailOptions {
-  to: string;
-  subject: string;
-  html: string;
-  attachments?: Array<{
-    filename: string;
-    content: string | Buffer;
-    contentType?: string;
-  }>;
-}
+import { EmailOptions, SmtpService } from './smtp.service';
 
 export interface TicketWithQRCode {
   ticketCode: string;
@@ -30,15 +19,13 @@ export interface BookingConfirmationEmailData {
 export class NotificationService {
   private readonly logger = new Logger(NotificationService.name);
 
-  constructor(
-    private readonly notificationProviderAdapter: NotificationProviderAdapter
-  ) {}
+  constructor(private readonly smtpService: SmtpService) {}
 
   /**
    * Send generic email
    */
   async sendEmail(options: EmailOptions): Promise<boolean> {
-    return this.notificationProviderAdapter.sendEmail(options);
+    return this.smtpService.sendEmail(options);
   }
 
   /**

@@ -7,6 +7,7 @@ import {
   FindPaymentsByStatusDto,
   FindPaymentsByDateRangeDto,
   GetPaymentStatisticsDto,
+  PaymentMethod,
 } from '@movie-hub/shared-types';
 
 @Controller()
@@ -41,18 +42,28 @@ export class PaymentController {
 
   @MessagePattern('payment.vnpay.ipn')
   async handleVNPayIPN(@Payload() payload: { params: Record<string, string> }) {
-    return this.paymentService.handleVNPayIPN(payload.params);
+    return this.paymentService.handlePaymentIPN(
+      PaymentMethod.VNPAY,
+      payload.params
+    );
   }
 
   @MessagePattern('payment.vnpay.return')
-  async handleVNPayReturn(@Payload() payload: { params: Record<string, string> }) {
-    return this.paymentService.handleVNPayReturn(payload.params);
+  async handleVNPayReturn(
+    @Payload() payload: { params: Record<string, string> }
+  ) {
+    return this.paymentService.handlePaymentReturn(
+      PaymentMethod.VNPAY,
+      payload.params
+    );
   }
 
   // ==================== ADMIN OPERATIONS ====================
 
   @MessagePattern('payment.admin.findAll')
-  async adminFindAll(@Payload() payload: { filters?: AdminFindAllPaymentsDto }) {
+  async adminFindAll(
+    @Payload() payload: { filters?: AdminFindAllPaymentsDto }
+  ) {
     return this.paymentService.adminFindAllPayments(payload?.filters || {});
   }
 
@@ -66,7 +77,9 @@ export class PaymentController {
   }
 
   @MessagePattern('payment.findByDateRange')
-  async findByDateRange(@Payload() payload: { filters?: FindPaymentsByDateRangeDto }) {
+  async findByDateRange(
+    @Payload() payload: { filters?: FindPaymentsByDateRangeDto }
+  ) {
     return this.paymentService.findPaymentsByDateRange(payload?.filters || {});
   }
 
@@ -76,7 +89,9 @@ export class PaymentController {
   }
 
   @MessagePattern('payment.getStatistics')
-  async getStatistics(@Payload() payload: { filters?: GetPaymentStatisticsDto }) {
+  async getStatistics(
+    @Payload() payload: { filters?: GetPaymentStatisticsDto }
+  ) {
     return this.paymentService.getPaymentStatistics(payload?.filters || {});
   }
 }

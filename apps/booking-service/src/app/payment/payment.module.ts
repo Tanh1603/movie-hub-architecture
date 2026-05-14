@@ -7,8 +7,8 @@ import { BookingRedisModule } from '../redis/redis.module';
 import { NotificationModule } from '../notification/notification.module';
 import { TicketModule } from '../ticket/ticket.module';
 import { SERVICE_NAME } from '@movie-hub/shared-types';
-import { PaymentProviderAdapter } from './adapters/payment-provider.adapter';
-import { TcpPaymentProviderAdapter } from './adapters/tcp-payment-provider.adapter';
+import { PaymentStrategyFactory } from './strategies/payment-strategy.factory';
+import { VNPayStrategy } from './strategies/providers/vnpay.strategy';
 
 @Module({
   imports: [
@@ -30,10 +30,8 @@ import { TcpPaymentProviderAdapter } from './adapters/tcp-payment-provider.adapt
   providers: [
     PaymentService,
     PrismaService,
-    {
-      provide: PaymentProviderAdapter,
-      useClass: TcpPaymentProviderAdapter,
-    },
+    VNPayStrategy,
+    PaymentStrategyFactory,
   ],
   exports: [PaymentService],
 })

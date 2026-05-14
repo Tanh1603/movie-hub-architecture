@@ -1,14 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
-import {
-  NotificationProviderAdapter,
-  NotificationSendPayload,
-} from './notification-provider.adapter';
+
+export interface EmailOptions {
+  to: string;
+  subject: string;
+  html: string;
+  attachments?: Array<{
+    filename: string;
+    content: string | Buffer;
+    contentType?: string;
+  }>;
+}
 
 @Injectable()
-export class SmtpNotificationProviderAdapter extends NotificationProviderAdapter {
-  private readonly logger = new Logger(SmtpNotificationProviderAdapter.name);
+export class SmtpService {
+  private readonly logger = new Logger(SmtpService.name);
   private readonly maxAttempts = 3;
   private readonly retryBackoffMs = [1000, 2000, 4000];
   private readonly externalCallTimeoutMs = 30000;
@@ -17,7 +24,6 @@ export class SmtpNotificationProviderAdapter extends NotificationProviderAdapter
   private transporter?: nodemailer.Transporter;
 
   constructor(private readonly configService: ConfigService) {
-    super();
     this.fromAddress = this.configService.get(
       'EMAIL_FROM',
       'MovieHub <noreply@moviehub.com>'
@@ -25,7 +31,7 @@ export class SmtpNotificationProviderAdapter extends NotificationProviderAdapter
     this.initializeMailer();
   }
 
-  async sendEmail(payload: NotificationSendPayload): Promise<boolean> {
+  async sendEmail(options: EmailOptions): Promise<boolean> {
     if (!this.transporter) {
       this.logger.warn(
         'Email transporter not initialized. Skipping email send.'
@@ -36,23 +42,23 @@ export class SmtpNotificationProviderAdapter extends NotificationProviderAdapter
     for (let attempt = 1; attempt <= this.maxAttempts; attempt++) {
       try {
         const info = await this.withTimeout(
-          this.sendWithTransport(payload),
+          this.sendWithTransport(options),
           this.externalCallTimeoutMs
         );
 
         this.logger.log(
-          `Email sent successfully to ${payload.to}: ${info.messageId}`
+          `Email sent successfully to ${options.to}: ${info.messageId}`
         );
         return true;
       } catch (error) {
         if (!this.isRetryableError(error) || attempt === this.maxAttempts) {
-          this.logger.error(`Failed to send email to ${payload.to}:`, error);
+          this.logger.error(`Failed to send email to ${options.to}:`, error);
           return false;
         }
 
         this.logger.warn(
           `Retrying email send. attempt=${attempt + 1}/${this.maxAttempts} to=${
-            payload.to
+            options.to
           }`
         );
 
@@ -124,13 +130,13 @@ export class SmtpNotificationProviderAdapter extends NotificationProviderAdapter
     this.logger.log('Email transporter is ready to send emails');
   }
 
-  private sendWithTransport(payload: NotificationSendPayload) {
+  private sendWithTransport(options: EmailOptions) {
     return this.transporter!.sendMail({
       from: this.fromAddress,
-      to: payload.to,
-      subject: payload.subject,
-      html: payload.html,
-      attachments: payload.attachments,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      attachments: options.attachments,
     });
   }
 
@@ -167,18 +173,26 @@ export class SmtpNotificationProviderAdapter extends NotificationProviderAdapter
     promise: Promise<T>,
     timeoutMs: number
   ): Promise<T> {
-    return Promise.race([
-      promise,
-      new Promise<T>((_, reject) => {
-        setTimeout(() => {
-          const timeoutError = new Error(
-            `Request timed out after ${timeoutMs}ms`
-          );
-          (timeoutError as Error & { code?: string }).code = 'ETIMEDOUT';
-          reject(timeoutError);
-        }, timeoutMs);
-      }),
-    ]);
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+
+    try {
+      return await Promise.race([
+        promise,
+        new Promise<T>((_, reject) => {
+          timeoutHandle = setTimeout(() => {
+            const timeoutError = new Error(
+              `Request timed out after ${timeoutMs}ms`
+            );
+            (timeoutError as Error & { code?: string }).code = 'ETIMEDOUT';
+            reject(timeoutError);
+          }, timeoutMs);
+        }),
+      ]);
+    } finally {
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+      }
+    }
   }
 
   private sleep(ms: number): Promise<void> {

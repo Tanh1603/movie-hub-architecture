@@ -1,6 +1,6 @@
 /// <reference types="jest" />
 import { ConfigService } from '@nestjs/config';
-import { SmtpNotificationProviderAdapter } from './smtp-notification-provider.adapter';
+import { SmtpService } from './smtp.service';
 
 const sendMailMock = jest.fn();
 const verifyMock = jest.fn();
@@ -12,8 +12,8 @@ jest.mock('nodemailer', () => ({
   })),
 }));
 
-describe('SmtpNotificationProviderAdapter', () => {
-  function buildAdapter() {
+describe('SmtpService', () => {
+  function buildService() {
     const configService = {
       get: jest.fn((key: string, defaultValue?: string) => {
         const values: Record<string, string> = {
@@ -33,8 +33,8 @@ describe('SmtpNotificationProviderAdapter', () => {
       callback(null)
     );
 
-    const adapter = new SmtpNotificationProviderAdapter(configService);
-    return { adapter };
+    const service = new SmtpService(configService);
+    return { service };
   }
 
   afterEach(() => {
@@ -43,15 +43,15 @@ describe('SmtpNotificationProviderAdapter', () => {
   });
 
   it('retries retryable errors and succeeds on a later attempt', async () => {
-    const { adapter } = buildAdapter();
-    jest.spyOn(adapter as any, 'sleep').mockResolvedValue(undefined);
+    const { service } = buildService();
+    jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined);
 
     sendMailMock
       .mockRejectedValueOnce({ responseCode: 503 })
       .mockResolvedValueOnce({ messageId: 'msg-1' });
 
     await expect(
-      adapter.sendEmail({
+      service.sendEmail({
         to: 'a@b.com',
         subject: 'test',
         html: '<p>hello</p>',
@@ -62,13 +62,13 @@ describe('SmtpNotificationProviderAdapter', () => {
   });
 
   it('fails fast on 4xx without retry', async () => {
-    const { adapter } = buildAdapter();
-    jest.spyOn(adapter as any, 'sleep').mockResolvedValue(undefined);
+    const { service } = buildService();
+    jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined);
 
     sendMailMock.mockRejectedValue({ responseCode: 400 });
 
     await expect(
-      adapter.sendEmail({
+      service.sendEmail({
         to: 'a@b.com',
         subject: 'test',
         html: '<p>hello</p>',
@@ -79,13 +79,13 @@ describe('SmtpNotificationProviderAdapter', () => {
   });
 
   it('caps retries at max 3 attempts', async () => {
-    const { adapter } = buildAdapter();
-    jest.spyOn(adapter as any, 'sleep').mockResolvedValue(undefined);
+    const { service } = buildService();
+    jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined);
 
     sendMailMock.mockRejectedValue({ responseCode: 503 });
 
     await expect(
-      adapter.sendEmail({
+      service.sendEmail({
         to: 'a@b.com',
         subject: 'test',
         html: '<p>hello</p>',
@@ -96,15 +96,15 @@ describe('SmtpNotificationProviderAdapter', () => {
   });
 
   it('enforces timeout behavior for external calls', async () => {
-    const { adapter } = buildAdapter();
-    (adapter as any).externalCallTimeoutMs = 5;
-    (adapter as any).retryBackoffMs = [0, 0, 0];
-    jest.spyOn(adapter as any, 'sleep').mockResolvedValue(undefined);
+    const { service } = buildService();
+    (service as any).externalCallTimeoutMs = 5;
+    (service as any).retryBackoffMs = [0, 0, 0];
+    jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined);
 
     sendMailMock.mockImplementation(() => new Promise(() => {}));
 
     jest.useFakeTimers();
-    const promise = adapter.sendEmail({
+    const promise = service.sendEmail({
       to: 'a@b.com',
       subject: 'test',
       html: '<p>hello</p>',
