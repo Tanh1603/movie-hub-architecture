@@ -11,6 +11,8 @@ import { VNPayPaymentAdapter } from './adapters/vnpay-payment.adapter';
 import { ZaloPayPaymentAdapter } from './adapters/zalopay-payment.adapter';
 import { PaymentAdapter } from './adapters/payment-adapter.interface';
 import { WebhookReplayGuardService } from './webhook-replay-guard.service';
+import { PaymentTransitionPolicyService } from './payment-transition-policy.service';
+import { PaymentReconciliationService } from './payment-reconciliation.service';
 
 export const PAYMENT_ADAPTERS = 'PAYMENT_ADAPTERS';
 
@@ -34,6 +36,8 @@ export const PAYMENT_ADAPTERS = 'PAYMENT_ADAPTERS';
   providers: [
     PaymentService,
     WebhookReplayGuardService,
+    PaymentTransitionPolicyService,
+    PaymentReconciliationService,
     PrismaService,
     VNPayPaymentAdapter,
     ZaloPayPaymentAdapter,

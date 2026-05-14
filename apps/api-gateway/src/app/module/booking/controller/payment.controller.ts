@@ -195,8 +195,9 @@ export class PaymentController {
 
   private parseProviderOrThrow(providerParam: string): PaymentMethod {
     const normalized = providerParam?.trim().toUpperCase();
-    if (normalized in PaymentMethod) {
-      return PaymentMethod[normalized as keyof typeof PaymentMethod];
+    const resolved = Object.values(PaymentMethod).find((v) => v === normalized);
+    if (resolved) {
+      return resolved;
     }
     throw new BadRequestException(
       `Unsupported payment provider: ${providerParam}`

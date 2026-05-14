@@ -2,9 +2,7 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { PrismaService } from '../prisma.service';
-import {
-  NotificationService,
-} from '../notification/notification.service';
+import { NotificationService } from '../notification/notification.service';
 import { TicketService } from '../ticket/ticket.service';
 import {
   CreatePaymentDto,
@@ -24,6 +22,7 @@ import { BookingEventService } from '../redis/booking-event.service';
 import { PaymentAdapter } from './adapters/payment-adapter.interface';
 import { PAYMENT_ADAPTERS } from './payment.module';
 import { WebhookReplayGuardService } from './webhook-replay-guard.service';
+import { PaymentTransitionPolicyService } from './payment-transition-policy.service';
 
 @Injectable()
 export class PaymentService {
@@ -35,6 +34,7 @@ export class PaymentService {
     private prisma: PrismaService,
     private bookingEventService: BookingEventService,
     private webhookReplayGuardService: WebhookReplayGuardService,
+    private paymentTransitionPolicy: PaymentTransitionPolicyService,
     @Inject(SERVICE_NAME.USER) private userClient: ClientProxy,
     private notificationService: NotificationService,
     private ticketService: TicketService,
@@ -84,10 +84,14 @@ export class PaymentService {
           payment_method: paymentMethod,
           status: PaymentStatus.PROCESSING,
           transaction_id: idempotencyKey,
-          metadata: this.buildSafeMetadata(PaymentStatus.PROCESSING, paymentAmount, {
-            timestampKey: 'initiatedAt',
-            transactionId: idempotencyKey,
-          }),
+          metadata: this.buildSafeMetadata(
+            PaymentStatus.PROCESSING,
+            paymentAmount,
+            {
+              timestampKey: 'initiatedAt',
+              transactionId: idempotencyKey,
+            }
+          ),
         },
       });
     } catch (error) {
@@ -118,30 +122,48 @@ export class PaymentService {
         }),
         this.providerTimeoutMs
       );
+      this.paymentTransitionPolicy.assertTransition(
+        payment.status as PaymentStatus,
+        PaymentStatus.PENDING
+      );
 
       const updated = await this.prisma.payments.update({
         where: { id: payment.id },
         data: {
+          // PROCESSING -> PENDING transition
           status: PaymentStatus.PENDING,
           payment_url: initiation.paymentUrl,
-          metadata: this.buildSafeMetadata(PaymentStatus.PENDING, paymentAmount, {
-            timestampKey: 'initiatedAt',
-            transactionId: idempotencyKey,
-            providerTransactionId: initiation.externalTransactionRef,
-          }),
+          metadata: this.buildSafeMetadata(
+            PaymentStatus.PENDING,
+            paymentAmount,
+            {
+              timestampKey: 'initiatedAt',
+              transactionId: idempotencyKey,
+              providerTransactionId: initiation.externalTransactionRef,
+            }
+          ),
         },
       });
 
       return { data: this.mapToDto(updated) };
     } catch (error) {
+      this.paymentTransitionPolicy.assertTransition(
+        payment.status as PaymentStatus,
+        PaymentStatus.FAILED
+      );
       await this.prisma.payments.update({
         where: { id: payment.id },
         data: {
+          // PROCESSING -> FAILED transition
           status: PaymentStatus.FAILED,
-          metadata: this.buildSafeMetadata(PaymentStatus.FAILED, paymentAmount, {
-            timestampKey: 'failedAt',
-            transactionId: idempotencyKey,
-          }),
+          metadata: this.buildSafeMetadata(
+            PaymentStatus.FAILED,
+            paymentAmount,
+            {
+              timestampKey: 'failedAt',
+              transactionId: idempotencyKey,
+            }
+          ),
         },
       });
 
@@ -169,6 +191,7 @@ export class PaymentService {
     },
     dto: CreatePaymentDto
   ): Promise<ServiceResult<PaymentDetailDto>> {
+    const paymentMethod = dto.paymentMethod ?? PaymentMethod.VNPAY;
     console.log(
       `[Payment] Zero-amount payment for booking ${booking.id}, confirming directly`
     );
@@ -180,7 +203,7 @@ export class PaymentService {
         data: {
           booking_id: booking.id,
           amount: 0,
-          payment_method: dto.paymentMethod,
+          payment_method: paymentMethod,
           status: PaymentStatus.COMPLETED,
           paid_at: new Date(),
           metadata: this.buildSafeMetadata(PaymentStatus.COMPLETED, 0, {
@@ -280,7 +303,10 @@ export class PaymentService {
       }
 
       const dedupIdentity =
-        callback.transactionId || callback.orderId || params.app_trans_id || params.vnp_TxnRef;
+        callback.transactionId ||
+        callback.orderId ||
+        params.app_trans_id ||
+        params.vnp_TxnRef;
       if (!dedupIdentity) {
         await this.webhookReplayGuardService.auditSuspiciousCallback(
           provider,
@@ -362,6 +388,10 @@ export class PaymentService {
       }
 
       if (callback.isSuccess) {
+        this.paymentTransitionPolicy.assertTransition(
+          payment.status as PaymentStatus,
+          PaymentStatus.COMPLETED
+        );
         // First, get the booking to check for promotion_code
         const bookingWithPromotion = await this.prisma.bookings.findUnique({
           where: { id: payment.booking_id },
@@ -438,6 +468,10 @@ export class PaymentService {
 
         return { data: adapter.buildIPNResponse('processed') };
       } else {
+        this.paymentTransitionPolicy.assertTransition(
+          payment.status as PaymentStatus,
+          PaymentStatus.FAILED
+        );
         await this.prisma.$transaction([
           this.prisma.payments.update({
             where: { id: payment.id },
@@ -545,7 +579,10 @@ export class PaymentService {
     amount: number
   ): string {
     const context = `${bookingId}:${paymentMethod}:${amount.toFixed(2)}`;
-    return `pay_init_${crypto.createHash('sha256').update(context).digest('hex')}`;
+    return `pay_init_${crypto
+      .createHash('sha256')
+      .update(context)
+      .digest('hex')}`;
   }
 
   private resolveAdapter(paymentMethod: PaymentMethod): PaymentAdapter {
@@ -556,7 +593,10 @@ export class PaymentService {
     return adapter;
   }
 
-  private async runWithTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  private async runWithTimeout<T>(
+    promise: Promise<T>,
+    timeoutMs: number
+  ): Promise<T> {
     let timeoutHandle: NodeJS.Timeout | undefined;
     const timeoutPromise = new Promise<never>((_, reject) => {
       timeoutHandle = setTimeout(() => {
@@ -790,6 +830,10 @@ export class PaymentService {
     if (payment.status !== PaymentStatus.PENDING) {
       throw new Error('Can only cancel pending payments');
     }
+    this.paymentTransitionPolicy.assertTransition(
+      payment.status as PaymentStatus,
+      PaymentStatus.FAILED
+    );
 
     const updated = await this.prisma.payments.update({
       where: { id: paymentId },
@@ -944,7 +988,7 @@ export class PaymentService {
       // Use user details if available, otherwise use booking's stored customer info
       const customerEmail = userDetails?.email || fullBooking.customer_email;
       const customerName = userDetails?.fullName || fullBooking.customer_name;
-      const customerPhone = userDetails?.phone || fullBooking.customer_phone;
+      const customerPhone = userDetails?.phone || fullBooking.customer_phone || undefined;
 
       // Generate QR codes for all tickets IN PARALLEL
       const ticketsWithQR = await Promise.all(

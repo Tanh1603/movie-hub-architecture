@@ -50,6 +50,7 @@ describe('PaymentService phase04 initiation', () => {
       prisma,
       { publishBookingConfirmed: jest.fn() } as any,
       webhookGuard,
+      { assertTransition: jest.fn() } as any,
       { send: jest.fn() } as any,
       { sendBookingConfirmation: jest.fn(), sendBookingConfirmationSMS: jest.fn() } as any,
       { generateQRCode: jest.fn() } as any,
@@ -210,5 +211,43 @@ describe('PaymentService phase04 initiation', () => {
     expect(webhookGuard.auditSuspiciousCallback).toHaveBeenCalled();
     expect(prisma.payments.update).not.toHaveBeenCalled();
     expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('late callback cannot regress terminal state', async () => {
+    adapter.parseIPN.mockReturnValue({
+      validSignature: true,
+      orderId: 'p-final',
+      transactionId: 'tx-final',
+      amount: 100000,
+      isSuccess: false,
+    });
+    webhookGuard.markIfFirstSeen.mockResolvedValue({ duplicate: false });
+    prisma.payments.findUnique.mockResolvedValue({
+      id: 'p-final',
+      booking_id: 'b-final',
+      amount: 100000,
+      status: PaymentStatus.COMPLETED,
+      booking: {
+        id: 'b-final',
+        user_id: 'u1',
+        showtime_id: 's1',
+        status: 'CONFIRMED',
+        payment_status: PaymentStatus.COMPLETED,
+        expires_at: null,
+      },
+    });
+    adapter.buildIPNResponse.mockReturnValue({
+      RspCode: '02',
+      Message: 'already_processed',
+    });
+
+    const result = await service.handleProviderIPN(PaymentMethod.VNPAY, {
+      vnp_TxnRef: 'p-final',
+      vnp_TransactionNo: 'tx-final',
+    });
+
+    expect(result.data).toEqual({ RspCode: '02', Message: 'already_processed' });
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+    expect(prisma.payments.update).not.toHaveBeenCalled();
   });
 });

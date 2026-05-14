@@ -8,6 +8,7 @@ import {
   PaymentIpnOutcome,
   PaymentInitiationContext,
   PaymentInitiationResult,
+  ProviderAuthoritativeStatus,
   PaymentReturnParseResult,
 } from './payment-adapter.interface';
 
@@ -197,6 +198,60 @@ export class ZaloPayPaymentAdapter implements PaymentAdapter {
       return { status: 'error', code: '-1' };
     }
     return { status: parsed.responseCode === '1' ? 'success' : 'failed', code: parsed.responseCode || '0' };
+  }
+
+  async queryPaymentStatus(providerReference: string): Promise<{
+    status: ProviderAuthoritativeStatus;
+    providerTransactionId?: string;
+  }> {
+    const queryUrl = this.configService.get<string>('ZALOPAY_QUERY_ORDER_URL');
+    if (!queryUrl) {
+      return { status: 'UNKNOWN' };
+    }
+
+    const appId = this.getRequiredConfig('ZALOPAY_APP_ID');
+    const key1 = this.getRequiredConfig('ZALOPAY_KEY1');
+    const macInput = `${appId}|${providerReference}|${key1}`;
+    const mac = crypto.createHmac('sha256', key1).update(macInput).digest('hex');
+
+    const body = new URLSearchParams({
+      app_id: appId,
+      app_trans_id: providerReference,
+      mac,
+    });
+
+    const response = await fetch(queryUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: body.toString(),
+    });
+    if (!response.ok) {
+      return { status: 'UNKNOWN' };
+    }
+
+    const payload = (await response.json()) as {
+      return_code?: number;
+      is_processing?: boolean;
+      zp_trans_id?: number | string;
+    };
+
+    if (payload.return_code === 1) {
+      return {
+        status: 'COMPLETED',
+        providerTransactionId: payload.zp_trans_id
+          ? String(payload.zp_trans_id)
+          : undefined,
+      };
+    }
+    if (payload.return_code === 2) {
+      return { status: 'FAILED' };
+    }
+    if (payload.return_code === 3 || payload.is_processing) {
+      return { status: 'PENDING' };
+    }
+    return { status: 'UNKNOWN' };
   }
 
   private getRequiredConfig(key: string): string {

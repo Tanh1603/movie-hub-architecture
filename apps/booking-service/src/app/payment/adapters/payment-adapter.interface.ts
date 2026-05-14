@@ -33,6 +33,12 @@ export interface PaymentReturnParseResult {
   responseCode?: string;
 }
 
+export type ProviderAuthoritativeStatus =
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'PENDING'
+  | 'UNKNOWN';
+
 export type PaymentIpnOutcome =
   | 'invalid_signature'
   | 'order_not_found'
@@ -49,4 +55,8 @@ export interface PaymentAdapter {
   parseReturn(params: Record<string, string>): PaymentReturnParseResult;
   buildIPNResponse(outcome: PaymentIpnOutcome): Record<string, unknown>;
   buildReturnResponse(parsed: PaymentReturnParseResult): { status: string; code: string };
+  queryPaymentStatus?(providerReference: string): Promise<{
+    status: ProviderAuthoritativeStatus;
+    providerTransactionId?: string;
+  }>;
 }

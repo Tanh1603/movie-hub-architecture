@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaService } from './prisma.service';
@@ -46,11 +47,18 @@ import Joi from 'joi';
         ZALOPAY_CREATE_ORDER_URL: Joi.string().uri().optional(),
         ZALOPAY_CALLBACK_URL: Joi.string().uri().optional(),
         ZALOPAY_RETURN_URL: Joi.string().uri().optional(),
+        ZALOPAY_QUERY_ORDER_URL: Joi.string().uri().optional(),
+        PAYMENT_RECON_ENABLED: Joi.string().optional(),
+        PAYMENT_RECON_INTERVAL_SECONDS: Joi.number().optional(),
+        PAYMENT_RECON_STALE_MINUTES: Joi.number().optional(),
+        PAYMENT_RECON_CRON: Joi.string().optional(),
+        PAYMENT_RECON_LOCK_TTL_SECONDS: Joi.number().optional(),
       }),
     }),
     CacheModule.register({
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     BookingRedisModule,
     NotificationModule,
     BookingModule,
