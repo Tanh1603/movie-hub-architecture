@@ -23,6 +23,7 @@ import * as crypto from 'crypto';
 import { BookingEventService } from '../redis/booking-event.service';
 import { PaymentAdapter } from './adapters/payment-adapter.interface';
 import { PAYMENT_ADAPTERS } from './payment.module';
+import { WebhookReplayGuardService } from './webhook-replay-guard.service';
 
 @Injectable()
 export class PaymentService {
@@ -33,6 +34,7 @@ export class PaymentService {
   constructor(
     private prisma: PrismaService,
     private bookingEventService: BookingEventService,
+    private webhookReplayGuardService: WebhookReplayGuardService,
     @Inject(SERVICE_NAME.USER) private userClient: ClientProxy,
     private notificationService: NotificationService,
     private ticketService: TicketService,
@@ -266,7 +268,39 @@ export class PaymentService {
     try {
       const callback = adapter.parseIPN(params);
       if (!callback.validSignature) {
+        await this.webhookReplayGuardService.auditSuspiciousCallback(
+          provider,
+          'invalid_signature',
+          {
+            hasOrderId: Boolean(callback.orderId),
+            hasTransactionId: Boolean(callback.transactionId),
+          }
+        );
         return { data: adapter.buildIPNResponse('invalid_signature') };
+      }
+
+      const dedupIdentity =
+        callback.transactionId || callback.orderId || params.app_trans_id || params.vnp_TxnRef;
+      if (!dedupIdentity) {
+        await this.webhookReplayGuardService.auditSuspiciousCallback(
+          provider,
+          'missing_callback_identity',
+          {}
+        );
+        return { data: adapter.buildIPNResponse('internal_error') };
+      }
+
+      const dedup = await this.webhookReplayGuardService.markIfFirstSeen(
+        provider,
+        dedupIdentity
+      );
+      if (dedup.duplicate) {
+        await this.webhookReplayGuardService.auditSuspiciousCallback(
+          provider,
+          'duplicate',
+          { dedupIdentity }
+        );
+        return { data: adapter.buildIPNResponse('already_processed') };
       }
 
       const orderId = callback.orderId;

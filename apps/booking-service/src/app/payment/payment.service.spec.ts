@@ -5,6 +5,7 @@ describe('PaymentService phase04 initiation', () => {
   let service: PaymentService;
   let prisma: any;
   let adapter: any;
+  let webhookGuard: any;
 
   beforeEach(() => {
     prisma = {
@@ -40,9 +41,15 @@ describe('PaymentService phase04 initiation', () => {
       ),
     };
 
+    webhookGuard = {
+      markIfFirstSeen: jest.fn(),
+      auditSuspiciousCallback: jest.fn(),
+    };
+
     service = new PaymentService(
       prisma,
       { publishBookingConfirmed: jest.fn() } as any,
+      webhookGuard,
       { send: jest.fn() } as any,
       { sendBookingConfirmation: jest.fn(), sendBookingConfirmationSMS: jest.fn() } as any,
       { generateQRCode: jest.fn() } as any,
@@ -170,5 +177,38 @@ describe('PaymentService phase04 initiation', () => {
 
     expect(result.data.id).toBe('p-raced');
     expect(adapter.initiatePayment).not.toHaveBeenCalled();
+  });
+
+  it('acknowledges duplicate callback without mutating state', async () => {
+    adapter.parseIPN.mockReturnValue({
+      validSignature: true,
+      orderId: 'p-1',
+      transactionId: 'tx-1',
+      amount: 100000,
+      isSuccess: true,
+    });
+    webhookGuard.markIfFirstSeen.mockResolvedValue({ duplicate: true });
+    adapter.buildIPNResponse.mockReturnValue({ RspCode: '00', Message: 'Success' });
+
+    const result = await service.handleProviderIPN(PaymentMethod.VNPAY, {
+      vnp_TxnRef: 'p-1',
+      vnp_TransactionNo: 'tx-1',
+    });
+
+    expect(result.data).toEqual({ RspCode: '00', Message: 'Success' });
+    expect(prisma.payments.update).not.toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('invalid signature callback does not mutate state and is audited', async () => {
+    adapter.parseIPN.mockReturnValue({ validSignature: false });
+    adapter.buildIPNResponse.mockReturnValue({ RspCode: '97', Message: 'Checksum failed' });
+
+    const result = await service.handleProviderIPN(PaymentMethod.VNPAY, {});
+
+    expect(result.data).toEqual({ RspCode: '97', Message: 'Checksum failed' });
+    expect(webhookGuard.auditSuspiciousCallback).toHaveBeenCalled();
+    expect(prisma.payments.update).not.toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 });
