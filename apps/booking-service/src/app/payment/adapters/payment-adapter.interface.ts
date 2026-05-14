@@ -47,6 +47,6 @@ export interface PaymentAdapter {
   initiatePayment(context: PaymentInitiationContext): Promise<PaymentInitiationResult>;
   parseIPN(params: Record<string, string>): PaymentCallbackParseResult;
   parseReturn(params: Record<string, string>): PaymentReturnParseResult;
-  buildIPNResponse(outcome: PaymentIpnOutcome): { RspCode: string; Message: string };
+  buildIPNResponse(outcome: PaymentIpnOutcome): Record<string, unknown>;
   buildReturnResponse(parsed: PaymentReturnParseResult): { status: string; code: string };
 }

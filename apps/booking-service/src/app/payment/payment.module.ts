@@ -8,6 +8,7 @@ import { NotificationModule } from '../notification/notification.module';
 import { TicketModule } from '../ticket/ticket.module';
 import { SERVICE_NAME } from '@movie-hub/shared-types';
 import { VNPayPaymentAdapter } from './adapters/vnpay-payment.adapter';
+import { ZaloPayPaymentAdapter } from './adapters/zalopay-payment.adapter';
 import { PaymentAdapter } from './adapters/payment-adapter.interface';
 
 export const PAYMENT_ADAPTERS = 'PAYMENT_ADAPTERS';
@@ -33,10 +34,14 @@ export const PAYMENT_ADAPTERS = 'PAYMENT_ADAPTERS';
     PaymentService,
     PrismaService,
     VNPayPaymentAdapter,
+    ZaloPayPaymentAdapter,
     {
       provide: PAYMENT_ADAPTERS,
-      useFactory: (vnpayAdapter: VNPayPaymentAdapter): PaymentAdapter[] => [vnpayAdapter],
-      inject: [VNPayPaymentAdapter],
+      useFactory: (
+        vnpayAdapter: VNPayPaymentAdapter,
+        zaloPayAdapter: ZaloPayPaymentAdapter
+      ): PaymentAdapter[] => [vnpayAdapter, zaloPayAdapter],
+      inject: [VNPayPaymentAdapter, ZaloPayPaymentAdapter],
     },
   ],
   exports: [PaymentService],

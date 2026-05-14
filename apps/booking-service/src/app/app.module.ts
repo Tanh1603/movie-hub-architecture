@@ -40,6 +40,12 @@ import Joi from 'joi';
         VNPAY_HASH_SECRET: Joi.string().optional(),
         VNPAY_URL: Joi.string().uri().optional(),
         VNPAY_RETURN_URL: Joi.string().uri().optional(),
+        ZALOPAY_APP_ID: Joi.string().optional(),
+        ZALOPAY_KEY1: Joi.string().optional(),
+        ZALOPAY_KEY2: Joi.string().optional(),
+        ZALOPAY_CREATE_ORDER_URL: Joi.string().uri().optional(),
+        ZALOPAY_CALLBACK_URL: Joi.string().uri().optional(),
+        ZALOPAY_RETURN_URL: Joi.string().uri().optional(),
       }),
     }),
     CacheModule.register({

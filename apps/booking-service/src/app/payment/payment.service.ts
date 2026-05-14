@@ -261,7 +261,7 @@ export class PaymentService {
   async handleProviderIPN(
     provider: PaymentMethod,
     params: Record<string, string>
-  ): Promise<ServiceResult<{ RspCode: string; Message: string }>> {
+  ): Promise<ServiceResult<Record<string, unknown>>> {
     const adapter = this.resolveAdapter(provider);
     try {
       const callback = adapter.parseIPN(params);
@@ -272,7 +272,7 @@ export class PaymentService {
       const orderId = callback.orderId;
       const transactionId = callback.transactionId;
       const amount = callback.amount;
-      const payment = await this.prisma.payments.findUnique({
+      let payment = await this.prisma.payments.findUnique({
         where: { id: orderId },
         include: {
           booking: {
@@ -287,6 +287,23 @@ export class PaymentService {
           },
         },
       });
+      if (!payment && orderId) {
+        payment = await this.prisma.payments.findUnique({
+          where: { transaction_id: orderId },
+          include: {
+            booking: {
+              select: {
+                id: true,
+                user_id: true,
+                showtime_id: true,
+                status: true,
+                payment_status: true,
+                expires_at: true,
+              },
+            },
+          },
+        });
+      }
 
       if (!payment) {
         return { data: adapter.buildIPNResponse('order_not_found') };

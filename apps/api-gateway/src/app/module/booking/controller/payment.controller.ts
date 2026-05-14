@@ -61,6 +61,21 @@ export class PaymentController {
     return result.data;
   }
 
+  @Post(':provider/ipn')
+  @SkipThrottle()
+  @HttpCode(HttpStatus.OK)
+  async providerIPNPost(
+    @Param('provider') providerParam: string,
+    @Body() body: Record<string, unknown>
+  ) {
+    const provider = this.parseProviderOrThrow(providerParam);
+    const params = Object.fromEntries(
+      Object.entries(body || {}).map(([k, v]) => [k, typeof v === 'string' ? v : JSON.stringify(v)])
+    );
+    const result = await this.paymentService.handleProviderIPN(provider, params);
+    return result.data;
+  }
+
   /**
    * VNPay return URL - where user is redirected after payment
    * PUBLIC endpoint - user is redirected here from VNPay

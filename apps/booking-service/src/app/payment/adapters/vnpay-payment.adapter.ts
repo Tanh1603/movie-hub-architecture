@@ -122,7 +122,7 @@ export class VNPayPaymentAdapter implements PaymentAdapter {
     };
   }
 
-  buildIPNResponse(outcome: PaymentIpnOutcome): { RspCode: string; Message: string } {
+  buildIPNResponse(outcome: PaymentIpnOutcome): Record<string, unknown> {
     switch (outcome) {
       case 'invalid_signature':
         return { RspCode: '97', Message: 'Checksum failed' };
