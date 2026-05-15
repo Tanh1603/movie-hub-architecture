@@ -1,0 +1,406 @@
+# ===========================================
+# MOVIEHUB MICROSERVICES DOCKER SWARM STACK
+# Phase 07 - Replica, Failover, and Rollout Policy
+# ===========================================
+#
+# DEPLOYMENT MODEL (Swarm):
+# - Replicas: each service has replica count = 2 for zero-downtime
+# - Rolling update: parallelism: 1 (one replica at a time)
+# - Readiness probe: `/health/ready` gates traffic before failover
+# - Liveness probe: `/health/live` triggers container restart
+# - Failure handling: on-failure / rollback on readiness failure
+#
+# USAGE:
+#   docker swarm init                             # Initialize Swarm (one-time)
+#   docker stack deploy -c infra/docker-stack.yml moviehub   # Deploy stack
+#   docker service ls                             # List services
+#   docker service ps moviehub_booking-service   # Check service replicas
+#   docker stack rm moviehub                      # Remove stack
+#
+# PROBE STRATEGY (Phase 05 + 07):
+# - Liveness (30s interval, 3s timeout, 3 retries): detects process hang/crash
+# - Readiness (10s interval, 2s timeout, 2 retries): checks dependency readiness before traffic
+#   See: AI/prompts/infra-reliability/phase-05-probe-config-compose-docker.md
+#        AI/prompts/infra-reliability/phase-07-replica-failover-rollout.md
+#
+version: '3.8'
+
+services:
+  # ===========================================
+  # DATABASE SERVICES (single instances, non-replicated)
+  # ===========================================
+  redis:
+    image: redis:7
+    command: ['redis-server', '--notify-keyspace-events', 'Ex']
+    ports:
+      - '6379:6379'
+    networks:
+      - moviehub-network
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  postgres-user:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-movie_hub_user}
+    ports:
+      - '5435:5432'
+    volumes:
+      - postgres_user_data:/var/lib/postgresql/data
+    networks:
+      - moviehub-network
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d movie_hub_user']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-movie:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-movie_hub_movie}
+    ports:
+      - '5436:5432'
+    volumes:
+      - postgres_movie_data:/var/lib/postgresql/data
+    networks:
+      - moviehub-network
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d movie_hub_movie']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-cinema:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-movie_hub_cinema}
+    ports:
+      - '5437:5432'
+    volumes:
+      - postgres_cinema_data:/var/lib/postgresql/data
+    networks:
+      - moviehub-network
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d movie_hub_cinema']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-booking:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-movie_hub_booking}
+    ports:
+      - '5438:5432'
+    volumes:
+      - postgres_booking_data:/var/lib/postgresql/data
+    networks:
+      - moviehub-network
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d movie_hub_booking']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # MICROSERVICES (replicated, zero-downtime updates)
+  # ===========================================
+
+  api-gateway:
+    image: movie-hub-architecture-api-gateway:latest
+    env_file:
+      - ../apps/api-gateway/.env
+    ports:
+      - '3000:3000'
+    depends_on:
+      - user-service
+      - movie-service
+      - cinema-service
+      - booking-service
+    networks:
+      - moviehub-network
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget -qO- --timeout=2 http://localhost:3000/api/health/live || exit 1',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  user-service:
+    image: movie-hub-architecture-user-service:latest
+    env_file:
+      - ../apps/user-service/.env
+    ports:
+      - '3006:3006'
+    depends_on:
+      - postgres-user
+    networks:
+      - moviehub-network
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget -qO- --timeout=2 http://localhost:3006/health/live || exit 1',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  movie-service:
+    image: movie-hub-architecture-movie-service:latest
+    env_file:
+      - ../apps/movie-service/.env
+    ports:
+      - '3007:3007'
+    depends_on:
+      - postgres-movie
+    networks:
+      - moviehub-network
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget -qO- --timeout=2 http://localhost:3007/health/live || exit 1',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  cinema-service:
+    image: movie-hub-architecture-cinema-service:latest
+    env_file:
+      - ../apps/cinema-service/.env
+    ports:
+      - '3008:3008'
+    depends_on:
+      - postgres-cinema
+    networks:
+      - moviehub-network
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget -qO- --timeout=2 http://localhost:3008/health/live || exit 1',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  booking-service:
+    image: movie-hub-architecture-booking-service:latest
+    env_file:
+      - ../apps/booking-service/.env
+    ports:
+      - '3005:3005'
+    depends_on:
+      - postgres-booking
+    networks:
+      - moviehub-network
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget -qO- --timeout=2 http://localhost:3005/health/live || exit 1',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ===========================================
+  # OBSERVABILITY SERVICES (single instances)
+  # ===========================================
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - '9090:9090'
+    networks:
+      - moviehub-network
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=360h'
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:9090/-/healthy',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - '3009:3000'
+    networks:
+      - moviehub-network
+    depends_on:
+      - prometheus
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:3000/api/health',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+# ===========================================
+# NETWORKS
+# ===========================================
+networks:
+  moviehub-network:
+    driver: overlay
+    name: moviehub-network
+
+# ===========================================
+# VOLUMES
+# Persistent data storage for databases
+# ===========================================
+volumes:
+  postgres_user_data:
+    name: moviehub_postgres_user_data
+  postgres_movie_data:
+    name: moviehub_postgres_movie_data
+  postgres_cinema_data:
+    name: moviehub_postgres_cinema_data
+  postgres_booking_data:
+    name: moviehub_postgres_booking_data
+  prometheus_data:
+    name: moviehub_prometheus_data
+  grafana_data:
+    name: moviehub_grafana_data

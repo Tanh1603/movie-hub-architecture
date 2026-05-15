@@ -8,10 +8,15 @@
 # - Database services use .env.db files in their respective service folders
 # - Production: Cloud only production
 #
-# PROBE ENDPOINTS:
+# PROBE ENDPOINTS (Phase 05 & 07):
 # - Liveness probe (`/health/live`): used by Docker healthcheck to detect process responsiveness
-# - Readiness probe (`/health/ready`): checks if dependencies (DB/Redis) are ready; used in cloud deployment (Phase 07)
-#   Docker Compose healthcheck uses liveness probe only; readiness is verified in production deployment via infra/terraform
+# - Readiness probe (`/health/ready`): checks if dependencies (DB/Redis) are ready; used in Swarm deployment (Phase 07)
+#   Docker Compose healthcheck uses liveness probe only; readiness is verified in Docker Swarm via docker-stack.yml
+#
+# DEPLOYMENT OPTIONS:
+# - Local dev: docker compose up -d (uses liveness probes only)
+# - Demo with replicas: docker compose --scale service=2 up -d (for Phase 07 demo)
+# - Production-like Swarm: docker swarm init && docker stack deploy -c docker-stack.yml moviehub (uses readiness + liveness)
 #
 # USAGE (~~~~!!!!!IMPORTANT!!!!!~~~~)
 #   docker compose up -d            Use base + docker-compose.override.yml (development)
@@ -135,7 +140,7 @@ services:
     env_file:
       - ./apps/user-service/.env
     ports:
-      - '4001:3001'
+      - '4001:3006'
     depends_on:
       postgres-user:
         condition: service_healthy
@@ -169,7 +174,7 @@ services:
     env_file:
       - ./apps/movie-service/.env
     ports:
-      - '4002:3002'
+      - '4002:3007'
     depends_on:
       postgres-movie:
         condition: service_healthy
@@ -203,7 +208,7 @@ services:
     env_file:
       - ./apps/cinema-service/.env
     ports:
-      - '4003:3003'
+      - '4003:3008'
     depends_on:
       postgres-cinema:
         condition: service_healthy
@@ -238,7 +243,7 @@ services:
     env_file:
       - ./apps/booking-service/.env
     ports:
-      - '4004:3004'
+      - '4004:3005'
     depends_on:
       postgres-booking:
         condition: service_healthy
