@@ -7,6 +7,35 @@ import {
 } from '@nestjs/common';
 import { Observable, tap } from 'rxjs';
 
+const SENSITIVE_KEYS = [
+  'authorization',
+  'x-api-key',
+  'password',
+  'cardnumber',
+  'cvv',
+  'pin',
+  'refreshtoken',
+  'accesstoken',
+];
+
+export function redactSensitiveData(data: any): any {
+  if (!data) return data;
+  if (typeof data !== 'object') return data;
+  if (Array.isArray(data)) return data.map(redactSensitiveData);
+
+  const redacted = { ...data };
+  for (const key in redacted) {
+    if (Object.prototype.hasOwnProperty.call(redacted, key)) {
+      if (SENSITIVE_KEYS.includes(key.toLowerCase())) {
+        redacted[key] = '[REDACTED]';
+      } else if (typeof redacted[key] === 'object') {
+        redacted[key] = redactSensitiveData(redacted[key]);
+      }
+    }
+  }
+  return redacted;
+}
+
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
   private logger: Logger;
@@ -40,7 +69,7 @@ export class LoggingInterceptor implements NestInterceptor {
 
     const now = Date.now();
     this.logger.debug(
-      `[${logPrefix}] Incoming request with body: ${JSON.stringify(payload)}`
+      `[${logPrefix}] Incoming request with body: ${JSON.stringify(redactSensitiveData(payload))}`
     );
 
     return next.handle().pipe(
@@ -49,7 +78,7 @@ export class LoggingInterceptor implements NestInterceptor {
           const responseTime = Date.now() - now;
           this.logger.debug(
             `[${logPrefix}] Response (${responseTime}ms): ${JSON.stringify(
-              response
+              redactSensitiveData(response)
             )}`
           );
         },
@@ -63,7 +92,7 @@ export class LoggingInterceptor implements NestInterceptor {
 
           this.logger.error(
             `[${logPrefix}] Error (${responseTime}ms): ${JSON.stringify(
-              errorContent
+              redactSensitiveData(errorContent)
             )}`
           );
         },

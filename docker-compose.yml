@@ -131,8 +131,8 @@ services:
     restart: unless-stopped
     env_file:
       - ./apps/user-service/.env
-    ports:
-      - "4001:3001"
+    expose:
+      - "3001"
     depends_on:
       postgres-user:
         condition: service_healthy
@@ -158,8 +158,8 @@ services:
     restart: unless-stopped
     env_file:
       - ./apps/movie-service/.env
-    ports:
-      - "4002:3002"
+    expose:
+      - "3002"
     depends_on:
       postgres-movie:
         condition: service_healthy
@@ -184,8 +184,8 @@ services:
     restart: unless-stopped
     env_file:
       - ./apps/cinema-service/.env
-    ports:
-      - "4003:3003"
+    expose:
+      - "3003"
     depends_on:
       postgres-cinema:
         condition: service_healthy
@@ -212,8 +212,8 @@ services:
     restart: unless-stopped
     env_file:
       - ./apps/booking-service/.env
-    ports:
-      - "4004:3004"
+    expose:
+      - "3004"
     depends_on:
       postgres-booking:
         condition: service_healthy

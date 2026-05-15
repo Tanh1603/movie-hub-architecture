@@ -27,6 +27,13 @@ async function bootstrap() {
   });
 
   app.use(cookieParser());
+  
+  // Enforce TLS policy (HSTS)
+  app.use((req, res, next) => {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    next();
+  });
+
   app.enableVersioning({
     type: VersioningType.URI,
     prefix: 'v',
