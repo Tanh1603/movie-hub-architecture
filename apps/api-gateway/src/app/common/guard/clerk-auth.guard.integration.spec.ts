@@ -4,7 +4,7 @@ import { ClerkAuthGuard } from './clerk-auth.guard';
 import { TokenValidationService } from '../auth/token-validation.service';
 import { BruteForceProtectionService } from '../auth/brute-force-protection.service';
 import { UserMessage } from '@movie-hub/shared-types';
-import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, UnauthorizedException, HttpException } from '@nestjs/common';
 
 type RedisValue = {
   value: string;
@@ -200,7 +200,7 @@ describe('ClerkAuthGuard integration scenarios', () => {
     ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
-  it('locks out on 6th failed attempt', async () => {
+  it('locks out on 6th failed attempt with 429 and Retry-After', async () => {
     tokenValidationService.validateTokenOrThrow.mockRejectedValue(
       new Error('invalid token')
     );
@@ -222,10 +222,73 @@ describe('ClerkAuthGuard integration scenarios', () => {
       ...baseRequest,
       headers: { ...baseRequest.headers },
     };
-    await expect(
-      guard.canActivate(executionContextForRequest(sixthRequest))
-    ).rejects.toBeInstanceOf(UnauthorizedException);
+    try {
+      await guard.canActivate(executionContextForRequest(sixthRequest));
+      fail('Should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(HttpException);
+      expect((error as HttpException).getStatus()).toBe(429);
+      const body = (error as HttpException).getResponse() as Record<string, unknown>;
+      expect(body.retryAfter).toBe(300);
+      expect(body.message).toContain('Too many failed attempts');
+    }
+    // Token validation should NOT be called on the 6th attempt (blocked by lockout)
     expect(tokenValidationService.validateTokenOrThrow).toHaveBeenCalledTimes(5);
+  });
+
+  it('resets counter on successful login after failures', async () => {
+    tokenValidationService.validateTokenOrThrow
+      .mockRejectedValueOnce(new Error('invalid token'))
+      .mockRejectedValueOnce(new Error('invalid token'))
+      .mockResolvedValueOnce({
+        sub: 'user_123',
+        iss: 'https://example.clerk.accounts.dev',
+      } as any);
+
+    const baseRequest = {
+      headers: { authorization: 'Bearer bad-token' },
+      cookies: {},
+      ip: '10.0.0.10',
+    };
+
+    // 2 failures
+    for (let i = 0; i < 2; i++) {
+      const request = { ...baseRequest, headers: { ...baseRequest.headers } };
+      await expect(
+        guard.canActivate(executionContextForRequest(request))
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+    }
+
+    // Now succeed
+    const goodRequest: any = {
+      headers: { authorization: 'Bearer valid-token' },
+      cookies: {},
+      ip: '10.0.0.10',
+    };
+    const allowed = await guard.canActivate(executionContextForRequest(goodRequest));
+    expect(allowed).toBe(true);
+
+    // After success, counter is reset — 5 more failures should be needed before lockout
+    tokenValidationService.validateTokenOrThrow.mockRejectedValue(
+      new Error('invalid token')
+    );
+
+    for (let i = 1; i <= 5; i++) {
+      const request = { ...baseRequest, headers: { ...baseRequest.headers } };
+      await expect(
+        guard.canActivate(executionContextForRequest(request))
+      ).rejects.toBeInstanceOf(UnauthorizedException);
+    }
+
+    // 6th after reset should be locked
+    const lockRequest = { ...baseRequest, headers: { ...baseRequest.headers } };
+    try {
+      await guard.canActivate(executionContextForRequest(lockRequest));
+      fail('Should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(HttpException);
+      expect((error as HttpException).getStatus()).toBe(429);
+    }
   });
 
   it('unlocks after 5 minutes and accepts valid token', async () => {

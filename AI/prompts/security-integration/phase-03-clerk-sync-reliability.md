@@ -39,8 +39,11 @@ Harden identity synchronization reliability between internal staff records and C
 - Add bounded retry policy for Clerk API failures (max 3 attempts: 1s/2s/4s).
 - Implement reconciliation job:
   - compare internal canonical role data with Clerk metadata
-  - repair mismatches
-  - log corrected records
+  - **canonical source of truth: internal DB** — Clerk metadata is a projection
+  - reconciliation direction: internal → Clerk (never Clerk → internal)
+  - on conflict: overwrite Clerk metadata with internal value, emit `clerk_sync_drift_repaired` event
+  - repair mismatches with before/after snapshot in audit log
+  - log corrected records with actor=`system:reconciliation`, correlation ID, timestamp
 - Add dead-letter handling for repeated sync failures.
 
 ## Expected Deliverables
@@ -53,6 +56,8 @@ Harden identity synchronization reliability between internal staff records and C
 
 - Transient Clerk outage does not permanently break staff sync.
 - Drift between internal and Clerk metadata is detected and corrected.
+- Reconciliation always pushes internal → Clerk, never reverse.
+- Every repair action produces audit entry with before/after values.
 - Repeated failures are isolated for manual triage.
 
 ## Validation Steps
@@ -87,8 +92,12 @@ Implement ONLY Phase 03.
 FORBIDDEN:
 - Unbounded retry loops.
 - Blind full overwrite of Clerk metadata without canonical checks.
+- Using Clerk metadata as source of truth for role assignments.
+- Reconciliation repair without audit trail.
 
 Strict Rules:
 1. Idempotency key or deterministic sync key required.
 2. Keep retries bounded and observable.
 3. Failures beyond retry budget must be triaged, not ignored.
+4. Reconciliation direction is always internal DB → Clerk. Never reverse.
+5. Every repair must log before/after snapshot with correlation ID.

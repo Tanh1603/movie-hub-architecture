@@ -50,6 +50,11 @@ Standardize and enforce authentication at API Gateway and service boundaries usi
 - Implement brute-force mitigation for login endpoints:
   - failed-attempt counters per account + IP in Redis
   - lock threshold 5 failures, lockout duration 5 minutes
+  - Redis key structure: `brute:{accountId}:{ip}` with TTL = lockout duration
+  - use sliding window counter (INCR + EXPIRE), NOT fixed-window
+  - lockout response: `429 Too Many Requests` with `Retry-After` header (seconds)
+  - successful login resets counter for that account+IP pair
+  - counters expire automatically after lockout window (no manual cleanup)
 - Remove sensitive auth logs (raw token, key material, claim dump)
 
 ## Expected Deliverables
@@ -64,6 +69,9 @@ Standardize and enforce authentication at API Gateway and service boundaries usi
 - Protected endpoints reject invalid token with `401` and generic message.
 - No logs contain raw JWT, refresh token, or key material.
 - Brute-force lockout triggers on 6th failed login attempt.
+- Lockout returns `429` with `Retry-After` header, NOT `401`.
+- Counter resets on successful authentication.
+- Redis key auto-expires after lockout window.
 - Service-side guard rejects missing gateway identity headers with `403`.
 
 ## Validation Steps
@@ -75,7 +83,9 @@ Standardize and enforce authentication at API Gateway and service boundaries usi
 ## Test Plan
 
 - Unit: signature, expiry, issuer, audience, malformed token
+- Unit: brute-force counter increment, threshold, lockout, reset-on-success, TTL expiry
 - Integration: gateway -> service identity propagation
+- Integration: 5 failed logins → 6th blocked → wait lockout → retry succeeds
 - Failure simulation: stale keys then refresh
 
 ## Risks
@@ -102,9 +112,11 @@ FORBIDDEN:
 - Custom auth provider or local credential database.
 - Logging raw token/claims/secrets.
 - Mixing RBAC ownership logic into this phase.
+- Unbounded counters without TTL (memory leak vector).
 
 Strict Rules:
 1. Enforce token verification at gateway first, guard in services second.
 2. Keep error responses generic; details only in secure server logs.
 3. Add focused tests for token edge cases and brute-force lockout.
 4. Do not touch payment or notification modules.
+5. Brute-force limiter MUST use sliding window with auto-expiring Redis keys.

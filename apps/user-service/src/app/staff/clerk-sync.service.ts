@@ -244,6 +244,7 @@ export class ClerkSyncService {
 
   @Cron(process.env.CLERK_SYNC_RECONCILIATION_CRON ?? '0 */5 * * * *')
   async reconcileStaffMetadataDrift() {
+    const reconciliationId = `recon_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
     const staffs = await this.prisma.staff.findMany({
       where: { clerkUserId: { not: null } },
       select: {
@@ -272,6 +273,8 @@ export class ClerkSyncService {
         const user = await this.clerkClient.users.getUser(clerkUserId);
         const current = user?.publicMetadata ?? {};
 
+        // Canonical source of truth: internal DB
+        // Reconciliation direction: internal → Clerk (never Clerk → internal)
         const expected = {
           role: staff.position,
           cinemaId: staff.cinemaId,
@@ -284,6 +287,18 @@ export class ClerkSyncService {
           String(current.staffStatus ?? '') !== String(expected.staffStatus);
 
         if (drifted) {
+          // Capture before/after snapshot for audit trail
+          const beforeSnapshot = {
+            role: String(current.role ?? ''),
+            cinemaId: String(current.cinemaId ?? ''),
+            staffStatus: String(current.staffStatus ?? ''),
+          };
+          const afterSnapshot = {
+            role: String(expected.role),
+            cinemaId: String(expected.cinemaId),
+            staffStatus: String(expected.staffStatus),
+          };
+
           await this.clerkClient.users.updateUser(clerkUserId, {
             publicMetadata: {
               ...current,
@@ -293,8 +308,17 @@ export class ClerkSyncService {
 
           corrected += 1;
           this.syncMetrics.reconciledCorrected += 1;
+
+          // Audit trail: actor, direction, before/after, correlation ID
           this.logger.warn(
-            `Clerk metadata drift corrected staffId=${staff.id} clerkUserId=${clerkUserId}`
+            `clerk_sync_drift_repaired ` +
+              `actor=system:reconciliation ` +
+              `direction=internal_to_clerk ` +
+              `staffId=${staff.id} ` +
+              `clerkUserId=${clerkUserId} ` +
+              `before=${JSON.stringify(beforeSnapshot)} ` +
+              `after=${JSON.stringify(afterSnapshot)} ` +
+              `correlationId=${reconciliationId}`
           );
         }
 
@@ -302,13 +326,22 @@ export class ClerkSyncService {
       } catch (error) {
         this.syncMetrics.reconciledFailed += 1;
         this.logger.error(
-          `Clerk reconciliation failed staffId=${staff.id} clerkUserId=${clerkUserId}: ${this.toErrorMessage(error)}`
+          `Clerk reconciliation failed ` +
+            `staffId=${staff.id} ` +
+            `clerkUserId=${clerkUserId} ` +
+            `correlationId=${reconciliationId} ` +
+            `error=${this.toErrorMessage(error)}`
         );
       }
     }
 
     this.logger.log(
-      `clerk_reconciliation_metrics checked=${this.syncMetrics.reconciledChecked} corrected=${this.syncMetrics.reconciledCorrected} failed=${this.syncMetrics.reconciledFailed} corrected_this_run=${corrected}`
+      `clerk_reconciliation_metrics ` +
+        `checked=${this.syncMetrics.reconciledChecked} ` +
+        `corrected=${this.syncMetrics.reconciledCorrected} ` +
+        `failed=${this.syncMetrics.reconciledFailed} ` +
+        `corrected_this_run=${corrected} ` +
+        `correlationId=${reconciliationId}`
     );
   }
 

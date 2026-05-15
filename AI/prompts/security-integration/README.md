@@ -19,6 +19,7 @@
 Phase 01 -> Phase 02 -> Phase 03
 Phase 01 -> Phase 04 -> Phase 05 -> Phase 06
 Phase 02 -> Phase 07
+Phase 07 -> Phase 09
 Phase 08 -> Phase 09 -> Phase 10
 Phase 03 -> Phase 09
 Phase 05 -> Phase 09
@@ -48,3 +49,7 @@ Phase 06 -> Phase 10
   - 2.6 -> Phase 08
   - 2.0 P2 observability/runbook -> Phase 09 + Phase 10
 - P0/P1/P2 priority in TEAM_TASK_DIVISION remains authoritative for rollout decisions.
+
+## Review Log
+
+- **2026-05-15**: Security & Integration quality review. Backfilled gaps in P01 (brute-force spec), P03 (reconciliation direction), P05 (timestamp freshness). Updated P07–P10 with PII handling, inter-service transport, alert baselining, gate classification.

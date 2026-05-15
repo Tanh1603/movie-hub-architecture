@@ -13,6 +13,10 @@ export class BruteForceProtectionService {
     @Inject('REDIS_AUTH') private readonly redis: RedisPubSubService
   ) {}
 
+  getLockDurationSeconds(): number {
+    return this.lockSeconds;
+  }
+
   async assertNotLocked(request: Request, accountKey: string): Promise<void> {
     const ip = this.getClientIp(request);
     const ipLockKey = this.lockKeyByIp(ip);

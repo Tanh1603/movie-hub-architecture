@@ -53,6 +53,7 @@ import Joi from 'joi';
         PAYMENT_RECON_STALE_MINUTES: Joi.number().optional(),
         PAYMENT_RECON_CRON: Joi.string().optional(),
         PAYMENT_RECON_LOCK_TTL_SECONDS: Joi.number().optional(),
+        WEBHOOK_TIMESTAMP_TOLERANCE_MS: Joi.number().default(300_000),
       }),
     }),
     CacheModule.register({

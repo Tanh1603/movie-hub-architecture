@@ -100,6 +100,7 @@ export class VNPayPaymentAdapter implements PaymentAdapter {
       transactionId: params.vnp_TransactionNo,
       amount: Number.parseInt(params.vnp_Amount || '0', 10) / 100,
       isSuccess: params.vnp_TransactionStatus === '00',
+      callbackTimestamp: this.parseVnpayDate(params.vnp_PayDate || params.vnp_CreateDate),
     };
   }
 
@@ -126,6 +127,8 @@ export class VNPayPaymentAdapter implements PaymentAdapter {
     switch (outcome) {
       case 'invalid_signature':
         return { RspCode: '97', Message: 'Checksum failed' };
+      case 'stale_callback':
+        return { RspCode: '02', Message: 'This order has been updated to the payment status' };
       case 'order_not_found':
         return { RspCode: '01', Message: 'Order not found' };
       case 'expired':
@@ -182,5 +185,19 @@ export class VNPayPaymentAdapter implements PaymentAdapter {
     }
 
     return sorted;
+  }
+
+  /**
+   * Parse VNPay date format YYYYMMDDHHmmss (ICT/UTC+7) to epoch ms.
+   * Returns undefined if the date string is missing or malformed.
+   */
+  private parseVnpayDate(dateStr?: string): number | undefined {
+    if (!dateStr || dateStr.length < 14) {
+      return undefined;
+    }
+    // Format: YYYYMMDDHHmmss — interpreted as UTC+7
+    const iso = `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}T${dateStr.slice(8, 10)}:${dateStr.slice(10, 12)}:${dateStr.slice(12, 14)}+07:00`;
+    const ts = new Date(iso).getTime();
+    return Number.isNaN(ts) ? undefined : ts;
   }
 }

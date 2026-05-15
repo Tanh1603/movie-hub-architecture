@@ -1,5 +1,5 @@
 import { Injectable, CanActivate, ExecutionContext, Inject, Logger } from '@nestjs/common';
-import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, UnauthorizedException, HttpException, HttpStatus } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ClientProxy } from '@nestjs/microservices';
 import {
@@ -63,11 +63,35 @@ export class ClerkAuthGuard implements CanActivate {
 
     try {
       await this.bruteForceProtectionService.assertNotLocked(request, accountKey);
+    } catch (lockError) {
+      if (lockError instanceof Error && lockError.message === 'AUTH_TEMPORARILY_LOCKED') {
+        this.logger.warn(
+          `Auth lockout active account=${this.fingerprint(accountKey)} correlationId=${correlationId}`
+        );
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.TOO_MANY_REQUESTS,
+            message: 'Too many failed attempts. Please try again later.',
+            retryAfter: this.bruteForceProtectionService.getLockDurationSeconds(),
+          },
+          HttpStatus.TOO_MANY_REQUESTS,
+          {
+            cause: lockError,
+          }
+        );
+      }
+      throw lockError;
+    }
+
+    try {
       const session = await this.tokenValidationService.validateTokenOrThrow(token);
       request.userId = session.sub;
       request.headers['x-user-id'] = session.sub;
       await this.bruteForceProtectionService.clearFailures(request, accountKey);
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       await this.bruteForceProtectionService.recordFailure(
         request,
         accountKey,

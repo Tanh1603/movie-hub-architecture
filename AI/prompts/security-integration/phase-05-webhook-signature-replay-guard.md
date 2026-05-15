@@ -34,6 +34,11 @@ Secure payment callback entrypoint with signature verification, deduplication, a
 
 - Add webhook endpoint per provider contract.
 - Verify callback signature/HMAC with provider secret.
+- Enforce **timestamp freshness check**:
+  - reject callbacks with timestamp older than 5 minutes (`WEBHOOK_TIMESTAMP_TOLERANCE_MS=300000`)
+  - extract timestamp from provider-specific header or payload field
+  - compare against server clock with configurable tolerance
+  - log rejected stale callbacks as `webhook_stale_rejected` security event
 - Enforce dedup using provider transaction/event ID.
 - Track replay attempts and suspicious callbacks.
 - Return provider-safe ack response while suppressing internals.
@@ -47,14 +52,18 @@ Secure payment callback entrypoint with signature verification, deduplication, a
 ## Acceptance Criteria
 
 - Invalid signature callbacks produce no state changes.
+- Callbacks with timestamp older than tolerance window are rejected with `200` ack (no state change).
 - Duplicate valid callbacks are acknowledged but not re-applied.
 - Replay attempts are logged with security context.
+- Validation order enforced: signature → timestamp freshness → dedup → state transition.
 
 ## Validation Steps
 
 - Send valid callback once then duplicate.
 - Send tampered payload/signature mismatch.
-- Replay old callback with stale timestamp/nonce if supported.
+- Replay valid-signature callback with timestamp > 5 min old → must reject.
+- Replay valid-signature callback with timestamp within window but duplicate ID → must dedup.
+- Clock skew: callback timestamp 1s in future → must accept.
 
 ## Test Plan
 
@@ -86,6 +95,8 @@ FORBIDDEN:
 - Exposing validation failure details to callback caller.
 
 Strict Rules:
-1. Validation order: signature -> dedup/replay -> state transition.
+1. Validation order: signature → timestamp freshness → dedup/replay → state transition.
 2. Duplicate callbacks must be idempotent.
 3. Security logs required for suspicious callback attempts.
+4. Timestamp tolerance MUST be configurable via `ConfigService`, default 5 minutes.
+5. Stale callbacks return `200` ack to provider (prevent retry storm) but perform no mutation.

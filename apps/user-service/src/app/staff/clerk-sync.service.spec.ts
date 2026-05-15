@@ -130,7 +130,9 @@ describe('ClerkSyncService', () => {
     );
   });
 
-  it('reconcileStaffMetadataDrift should repair mismatched metadata', async () => {
+  it('reconcileStaffMetadataDrift should repair mismatched metadata with audit trail', async () => {
+    const logSpy = jest.spyOn((service as any).logger, 'warn');
+
     prisma.staff.findMany.mockResolvedValue([
       {
         id: 's1',
@@ -162,6 +164,23 @@ describe('ClerkSyncService', () => {
           staffStatus: 'ACTIVE',
         }),
       })
+    );
+
+    // Verify audit trail includes before/after and direction
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('clerk_sync_drift_repaired')
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('direction=internal_to_clerk')
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('before=')
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('after=')
+    );
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.stringContaining('correlationId=recon_')
     );
   });
 });

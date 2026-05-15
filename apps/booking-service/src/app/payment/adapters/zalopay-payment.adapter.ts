@@ -141,6 +141,7 @@ export class ZaloPayPaymentAdapter implements PaymentAdapter {
     const amount = Number(decoded.amount || 0);
     const providerStatus = Number(decoded.status || 0);
     const zpTransId = String(decoded.zp_trans_id || '');
+    const serverTime = Number(decoded.server_time || 0);
     const paymentId = this.extractPaymentIdFromCallbackData(decoded) || appTransId;
 
     return {
@@ -149,6 +150,7 @@ export class ZaloPayPaymentAdapter implements PaymentAdapter {
       transactionId: zpTransId || appTransId,
       amount,
       isSuccess: providerStatus === 1,
+      callbackTimestamp: serverTime > 0 ? serverTime : undefined,
     };
   }
 
@@ -180,6 +182,7 @@ export class ZaloPayPaymentAdapter implements PaymentAdapter {
     switch (outcome) {
       case 'invalid_signature':
         return { return_code: -1, return_message: 'mac not equal' };
+      case 'stale_callback':
       case 'processed':
       case 'already_processed':
         return { return_code: 1, return_message: 'success' };

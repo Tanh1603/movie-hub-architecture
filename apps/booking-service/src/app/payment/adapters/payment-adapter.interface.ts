@@ -26,6 +26,8 @@ export interface PaymentCallbackParseResult {
   isSuccess?: boolean;
   errorCode?: string;
   errorMessage?: string;
+  /** Epoch ms timestamp from the provider callback, used for freshness check */
+  callbackTimestamp?: number;
 }
 
 export interface PaymentReturnParseResult {
@@ -41,6 +43,7 @@ export type ProviderAuthoritativeStatus =
 
 export type PaymentIpnOutcome =
   | 'invalid_signature'
+  | 'stale_callback'
   | 'order_not_found'
   | 'expired'
   | 'amount_invalid'

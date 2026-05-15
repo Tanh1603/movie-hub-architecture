@@ -302,6 +302,26 @@ export class PaymentService {
         return { data: adapter.buildIPNResponse('invalid_signature') };
       }
 
+      // Validation order: signature ✓ → timestamp freshness → dedup → state transition
+      const freshness = this.webhookReplayGuardService.assertTimestampFresh(
+        callback.callbackTimestamp
+      );
+      if (!freshness.fresh) {
+        await this.webhookReplayGuardService.auditSuspiciousCallback(
+          provider,
+          'stale_callback',
+          {
+            callbackTimestamp: callback.callbackTimestamp,
+            serverTime: Date.now(),
+            ageMs: callback.callbackTimestamp
+              ? Date.now() - callback.callbackTimestamp
+              : 'unknown',
+          }
+        );
+        // Return 200 ack to prevent provider retry storm, but perform no mutation
+        return { data: adapter.buildIPNResponse('stale_callback') };
+      }
+
       const dedupIdentity =
         callback.transactionId ||
         callback.orderId ||
