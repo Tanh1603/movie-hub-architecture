@@ -1,4 +1,4 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger, OnModuleInit } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { PrismaService } from '../prisma.service';
@@ -23,9 +23,10 @@ import { PaymentAdapter } from './adapters/payment-adapter.interface';
 import { PAYMENT_ADAPTERS } from './payment.module';
 import { WebhookReplayGuardService } from './webhook-replay-guard.service';
 import { PaymentTransitionPolicyService } from './payment-transition-policy.service';
+import { NotificationOutboxService } from '../notification/notification-outbox.service';
 
 @Injectable()
-export class PaymentService {
+export class PaymentService implements OnModuleInit {
   private readonly logger = new Logger(PaymentService.name);
   private readonly providerTimeoutMs = 30_000;
   private readonly paymentAdaptersByMethod: Map<PaymentMethod, PaymentAdapter>;
@@ -35,6 +36,7 @@ export class PaymentService {
     private bookingEventService: BookingEventService,
     private webhookReplayGuardService: WebhookReplayGuardService,
     private paymentTransitionPolicy: PaymentTransitionPolicyService,
+    private notificationOutboxService: NotificationOutboxService,
     @Inject(SERVICE_NAME.USER) private userClient: ClientProxy,
     private notificationService: NotificationService,
     private ticketService: TicketService,
@@ -43,6 +45,18 @@ export class PaymentService {
     this.paymentAdaptersByMethod = new Map(
       paymentAdapters.map((adapter) => [adapter.method, adapter])
     );
+  }
+
+  async onModuleInit() {
+    this.notificationOutboxService.setConsumerCallback(async (payload) => {
+      try {
+        await this.sendBookingConfirmationEmailAsync(payload.bookingId);
+        return true;
+      } catch (e) {
+        this.logger.error('Failed to send confirmation', e);
+        return false;
+      }
+    });
   }
 
   async createPayment(
@@ -188,6 +202,9 @@ export class PaymentService {
       payment_status: string;
       expires_at: Date | null;
       promotion_code: string | null;
+      customer_name: string;
+      customer_email: string;
+      customer_phone: string | null;
     },
     dto: CreatePaymentDto
   ): Promise<ServiceResult<PaymentDetailDto>> {
@@ -238,6 +255,14 @@ export class PaymentService {
           `[Payment] Incrementing usage for promotion: ${booking.promotion_code}`
         );
       }
+      
+      // Enqueue booking confirmation in outbox within the transaction
+      await this.notificationOutboxService.enqueueBookingConfirmed(tx, {
+        bookingId: booking.id,
+        customerName: booking.customer_name,
+        customerEmail: booking.customer_email,
+        customerPhone: booking.customer_phone || undefined,
+      });
 
       return newPayment;
     });
@@ -259,14 +284,6 @@ export class PaymentService {
     } catch (eventError) {
       console.error('[Payment] Event publish warning:', eventError);
     }
-
-    // Send booking confirmation email ASYNCHRONOUSLY
-    this.sendBookingConfirmationEmailAsync(booking.id).catch((emailError) => {
-      console.error(
-        '[Payment] Failed to send booking confirmation email (async):',
-        emailError
-      );
-    });
 
     console.log(
       `[Payment] Zero-amount payment completed for booking ${booking.id}`
@@ -363,6 +380,9 @@ export class PaymentService {
               status: true,
               payment_status: true,
               expires_at: true,
+              customer_name: true,
+              customer_email: true,
+              customer_phone: true,
             },
           },
         },
@@ -379,6 +399,9 @@ export class PaymentService {
                 status: true,
                 payment_status: true,
                 expires_at: true,
+                customer_name: true,
+                customer_email: true,
+                customer_phone: true,
               },
             },
           },
@@ -456,6 +479,14 @@ export class PaymentService {
               `[VNPay IPN] Incrementing usage for promotion: ${bookingWithPromotion.promotion_code}`
             );
           }
+          
+          // Enqueue booking confirmation in outbox within the transaction
+          await this.notificationOutboxService.enqueueBookingConfirmed(tx, {
+            bookingId: payment.booking_id,
+            customerName: payment.booking.customer_name,
+            customerEmail: payment.booking.customer_email,
+            customerPhone: payment.booking.customer_phone || undefined,
+          });
         });
 
         // Publish booking completed event to Redis
@@ -475,16 +506,6 @@ export class PaymentService {
           this.logger.warn('[VNPay IPN] Event publish warning');
           // Non-critical
         }
-
-        // Send booking confirmation email ASYNCHRONOUSLY
-        this.sendBookingConfirmationEmailAsync(payment.booking_id).catch(
-          (emailError) => {
-            console.error(
-              '[Payment] Failed to send booking confirmation email (async):',
-              emailError
-            );
-          }
-        );
 
         return { data: adapter.buildIPNResponse('processed') };
       } else {
@@ -575,6 +596,9 @@ export class PaymentService {
         payment_status: true,
         expires_at: true,
         promotion_code: true,
+        customer_name: true,
+        customer_email: true,
+        customer_phone: true,
       },
     });
 

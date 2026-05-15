@@ -54,6 +54,8 @@ import Joi from 'joi';
         PAYMENT_RECON_CRON: Joi.string().optional(),
         PAYMENT_RECON_LOCK_TTL_SECONDS: Joi.number().optional(),
         WEBHOOK_TIMESTAMP_TOLERANCE_MS: Joi.number().default(300_000),
+        NOTIFICATION_PII_SECRET: Joi.string().optional(), // Must be 32 bytes hex for production
+        OUTBOX_PII_RETENTION_DAYS: Joi.number().default(30),
       }),
     }),
     CacheModule.register({

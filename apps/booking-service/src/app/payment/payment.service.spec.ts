@@ -51,6 +51,7 @@ describe('PaymentService phase04 initiation', () => {
       { publishBookingConfirmed: jest.fn() } as any,
       webhookGuard,
       { assertTransition: jest.fn() } as any,
+      { setConsumerCallback: jest.fn(), enqueueBookingConfirmed: jest.fn() } as any,
       { send: jest.fn() } as any,
       { sendBookingConfirmation: jest.fn(), sendBookingConfirmationSMS: jest.fn() } as any,
       { generateQRCode: jest.fn() } as any,
