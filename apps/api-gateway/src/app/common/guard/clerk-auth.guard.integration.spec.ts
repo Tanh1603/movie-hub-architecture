@@ -51,16 +51,15 @@ class InMemoryRedis {
   }
 
   pipeline() {
-    const redis = this;
     const commands: Array<() => Promise<any>> = [];
 
     return {
-      incr(key: string) {
+      incr: (key: string) => {
         commands.push(async () => {
-          const entry = redis.read(key);
+          const entry = this.read(key);
           const current = entry ? Number(entry.value) : 0;
           const next = current + 1;
-          redis.store.set(key, {
+          this.store.set(key, {
             value: String(next),
             expiresAt: entry?.expiresAt,
           });
@@ -68,13 +67,13 @@ class InMemoryRedis {
         });
         return this;
       },
-      expire(key: string, ttlSeconds: number) {
+      expire: (key: string, ttlSeconds: number) => {
         commands.push(async () => {
-          const entry = redis.read(key);
+          const entry = this.read(key);
           if (!entry) {
             return 0;
           }
-          redis.store.set(key, {
+          this.store.set(key, {
             value: entry.value,
             expiresAt: Date.now() + ttlSeconds * 1000,
           });
@@ -136,7 +135,9 @@ describe('ClerkAuthGuard integration scenarios', () => {
       reflector,
       userClient as any,
       tokenValidationService,
-      bruteForceProtectionService
+      bruteForceProtectionService,
+      { inc: jest.fn() } as any, // authFailuresCounter
+      { inc: jest.fn() } as any  // bruteForceLockoutsCounter
     );
   });
 
