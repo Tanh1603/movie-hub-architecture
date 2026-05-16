@@ -6,8 +6,17 @@ import { StaffModule } from './staff/staff.module';
 import { UserModule } from './user/user.module';
 import { ClerkModule } from './clerk.module';
 
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { securityMetricProviders } from './security-metrics';
+
 @Module({
   imports: [
+    PrometheusModule.register({
+      path: '/metrics',
+      defaultMetrics: {
+        enabled: true,
+      },
+    }),
     ScheduleModule.forRoot(),
     ClerkModule,
     StaffModule,
@@ -29,6 +38,6 @@ import { ClerkModule } from './clerk.module';
     }),
   ],
   controllers: [],
-  providers: [],
+  providers: [...securityMetricProviders],
 })
 export class AppModule {}

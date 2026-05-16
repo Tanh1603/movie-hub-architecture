@@ -16,6 +16,7 @@ import {
   UserMessage,
   UserDetailDto,
   SERVICE_NAME,
+  SECURITY_METRICS,
 } from '@movie-hub/shared-types';
 import * as crypto from 'crypto';
 import { BookingEventService } from '../redis/booking-event.service';
@@ -24,6 +25,8 @@ import { PAYMENT_ADAPTERS } from './payment.module';
 import { WebhookReplayGuardService } from './webhook-replay-guard.service';
 import { PaymentTransitionPolicyService } from './payment-transition-policy.service';
 import { NotificationOutboxService } from '../notification/notification-outbox.service';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { Counter } from 'prom-client';
 
 @Injectable()
 export class PaymentService implements OnModuleInit {
@@ -40,7 +43,13 @@ export class PaymentService implements OnModuleInit {
     @Inject(SERVICE_NAME.USER) private userClient: ClientProxy,
     private notificationService: NotificationService,
     private ticketService: TicketService,
-    @Inject(PAYMENT_ADAPTERS) paymentAdapters: PaymentAdapter[]
+    @Inject(PAYMENT_ADAPTERS) paymentAdapters: PaymentAdapter[],
+    @InjectMetric(SECURITY_METRICS.WEBHOOK_SIGNATURE_FAIL)
+    private readonly webhookSignatureFailCounter: Counter<string>,
+    @InjectMetric(SECURITY_METRICS.WEBHOOK_REPLAY_DETECTED)
+    private readonly webhookReplayDetectedCounter: Counter<string>,
+    @InjectMetric(SECURITY_METRICS.WEBHOOK_STALE_REJECTED)
+    private readonly webhookStaleRejectedCounter: Counter<string>
   ) {
     this.paymentAdaptersByMethod = new Map(
       paymentAdapters.map((adapter) => [adapter.method, adapter])
@@ -316,6 +325,7 @@ export class PaymentService implements OnModuleInit {
             hasTransactionId: Boolean(callback.transactionId),
           }
         );
+        this.webhookSignatureFailCounter.inc({ provider: String(provider).toLowerCase() });
         return { data: adapter.buildIPNResponse('invalid_signature') };
       }
 
@@ -335,6 +345,7 @@ export class PaymentService implements OnModuleInit {
               : 'unknown',
           }
         );
+        this.webhookStaleRejectedCounter.inc({ provider: String(provider).toLowerCase() });
         // Return 200 ack to prevent provider retry storm, but perform no mutation
         return { data: adapter.buildIPNResponse('stale_callback') };
       }
@@ -363,6 +374,7 @@ export class PaymentService implements OnModuleInit {
           'duplicate',
           { dedupIdentity }
         );
+        this.webhookReplayDetectedCounter.inc({ provider: String(provider).toLowerCase() });
         return { data: adapter.buildIPNResponse('already_processed') };
       }
 

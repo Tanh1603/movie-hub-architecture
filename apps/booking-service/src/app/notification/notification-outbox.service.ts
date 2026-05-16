@@ -3,6 +3,9 @@ import { PrismaService } from '../prisma.service';
 import { PiiCryptoService } from './pii-crypto.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { SECURITY_METRICS } from '@movie-hub/shared-types';
+import { Counter } from 'prom-client';
 
 // Define the payload structure for booking confirmed event
 export interface BookingConfirmedOutboxPayload {
@@ -25,7 +28,9 @@ export class NotificationOutboxService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly piiCryptoService: PiiCryptoService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    @InjectMetric(SECURITY_METRICS.NOTIFICATION_OUTBOX_DEAD_LETTER)
+    private readonly deadLetterCounter: Counter<string>
   ) {}
 
   setConsumerCallback(callback: (payload: BookingConfirmedOutboxPayload) => Promise<boolean>) {
@@ -142,6 +147,10 @@ export class NotificationOutboxService {
           where: { id: event.id },
           data: { status: newStatus },
         });
+
+        if (newStatus === 'DEAD_LETTER') {
+          this.deadLetterCounter.inc({ event_type: event.event_type });
+        }
         
         this.logger.error(`Failed to process event ${event.id}. Status: ${newStatus}`, error);
       }

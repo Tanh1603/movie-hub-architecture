@@ -15,9 +15,17 @@ import { RefundModule } from './refund/refund.module';
 import { BookingRedisModule } from './redis/redis.module';
 import { NotificationModule } from './notification/notification.module';
 import Joi from 'joi';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { securityMetricProviders } from './security-metrics';
 
 @Module({
   imports: [
+    PrometheusModule.register({
+      path: '/metrics',
+      defaultMetrics: {
+        enabled: true,
+      },
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: 'apps/booking-service/.env',
@@ -73,6 +81,10 @@ import Joi from 'joi';
     RefundModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [
+    ...securityMetricProviders,
+    AppService, 
+    PrismaService
+  ],
 })
 export class AppModule {}

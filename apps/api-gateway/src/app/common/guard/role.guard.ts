@@ -9,6 +9,9 @@ import { Reflector } from '@nestjs/core';
 import { ROLE_KEY } from '../decorator/roles.decorator';
 import { Request } from 'express';
 import { AccessRole } from '../constants/roles.constants';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { SECURITY_METRICS } from '@movie-hub/shared-types';
+import { Counter } from 'prom-client';
 
 @Injectable()
 export class RoleGuard implements CanActivate {
@@ -37,7 +40,11 @@ export class RoleGuard implements CanActivate {
     [AccessRole.CUSTOMER]: new Set([AccessRole.CUSTOMER]),
   };
 
-  constructor(private readonly reflector: Reflector) {}
+  constructor(
+    private readonly reflector: Reflector,
+    @InjectMetric(SECURITY_METRICS.RBAC_AUTHORIZATION_DENIED)
+    private readonly rbacDeniedCounter: Counter<string>
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles =
@@ -61,6 +68,7 @@ export class RoleGuard implements CanActivate {
       this.logger.warn(
         `Authorization failed userId=${String(userId)} reason=invalid_role role=${String(rawRole)} action=${action} correlationId=${String(correlationId)}`
       );
+      this.rbacDeniedCounter.inc({ role: 'unknown', resource: context.getClass().name });
       throw new ForbiddenException('Insufficient role');
     }
 
@@ -72,6 +80,7 @@ export class RoleGuard implements CanActivate {
       this.logger.warn(
         `Authorization failed userId=${String(userId)} role=${userRole} required=${requiredRoles.join(',')} action=${action} correlationId=${String(correlationId)}`
       );
+      this.rbacDeniedCounter.inc({ role: userRole, resource: context.getClass().name });
       throw new ForbiddenException('Insufficient role');
     }
 

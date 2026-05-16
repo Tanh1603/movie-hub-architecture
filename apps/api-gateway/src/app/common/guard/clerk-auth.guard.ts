@@ -10,6 +10,7 @@ import {
   PermissionRequirement,
   SERVICE_NAME,
   UserMessage,
+  SECURITY_METRICS,
 } from '@movie-hub/shared-types';
 import { lastValueFrom } from 'rxjs';
 import { TokenValidationService } from '../auth/token-validation.service';
@@ -17,6 +18,8 @@ import { BruteForceProtectionService } from '../auth/brute-force-protection.serv
 import { Request } from 'express';
 import { createHash } from 'crypto';
 import { AccessRole } from '../constants/roles.constants';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { Counter } from 'prom-client';
 
 @Injectable()
 export class ClerkAuthGuard implements CanActivate {
@@ -39,7 +42,11 @@ export class ClerkAuthGuard implements CanActivate {
     private readonly reflector: Reflector,
     @Inject(SERVICE_NAME.USER) private readonly userClient: ClientProxy,
     private readonly tokenValidationService: TokenValidationService,
-    private readonly bruteForceProtectionService: BruteForceProtectionService
+    private readonly bruteForceProtectionService: BruteForceProtectionService,
+    @InjectMetric(SECURITY_METRICS.AUTH_FAILURES)
+    private readonly authFailuresCounter: Counter<string>,
+    @InjectMetric(SECURITY_METRICS.BRUTE_FORCE_LOCKOUTS)
+    private readonly bruteForceLockoutsCounter: Counter<string>
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -56,6 +63,7 @@ export class ClerkAuthGuard implements CanActivate {
     const token = this.extractToken(request);
     if (!token) {
       this.logger.warn(`Missing auth token correlationId=${correlationId}`);
+      this.authFailuresCounter.inc({ reason: 'missing' });
       throw new UnauthorizedException('Authentication token is required');
     }
 
@@ -68,6 +76,8 @@ export class ClerkAuthGuard implements CanActivate {
         this.logger.warn(
           `Auth lockout active account=${this.fingerprint(accountKey)} correlationId=${correlationId}`
         );
+        this.authFailuresCounter.inc({ reason: 'lockout' });
+        this.bruteForceLockoutsCounter.inc({ endpoint: request.path ?? 'unknown' });
         throw new HttpException(
           {
             statusCode: HttpStatus.TOO_MANY_REQUESTS,
@@ -97,6 +107,7 @@ export class ClerkAuthGuard implements CanActivate {
         accountKey,
         correlationId
       );
+      this.authFailuresCounter.inc({ reason: 'invalid_token' });
       this.logger.warn(
         `Token verification failed account=${this.fingerprint(accountKey)} correlationId=${correlationId}`
       );
