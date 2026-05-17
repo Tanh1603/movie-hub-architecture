@@ -17,7 +17,6 @@ import { TokenValidationService } from '../auth/token-validation.service';
 import { BruteForceProtectionService } from '../auth/brute-force-protection.service';
 import { Request } from 'express';
 import { createHash } from 'crypto';
-import { AccessRole } from '../constants/roles.constants';
 import { InjectMetric } from '@willsoto/nestjs-prometheus';
 import { Counter } from 'prom-client';
 
@@ -25,16 +24,9 @@ import { Counter } from 'prom-client';
 export class ClerkAuthGuard implements CanActivate {
   private readonly logger = new Logger(ClerkAuthGuard.name);
   private static readonly ROLE_PRECEDENCE: AppRole[] = [
-    AppRole.SUPER_ADMIN,
     AppRole.ADMIN,
     AppRole.CINEMA_MANAGER,
-    AppRole.ASSISTANT_MANAGER,
-    AppRole.TICKET_CLERK,
-    AppRole.CONCESSION_STAFF,
-    AppRole.USHER,
-    AppRole.PROJECTIONIST,
-    AppRole.CLEANER,
-    AppRole.SECURITY,
+    AppRole.STAFF,
     AppRole.CUSTOMER,
   ];
 
@@ -148,7 +140,7 @@ export class ClerkAuthGuard implements CanActivate {
               };
               request.headers['x-cinema-id'] = String(staffResult.data.cinemaId);
               if (!request.headers['x-user-role']) {
-                request.headers['x-user-role'] = this.mapStaffPositionToAccessRole(
+                request.headers['x-user-role'] = this.mapStaffPositionToAppRole(
                   String(staffResult.data.position)
                 );
               }
@@ -163,7 +155,7 @@ export class ClerkAuthGuard implements CanActivate {
     }
 
     if (!request.headers['x-user-role']) {
-      request.headers['x-user-role'] = AccessRole.CUSTOMER;
+      request.headers['x-user-role'] = AppRole.CUSTOMER;
     }
 
     if (!this.hasValidUserContextHeaders(request)) {
@@ -262,41 +254,29 @@ export class ClerkAuthGuard implements CanActivate {
     return userPermissions.some((permission) => candidates.has(permission));
   }
 
-  private pickEffectiveRole(userRoles: string[]): AccessRole | null {
+  private pickEffectiveRole(userRoles: string[]): AppRole | null {
     if (!Array.isArray(userRoles) || userRoles.length === 0) {
       return null;
     }
 
-    if (
-      userRoles.includes(AppRole.SUPER_ADMIN) ||
-      userRoles.includes(AppRole.ADMIN)
-    ) {
-      return AccessRole.ADMIN;
-    }
-    if (userRoles.includes(AppRole.CINEMA_MANAGER)) {
-      return AccessRole.CINEMA_MANAGER;
-    }
-    if (userRoles.includes(AppRole.CUSTOMER)) {
-      return AccessRole.CUSTOMER;
-    }
-    if (userRoles.some((role) => ClerkAuthGuard.ROLE_PRECEDENCE.includes(role as AppRole))) {
-      return AccessRole.STAFF;
+    if (userRoles.includes(AppRole.ADMIN) || userRoles.includes('SUPER_ADMIN')) {
+      return AppRole.ADMIN;
     }
 
-    return null;
+    return (
+      ClerkAuthGuard.ROLE_PRECEDENCE.find((role) => userRoles.includes(role)) ||
+      null
+    );
   }
 
-  private mapStaffPositionToAccessRole(position: string): AccessRole {
-    if (position === AppRole.CINEMA_MANAGER) {
-      return AccessRole.CINEMA_MANAGER;
+  private mapStaffPositionToAppRole(position: string): AppRole {
+    if (position === 'SUPER_ADMIN' || position === AppRole.ADMIN) {
+      return AppRole.ADMIN;
     }
-    if (position === AppRole.ADMIN || position === AppRole.SUPER_ADMIN) {
-      return AccessRole.ADMIN;
-    }
-    if (position === AppRole.CUSTOMER) {
-      return AccessRole.CUSTOMER;
-    }
-    return AccessRole.STAFF;
+    const role = position as AppRole;
+    return ClerkAuthGuard.ROLE_PRECEDENCE.includes(role)
+      ? role
+      : AppRole.STAFF;
   }
 
   private fingerprint(value: string): string {

@@ -3,7 +3,6 @@
 
 
 import { useState } from 'react';
-import { useUser } from '@clerk/nextjs';
 import {
   Plus,
   Search,
@@ -48,6 +47,9 @@ import {
 } from '@/features/admin/cinemas';
 import type { CreateCinemaRequest as ApiCreateCinemaRequest } from '@/types';
 import type { Cinema, CreateCinemaRequest } from '@/types';
+import { useRBAC } from '@/features/admin/shared/hooks/use-rbac';
+import { RoleGate } from '@/features/admin/shared/role-gate';
+import { AdminPermission } from '@/features/admin/shared/rbac';
 
 // Preset amenities for quick selection
 const PRESET_AMENITIES = [
@@ -65,10 +67,7 @@ type FormSocialMedia = { facebook?: string; instagram?: string; twitter?: string
 type FacilityValue = string | number | boolean;
 
 export default function CinemasPage() {
-  const { user } = useUser();
-  const userRole = user?.publicMetadata?.role as string;
-  const userCinemaId = user?.publicMetadata?.cinemaId as string | undefined;
-  const isManager = userRole === 'CINEMA_MANAGER';
+  const { isCinemaManager: isManager, cinemaId: userCinemaId } = useRBAC();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -307,7 +306,7 @@ export default function CinemasPage() {
             Quản lý các vị trí rạp chiếu phim của bạn trên toàn hệ thống
           </p>
         </div>
-        {!isManager && (
+        <RoleGate requirePermission={AdminPermission.MANAGE_CINEMAS}>
           <Button
             onClick={() => {
               resetForm();
@@ -318,7 +317,7 @@ export default function CinemasPage() {
             <Plus className="mr-2 h-4 w-4" />
             Thêm Rạp
           </Button>
-        )}
+        </RoleGate>
       </div>
 
       {/* Search Bar & Stats */}
@@ -397,7 +396,7 @@ export default function CinemasPage() {
                           <Edit className="mr-2 h-4 w-4" />
                           Chỉnh sửa
                         </DropdownMenuItem>
-                        {!isManager && (
+                        <RoleGate requirePermission={AdminPermission.MANAGE_CINEMAS}>
                           <DropdownMenuItem
                             onClick={() => {
                               setSelectedCinema(cinema);
@@ -408,7 +407,7 @@ export default function CinemasPage() {
                             <Trash2 className="mr-2 h-4 w-4" />
                             Xóa
                           </DropdownMenuItem>
-                        )}
+                        </RoleGate>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>

@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
 
-xport const MovieAtCinemaCard = ({
+export const MovieAtCinemaCard = ({
   movie,
 }: {
   movie: MovieWithShowtimeResponse;

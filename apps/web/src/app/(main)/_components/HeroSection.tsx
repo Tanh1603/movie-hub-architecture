@@ -13,6 +13,7 @@ import { Button } from '@movie-hub/shacdn-ui/button';
 import { Play, Info } from 'lucide-react';
 import { useGetMovies } from '@/features/client/movies/hooks';
 import Link from 'next/link';
+import Image from 'next/image';
 
 // Placeholder gradients if not provided by backend
 const gradients = [
@@ -68,14 +69,15 @@ export default function HeroSection() {
                 className="relative w-full h-[600px] lg:h-[700px] pl-0"
               >
                 {/* Background Image: Prefer backdropUrl, fallback to posterUrl */}
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-700 hover:scale-105"
-                  style={{
-                    backgroundImage: `url(${
-                      movie.backdropUrl || movie.posterUrl
-                    })`,
-                  }}
-                />
+                <div className="absolute inset-0 overflow-hidden">
+                  <Image
+                    src={movie.backdropUrl || movie.posterUrl || '/images/placeholder-bg.png'}
+                    alt={movie.title}
+                    fill
+                    priority={index === 0}
+                    className="object-cover transition-transform duration-700 hover:scale-105"
+                  />
+                </div>
 
                 {/* Gradient Overlay */}
                 <div

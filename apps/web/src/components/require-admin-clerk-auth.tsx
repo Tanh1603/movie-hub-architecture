@@ -5,18 +5,13 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { Loader2, Film, LogIn, ShieldX } from 'lucide-react';
 import { Button } from '@movie-hub/shacdn-ui/button';
+import { AppRole } from '@movie-hub/shared-types';
 
 // Valid staff roles that can access admin panel
 const VALID_STAFF_ROLES = [
-  'SUPER_ADMIN',
-  'CINEMA_MANAGER',
-  'ASSISTANT_MANAGER',
-  'TICKET_CLERK',
-  'CONCESSION_STAFF',
-  'USHER',
-  'PROJECTIONIST',
-  'CLEANER',
-  'SECURITY',
+  AppRole.ADMIN,
+  AppRole.CINEMA_MANAGER,
+  AppRole.STAFF,
 ];
 
 export const RequireAdminClerkAuth = ({
@@ -83,8 +78,8 @@ export const RequireAdminClerkAuth = ({
   }
 
   // Check if user has a valid staff role
-  const userRole = user?.publicMetadata?.role as string | undefined;
-  const isStaff = VALID_STAFF_ROLES.includes(userRole || '');
+  const userRole = user?.publicMetadata?.role as AppRole | undefined;
+  const isStaff = VALID_STAFF_ROLES.includes(userRole as any);
 
   // If signed in but not a staff member, show access denied
   if (!isStaff) {

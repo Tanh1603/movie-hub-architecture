@@ -32,8 +32,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { QRCodeCanvas } from 'qrcode.react';
 import { Loader } from '@/components/loader';
 import { ErrorFallback } from '@/components/error-fallback';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 export function BookingCard({ bookingId }: { bookingId: string }) {
   const {
     data: booking,
@@ -51,6 +49,9 @@ export function BookingCard({ bookingId }: { bookingId: string }) {
     if (!cardRef.current) return;
 
     try {
+      const html2canvas = (await import('html2canvas')).default;
+      const jsPDF = (await import('jspdf')).default;
+
       const canvas = await html2canvas(cardRef.current, {
         scale: 2, // Improve resolution
         useCORS: true,

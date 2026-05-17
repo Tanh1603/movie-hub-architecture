@@ -1,10 +1,7 @@
-'use client';
-
 import { AgeRatingEnum, LanguageOptionEnum } from '@movie-hub/shared-types';
 import { Clock, Globe } from 'lucide-react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { useCallback } from 'react';
+import Link from 'next/link';
 
 type Props = {
   id: string;
@@ -25,13 +22,6 @@ export default function MovieCard({
   productionCountry,
   languageType,
 }: Props) {
-  const router = useRouter();
-
-  const onClickDetail = useCallback(() => {
-    router.push(`/movies/${id}`);
-    scrollTo(0, 0);
-  }, [router, id]);
-
   const safePoster =
     typeof posterUrl === 'string' && posterUrl.trim() !== ''
       ? posterUrl
@@ -40,9 +30,9 @@ export default function MovieCard({
   return (
     <div className="w-full h-full flex flex-col cursor-pointer group relative overflow-hidden rounded-xl shadow-2xl bg-card transform transition-transform duration-300 hover:scale-105">
       {/* Poster Container */}
-      <div
-        className="relative w-full aspect-[2/3] overflow-hidden"
-        onClick={onClickDetail}
+      <Link
+        href={`/movies/${id}`}
+        className="block relative w-full aspect-[2/3] overflow-hidden"
       >
         <Image
           src={safePoster}
@@ -94,7 +84,7 @@ export default function MovieCard({
             </div>
           </div>
         </div>
-      </div>
+      </Link>
     </div>
   );
 }

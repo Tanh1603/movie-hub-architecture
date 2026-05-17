@@ -3,7 +3,6 @@
 
 
 import { useState, useEffect, useMemo } from 'react';
-import { useUser } from '@clerk/nextjs';
 import {
   Plus,
   Search,
@@ -72,6 +71,9 @@ import {
 } from '@movie-hub/shared-types/movie/enum';
 import Image from 'next/image';
 import MovieReleaseDialog from '../_components/forms/MovieReleaseDialog';
+import { useRBAC } from '@/features/admin/shared/hooks/use-rbac';
+import { RoleGate } from '@/features/admin/shared/role-gate';
+import { AdminPermission } from '@/features/admin/shared/rbac';
 
 // Type for enriched movie with status
 interface EnrichedMovie extends Movie {
@@ -81,9 +83,8 @@ interface EnrichedMovie extends Movie {
 }
 
 export default function MoviesPage() {
-  const { user } = useUser();
-  const userRole = user?.publicMetadata?.role as string;
-  const isManager = userRole === 'CINEMA_MANAGER';
+  const { hasPermission } = useRBAC();
+  const canManageMovies = hasPermission(AdminPermission.MANAGE_MOVIES);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGenreIds, setSelectedGenreIds] = useState<string[]>([]);
@@ -586,7 +587,7 @@ export default function MoviesPage() {
           <h1 className="text-3xl font-bold tracking-tight">Phim</h1>
           <p className="text-gray-500 mt-1">Quản lý danh mục phim của bạn</p>
         </div>
-        {!isManager && (
+        <RoleGate requirePermission={AdminPermission.MANAGE_MOVIES}>
           <Button
             onClick={() => {
               resetForm();
@@ -597,7 +598,7 @@ export default function MoviesPage() {
             <Plus className="mr-2 h-4 w-4" />
             Thêm phim
           </Button>
-        )}
+        </RoleGate>
       </div>
 
       <Card>
@@ -850,7 +851,7 @@ export default function MoviesPage() {
                   </div>
                 )}
 
-                {!isManager && (
+                {canManageMovies && (
                   <div className="absolute top-3 right-3 z-30">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -1371,5 +1372,7 @@ export default function MoviesPage() {
     </div>
   );
 }
+
+
 
 

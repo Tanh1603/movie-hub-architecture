@@ -1,7 +1,7 @@
 import { clientQueryKeys } from '@/features/client/shared/query-keys';
 import { useQuery } from "@tanstack/react-query";
 import { findAllConcessions } from "@/api/services";
-import { ConcessionCategory } from "@movie-hub/shared-types";
+import { ConcessionCategory } from "@/types";
 
 export const useGetConcessions = (query: {
   cinemaId?: string,
