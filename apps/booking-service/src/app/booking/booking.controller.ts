@@ -81,6 +81,16 @@ export class BookingController {
     return this.bookingService.findBookingsByDateRange(payload.filters || {});
   }
 
+  @MessagePattern('booking.getShowtimeContext')
+  async getShowtimeContext(@Payload() payload: { showtimeId: string }) {
+    return this.bookingService.getShowtimeContext(payload.showtimeId);
+  }
+
+  @MessagePattern('booking.getAdminBookingContext')
+  async getAdminBookingContext(@Payload() payload: { bookingId: string }) {
+    return this.bookingService.getAdminBookingContext(payload.bookingId);
+  }
+
   @MessagePattern('booking.updateStatus')
   async updateStatus(@Payload() data: UpdateBookingStatusDto) {
     return this.bookingService.updateBookingStatus(

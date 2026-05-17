@@ -7,6 +7,8 @@ import {
   FindPaymentsByStatusDto,
   FindPaymentsByDateRangeDto,
   GetPaymentStatisticsDto,
+  PaymentMessage,
+  PaymentMethod,
 } from '@movie-hub/shared-types';
 import { RequestContextMetadata } from '@movie-hub/shared-types/common/observability.util';
 
@@ -35,7 +37,7 @@ export class PaymentController {
   }
 
   @MessagePattern('payment.findOne')
-  async findOne(@Payload() payload: { id: string; userId: string }) {
+  async findOne(@Payload() payload: { id: string; userId?: string }) {
     return this.paymentService.findOne(payload.id, payload.userId);
   }
 
@@ -46,22 +48,34 @@ export class PaymentController {
     return this.paymentService.findByBooking(payload.bookingId, payload.userId);
   }
 
-  @MessagePattern('payment.vnpay.ipn')
-  async handleVNPayIPN(
+  @MessagePattern(PaymentMessage.PROVIDER_IPN)
+  async handleProviderIPN(
     @Payload()
     payload: {
+      provider: PaymentMethod;
       params: Record<string, string>;
       _meta?: RequestContextMetadata;
     }
   ) {
-    return this.paymentService.handleVNPayIPN(payload.params, payload._meta);
+    return this.paymentService.handleProviderIPN(
+      payload.provider,
+      payload.params,
+      payload._meta
+    );
   }
 
-  @MessagePattern('payment.vnpay.return')
-  async handleVNPayReturn(
-    @Payload() payload: { params: Record<string, string> }
+  @MessagePattern(PaymentMessage.PROVIDER_RETURN)
+  async handleProviderReturn(
+    @Payload()
+    payload: {
+      provider: PaymentMethod;
+      params: Record<string, string>;
+    }
   ) {
-    return this.paymentService.handleVNPayReturn(payload.params);
+    return this.paymentService.handleProviderReturn(
+      payload.provider,
+      payload.params
+    );
   }
 
   // ==================== ADMIN OPERATIONS ====================

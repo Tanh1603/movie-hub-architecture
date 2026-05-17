@@ -6,10 +6,16 @@ import { StaffService } from './service/staff.service';
 import { ConfigController } from './controller/config.controller';
 import { ConfigService as SettingService } from './service/config.service';
 import { AuthModule } from '../../common/auth/auth.module';
+import { AuthWebhookController } from './controller/auth-webhook.controller';
 
 @Module({
   imports: [AuthModule],
-  controllers: [UserController, StaffController, ConfigController],
+  controllers: [
+    UserController,
+    StaffController,
+    ConfigController,
+    AuthWebhookController,
+  ],
   providers: [UserService, StaffService, SettingService],
 })
 export class UserModule {}

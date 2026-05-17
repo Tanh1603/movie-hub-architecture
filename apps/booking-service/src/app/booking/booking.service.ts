@@ -1,6 +1,7 @@
 import {
   Injectable,
   BadRequestException,
+  NotFoundException,
   Inject,
   Logger,
 } from '@nestjs/common';
@@ -311,7 +312,7 @@ export class BookingService {
     });
 
     if (!booking) {
-      throw new BadRequestException('Booking not found');
+      throw new NotFoundException('Booking not found');
     }
 
     // Fetch showtime data for enrichment
@@ -361,7 +362,7 @@ export class BookingService {
     });
 
     if (!booking) {
-      throw new BadRequestException('Booking not found');
+      throw new NotFoundException('Booking not found');
     }
 
     if (
@@ -719,7 +720,7 @@ export class BookingService {
     });
 
     if (!booking) {
-      throw new BadRequestException('Booking not found');
+      throw new NotFoundException('Booking not found');
     }
 
     // Fetch showtime data for movie/cinema information
@@ -1210,7 +1211,7 @@ export class BookingService {
     });
 
     if (!booking) {
-      throw new BadRequestException('Booking not found');
+      throw new NotFoundException('Booking not found');
     }
 
     this.assertBookingTransition(booking.status as BookingStatus, status);
@@ -1873,7 +1874,7 @@ export class BookingService {
     });
 
     if (!booking) {
-      throw new BadRequestException('Booking not found');
+      throw new NotFoundException('Booking not found');
     }
 
     // Get showtime details to check timing
@@ -2008,7 +2009,7 @@ export class BookingService {
     this.logger.log(`Booking retrieved: ${booking ? 'found' : 'not found'}`);
 
     if (!booking) {
-      throw new BadRequestException('Booking not found');
+      throw new NotFoundException('Booking not found');
     }
 
     this.logger.log(
@@ -2233,7 +2234,7 @@ export class BookingService {
     });
 
     if (!booking) {
-      throw new BadRequestException('Booking not found');
+      throw new NotFoundException('Booking not found');
     }
 
     if (booking.status === BookingStatus.CANCELLED) {
@@ -2415,4 +2416,41 @@ export class BookingService {
       return [];
     }
   }
+
+  async getShowtimeContext(showtimeId: string): Promise<{
+    showtimeId: string;
+    cinemaId: string;
+  }> {
+    const showtimeData = await this.getShowtimeDetails(showtimeId);
+    return {
+      showtimeId,
+      cinemaId: showtimeData.cinemaId,
+    };
+  }
+
+  async getAdminBookingContext(bookingId: string): Promise<{
+    bookingId: string;
+    showtimeId: string;
+    cinemaId: string;
+  }> {
+    const booking = await this.prisma.bookings.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        showtime_id: true,
+      },
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    const showtimeData = await this.getShowtimeDetails(booking.showtime_id);
+    return {
+      bookingId: booking.id,
+      showtimeId: booking.showtime_id,
+      cinemaId: showtimeData.cinemaId,
+    };
+  }
 }
+

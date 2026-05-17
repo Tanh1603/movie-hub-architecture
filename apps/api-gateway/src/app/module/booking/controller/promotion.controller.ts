@@ -14,6 +14,8 @@ import { PromotionService } from '../service/promotion.service';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 import { OptionalClerkAuthGuard } from '../../../common/guard/optional-clerk-auth.guard';
 import { CurrentUserId } from '../../../common/decorator/current-user-id.decorator';
+import { Permission } from '../../../common/decorator/permission.decorator';
+import { SensitiveThrottle } from '../../../common/decorator/sensitive-throttle.decorator';
 import {
   PromotionType,
   ValidatePromotionDto,
@@ -53,6 +55,7 @@ export class PromotionController {
   }
 
   @Post('validate/:code')
+  @SensitiveThrottle()
   @UseGuards(OptionalClerkAuthGuard)
   async validate(
     @Param('code') code: string,
@@ -68,12 +71,14 @@ export class PromotionController {
 
   @Post()
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
   async create(@Body() createPromotionDto: CreatePromotionDto) {
     return this.promotionService.create(createPromotionDto);
   }
 
   @Put(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
   async update(
     @Param('id') id: string,
     @Body() updatePromotionDto: UpdatePromotionDto
@@ -83,13 +88,17 @@ export class PromotionController {
 
   @Delete(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
   async delete(@Param('id') id: string) {
     return this.promotionService.delete(id);
   }
 
   @Patch(':id/toggle-active')
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
   async toggleActive(@Param('id') id: string) {
     return this.promotionService.toggleActive(id);
   }
 }
+
+

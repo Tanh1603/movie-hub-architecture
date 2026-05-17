@@ -13,6 +13,7 @@ import {
 import { TransformInterceptor } from '../../../common/interceptor/transform.interceptor';
 import { ReviewService } from '../service/review.service';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
+import { Permission } from '../../../common/decorator/permission.decorator';
 
 @Controller({
   version: '1',
@@ -29,6 +30,7 @@ export class ReviewController {
 
   @Delete(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'movie', action: 'update', scope: 'cinema' })
   async remove(@Req() req: any, @Param('id') id: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -37,3 +39,5 @@ export class ReviewController {
     return this.reviewService.remove(id);
   }
 }
+
+

@@ -8,7 +8,9 @@ import { Logger, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+
 import { readFileSync } from 'fs';
+
 import * as yaml from 'js-yaml';
 import { AppModule } from './app/app.module';
 import { TransformInterceptor } from './app/common/interceptor/transform.interceptor';
@@ -16,7 +18,9 @@ import { GlobalExceptionFilter } from './app/exception/global-exception.filter';
 import { RedisIoAdapter } from './app/module/realtime/adapter/redis-io.adapter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    rawBody: true,
+  });
   app.enableShutdownHooks();
   const serviceName = 'api-gateway';
   let shutdownStarted = false;

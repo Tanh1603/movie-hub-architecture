@@ -1,119 +1,175 @@
-import { clerkClient } from '@clerk/clerk-sdk-node';
-import { CanActivate, ExecutionContext, Inject, Logger } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, Inject, Logger } from '@nestjs/common';
+import { ForbiddenException, UnauthorizedException, HttpException, HttpStatus } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ClientProxy } from '@nestjs/microservices';
-import { PERMISSION_KEY } from '../decorator/permission.decorator';
-import { SERVICE_NAME, UserMessage } from '@movie-hub/shared-types';
+import {
+  PERMISSION_KEY,
+} from '../decorator/permission.decorator';
+import {
+  AppRole,
+  PermissionRequirement,
+  SERVICE_NAME,
+  UserMessage,
+} from '@movie-hub/shared-types';
 import { lastValueFrom } from 'rxjs';
+import { TokenValidationService } from '../auth/token-validation.service';
+import { BruteForceProtectionService } from '../auth/brute-force-protection.service';
+import { Request } from 'express';
+import { createHash } from 'crypto';
+import { AccessRole } from '../constants/roles.constants';
 
+@Injectable()
 export class ClerkAuthGuard implements CanActivate {
   private readonly logger = new Logger(ClerkAuthGuard.name);
+  private static readonly ROLE_PRECEDENCE: AppRole[] = [
+    AppRole.SUPER_ADMIN,
+    AppRole.ADMIN,
+    AppRole.CINEMA_MANAGER,
+    AppRole.ASSISTANT_MANAGER,
+    AppRole.TICKET_CLERK,
+    AppRole.CONCESSION_STAFF,
+    AppRole.USHER,
+    AppRole.PROJECTIONIST,
+    AppRole.CLEANER,
+    AppRole.SECURITY,
+    AppRole.CUSTOMER,
+  ];
+
   constructor(
-    private reflector: Reflector,
-    @Inject(SERVICE_NAME.USER) private userClient: ClientProxy
+    private readonly reflector: Reflector,
+    @Inject(SERVICE_NAME.USER) private readonly userClient: ClientProxy,
+    private readonly tokenValidationService: TokenValidationService,
+    private readonly bruteForceProtectionService: BruteForceProtectionService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request & Record<string, any>>();
+    const correlationId = this.getCorrelationId(request);
+    request.headers['x-correlation-id'] = correlationId;
 
-    // ====== 1️⃣ Check if permission is required ======
-    const requiredPermission = this.reflector.get<string>(
-      PERMISSION_KEY,
-      context.getHandler()
-    );
+    const requiredPermission =
+      this.reflector.getAllAndOverride<PermissionRequirement>(PERMISSION_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]);
 
-    // ====== 2️⃣ Auth via Clerk - Check both cookie and Authorization header ======
-    let token = request.cookies?.__session;
-
-    // Fallback to Authorization header if no cookie
+    const token = this.extractToken(request);
     if (!token) {
-      const authHeader = request.headers?.authorization;
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        token = authHeader.substring(7); // Remove 'Bearer ' prefix
-        this.logger.debug('Token found in Authorization header');
-      }
-    } else {
-      this.logger.debug('Token found in __session cookie');
+      this.logger.warn(`Missing auth token correlationId=${correlationId}`);
+      throw new UnauthorizedException('Authentication token is required');
     }
 
-    if (!token) {
-      this.logger.warn(
-        'No token found in __session cookie or Authorization header'
-      );
-      return false;
+    const accountKey = this.tokenValidationService.extractAccountKey(token);
+
+    try {
+      await this.bruteForceProtectionService.assertNotLocked(request, accountKey);
+    } catch (lockError) {
+      if (lockError instanceof Error && lockError.message === 'AUTH_TEMPORARILY_LOCKED') {
+        this.logger.warn(
+          `Auth lockout active account=${this.fingerprint(accountKey)} correlationId=${correlationId}`
+        );
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.TOO_MANY_REQUESTS,
+            message: 'Too many failed attempts. Please try again later.',
+            retryAfter: this.bruteForceProtectionService.getLockDurationSeconds(),
+          },
+          HttpStatus.TOO_MANY_REQUESTS,
+          {
+            cause: lockError,
+          }
+        );
+      }
+      throw lockError;
     }
 
     try {
-      const session = await clerkClient.verifyToken(token);
+      const session = await this.tokenValidationService.validateTokenOrThrow(token);
       request.userId = session.sub;
-      this.logger.debug(`User authenticated: ${session.sub}`);
-    } catch (err) {
-      this.logger.error('Clerk verification failed', {
-        error: err.message,
-        reason: err.reason,
-        tokenPrefix: token.substring(0, 20) + '...',
-      });
-      // Token might be from wrong Clerk instance (test vs production)
-      return false;
+      request.headers['x-user-id'] = session.sub;
+      await this.bruteForceProtectionService.clearFailures(request, accountKey);
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      await this.bruteForceProtectionService.recordFailure(
+        request,
+        accountKey,
+        correlationId
+      );
+      this.logger.warn(
+        `Token verification failed account=${this.fingerprint(accountKey)} correlationId=${correlationId}`
+      );
+      throw new UnauthorizedException('Invalid or expired authentication token');
     }
 
-    // ====== 3️⃣ If no permission required, just return true after auth ======
-
-    // Enrichment: Fetch Staff Context (CinemaID, Role)
     if (request.userId) {
       try {
-        const userDetail = await lastValueFrom(
-          this.userClient.send(UserMessage.GET_USER_DETAIL, request.userId)
-        );
+        const [userRoles, userDetail] = await Promise.all([
+          lastValueFrom(
+            this.userClient.send<string[], { userId: string }>(
+              UserMessage.GET_USER_ROLES,
+              { userId: request.userId }
+            )
+          ).catch(() => [] as string[]),
+          lastValueFrom(
+            this.userClient.send(UserMessage.GET_USER_DETAIL, request.userId)
+          ).catch(() => null),
+        ]);
+
+        const effectiveRole = this.pickEffectiveRole(userRoles);
+        if (effectiveRole) {
+          request.userRoles = userRoles;
+          request.headers['x-user-role'] = effectiveRole;
+        }
 
         if (userDetail?.email) {
           try {
             const staffResult = await lastValueFrom(
-              this.userClient.send(
-                UserMessage.STAFF.FIND_BY_EMAIL,
-                userDetail.email
-              )
+              this.userClient.send(UserMessage.STAFF.FIND_BY_EMAIL, userDetail.email)
             );
 
             if (staffResult?.data) {
               request.staffContext = {
                 staffId: staffResult.data.id,
                 cinemaId: staffResult.data.cinemaId,
-                role: staffResult.data.position, // MANAGER, STAFF, etc.
+                role: staffResult.data.position,
               };
-              this.logger.debug(
-                `Staff context attached: ${JSON.stringify(
-                  request.staffContext
-                )}`
-              );
+              request.headers['x-cinema-id'] = String(staffResult.data.cinemaId);
+              if (!request.headers['x-user-role']) {
+                request.headers['x-user-role'] = this.mapStaffPositionToAccessRole(
+                  String(staffResult.data.position)
+                );
+              }
             }
-          } catch (e) {
-            this.logger.debug(
-              `User ${userDetail.email} is not a staff member: ${e.message}`
-            );
+          } catch {
+            // Not a staff account; keep RBAC role or default CUSTOMER role.
           }
         }
-      } catch (error) {
-        this.logger.warn(`Failed to enrich user context: ${error.message}`);
+      } catch {
+        this.logger.warn(`Failed to enrich user context correlationId=${correlationId}`);
       }
     }
 
+    if (!request.headers['x-user-role']) {
+      request.headers['x-user-role'] = AccessRole.CUSTOMER;
+    }
+
+    if (!this.hasValidUserContextHeaders(request)) {
+      this.logger.warn(`Invalid user context headers correlationId=${correlationId}`);
+      throw new ForbiddenException('Invalid user authentication context');
+    }
+
     if (!requiredPermission) {
-      this.logger.debug(
-        `No permission required, user ${request.userId} authenticated successfully`
-      );
       return true;
     }
 
-    // ====== 4️⃣ Permission check ======
     const userId = request.userId;
     if (!userId) {
-      this.logger.warn('No userId found after token verification');
-      return false;
+      throw new UnauthorizedException('Unauthenticated request');
     }
 
     try {
-      this.logger.debug(`Checking permissions for user ${userId}`);
       const permissions: string[] = await lastValueFrom(
         this.userClient.send<string[], { userId: string }>(
           UserMessage.GET_PERMISSIONS,
@@ -121,24 +177,118 @@ export class ClerkAuthGuard implements CanActivate {
         )
       );
 
-      this.logger.debug(
-        `User ${userId} permissions: ${JSON.stringify(permissions)}`
+      const hasPermission = this.hasRequiredPermission(
+        permissions,
+        requiredPermission
       );
-      const hasPermission = permissions.includes(requiredPermission);
-
       if (!hasPermission) {
         this.logger.warn(
-          `User ${userId} missing required permission: ${requiredPermission}`
+          `Missing permission userId=${userId} required=${JSON.stringify(requiredPermission)} correlationId=${correlationId}`
         );
+        throw new ForbiddenException('Insufficient permissions');
       }
 
       return hasPermission;
     } catch (error) {
-      this.logger.error(`Permission check failed for user ${userId}:`, {
-        error: error.message,
-        stack: error.stack,
-      });
-      return false;
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+      this.logger.error(
+        `Permission check failed userId=${userId} correlationId=${correlationId}`
+      );
+      throw new ForbiddenException('Unable to validate permissions');
     }
+  }
+
+  private extractToken(request: Request & Record<string, any>): string | null {
+    const cookieToken = request.cookies?.__session;
+    if (typeof cookieToken === 'string' && cookieToken.length > 0) {
+      return cookieToken;
+    }
+
+    const authHeader = request.headers?.authorization;
+    if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+      return authHeader.slice(7);
+    }
+
+    return null;
+  }
+
+  private hasValidUserContextHeaders(
+    request: Request & Record<string, any>
+  ): boolean {
+    const userId = request.headers['x-user-id'];
+    const userRole = request.headers['x-user-role'];
+
+    return (
+      typeof userId === 'string' &&
+      userId.startsWith('user_') &&
+      typeof userRole === 'string' &&
+      userRole.length > 0
+    );
+  }
+
+  private getCorrelationId(request: Request & Record<string, any>): string {
+    const correlationId = request.headers?.['x-correlation-id'];
+    if (typeof correlationId === 'string' && correlationId.length > 0) {
+      return correlationId;
+    }
+
+    return `req-${Date.now()}`;
+  }
+
+  private hasRequiredPermission(
+    userPermissions: string[],
+    required: PermissionRequirement
+  ): boolean {
+    const normalizedAction = required.action.toLowerCase();
+    const normalizedScope = (required.scope || 'global').toLowerCase();
+    const candidates = new Set<string>([
+      `${required.resource.toLowerCase()}:${normalizedAction}:${normalizedScope}`,
+      `${required.resource.toLowerCase()}:${normalizedAction}`,
+    ]);
+
+    return userPermissions.some((permission) => candidates.has(permission));
+  }
+
+  private pickEffectiveRole(userRoles: string[]): AccessRole | null {
+    if (!Array.isArray(userRoles) || userRoles.length === 0) {
+      return null;
+    }
+
+    if (
+      userRoles.includes(AppRole.SUPER_ADMIN) ||
+      userRoles.includes(AppRole.ADMIN)
+    ) {
+      return AccessRole.ADMIN;
+    }
+    if (userRoles.includes(AppRole.CINEMA_MANAGER)) {
+      return AccessRole.CINEMA_MANAGER;
+    }
+    if (userRoles.includes(AppRole.CUSTOMER)) {
+      return AccessRole.CUSTOMER;
+    }
+    if (userRoles.some((role) => ClerkAuthGuard.ROLE_PRECEDENCE.includes(role as AppRole))) {
+      return AccessRole.STAFF;
+    }
+
+    return null;
+  }
+
+  private mapStaffPositionToAccessRole(position: string): AccessRole {
+    if (position === AppRole.CINEMA_MANAGER) {
+      return AccessRole.CINEMA_MANAGER;
+    }
+    if (position === AppRole.ADMIN || position === AppRole.SUPER_ADMIN) {
+      return AccessRole.ADMIN;
+    }
+    if (position === AppRole.CUSTOMER) {
+      return AccessRole.CUSTOMER;
+    }
+    return AccessRole.STAFF;
+  }
+
+  private fingerprint(value: string): string {
+    return createHash('sha256').update(value).digest('hex').slice(0, 12);
   }
 }

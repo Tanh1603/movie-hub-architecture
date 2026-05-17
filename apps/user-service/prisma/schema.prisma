@@ -21,9 +21,22 @@ model Role {
 model Permission {
   id              String           @id @default(cuid())
   name            String           @unique
+  action          PermissionAction
+  scope           PermissionScope
+  resourceId      String           @map("resource_id")
+  resource        Resource         @relation(fields: [resourceId], references: [id])
   rolePermissions RolePermission[]
 
   @@map("permissions")
+}
+
+model Resource {
+  id          String       @id @default(cuid())
+  code        String       @unique
+  description String?
+  permissions Permission[]
+
+  @@map("resources")
 }
 
 model UserRole {
@@ -99,9 +112,38 @@ enum ShiftType {
   NIGHT
 }
 
+enum ClerkSyncAction {
+  UPSERT
+  DELETE
+}
+
+enum ClerkSyncStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+}
+
+enum PermissionAction {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  APPROVE
+  VALIDATE
+  MANAGE
+}
+
+enum PermissionScope {
+  OWN
+  CINEMA
+  GLOBAL
+}
+
 model Staff {
   id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   cinemaId String @db.Uuid
+  clerkUserId String? @unique @map("clerk_user_id")
 
   fullName  String        @map("full_name")
   email     String        @unique
@@ -127,4 +169,35 @@ model Setting {
   description String?
 
   @@map("settings")
+}
+
+model ClerkSyncTask {
+  id          String          @id @default(cuid())
+  action      ClerkSyncAction
+  status      ClerkSyncStatus @default(PENDING)
+  syncKey     String          @unique @map("sync_key")
+  payload     Json            @db.JsonB
+  attempts    Int             @default(0)
+  maxAttempts Int             @default(3) @map("max_attempts")
+  nextRetryAt DateTime        @default(now()) @map("next_retry_at")
+  lockedAt    DateTime?       @map("locked_at")
+  lastError   String?         @map("last_error")
+  deadLetteredAt DateTime?    @map("dead_lettered_at")
+  completedAt DateTime?       @map("completed_at")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  @@index([status, nextRetryAt])
+  @@map("clerk_sync_tasks")
+}
+
+model ClerkWebhookEvent {
+  id         String   @id @default(cuid())
+  eventId    String   @unique @map("event_id")
+  eventType  String   @map("event_type")
+  payload    Json     @db.JsonB
+  processedAt DateTime @default(now()) @map("processed_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("clerk_webhook_events")
 }

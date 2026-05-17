@@ -28,6 +28,7 @@ import {
 import { TransformInterceptor } from '../../../common/interceptor/transform.interceptor';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 import { Permission } from '../../../common/decorator/permission.decorator';
+import { SensitiveThrottle } from '../../../common/decorator/sensitive-throttle.decorator';
 import { PaginationQuery } from '@movie-hub/shared-types/common';
 
 @Controller({
@@ -35,6 +36,7 @@ import { PaginationQuery } from '@movie-hub/shared-types/common';
   path: 'cinemas',
 })
 @UseInterceptors(new TransformInterceptor())
+@SensitiveThrottle()
 export class CinemaController {
   constructor(private readonly cinemaService: CinemaService) {}
 
@@ -68,7 +70,7 @@ export class CinemaController {
    */
   @Post('cinema')
   @UseGuards(ClerkAuthGuard)
-  //@Permission('cinema:create')
+  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
   createCinema(@Req() req: any, @Body() createCinemaDto: CreateCinemaRequest) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -82,7 +84,7 @@ export class CinemaController {
    */
   @Patch('cinema/:cinemaId')
   @UseGuards(ClerkAuthGuard)
-  //@Permission('cinema:create')
+  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
   updateCinema(
     @Req() req: any,
     @Param('cinemaId') cinemaId: string,
@@ -99,7 +101,7 @@ export class CinemaController {
    */
   @Delete('cinema/:cinemaId')
   @UseGuards(ClerkAuthGuard)
-  //@Permission('cinema:create')
+  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
   deleteCinema(@Req() req: any, @Param('cinemaId') cinemaId: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -266,3 +268,5 @@ export class CinemaController {
     return this.cinemaService.getAllMoviesWithShowtimes(query);
   }
 }
+
+

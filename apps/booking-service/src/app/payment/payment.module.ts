@@ -7,6 +7,14 @@ import { BookingRedisModule } from '../redis/redis.module';
 import { NotificationModule } from '../notification/notification.module';
 import { TicketModule } from '../ticket/ticket.module';
 import { SERVICE_NAME } from '@movie-hub/shared-types';
+import { VNPayPaymentAdapter } from './adapters/vnpay-payment.adapter';
+import { ZaloPayPaymentAdapter } from './adapters/zalopay-payment.adapter';
+import { PaymentAdapter } from './adapters/payment-adapter.interface';
+import { WebhookReplayGuardService } from './webhook-replay-guard.service';
+import { PaymentTransitionPolicyService } from './payment-transition-policy.service';
+import { PaymentReconciliationService } from './payment-reconciliation.service';
+
+export const PAYMENT_ADAPTERS = 'PAYMENT_ADAPTERS';
 
 @Module({
   imports: [
@@ -25,7 +33,23 @@ import { SERVICE_NAME } from '@movie-hub/shared-types';
     ]),
   ],
   controllers: [PaymentController],
-  providers: [PaymentService, PrismaService],
+  providers: [
+    PaymentService,
+    WebhookReplayGuardService,
+    PaymentTransitionPolicyService,
+    PaymentReconciliationService,
+    PrismaService,
+    VNPayPaymentAdapter,
+    ZaloPayPaymentAdapter,
+    {
+      provide: PAYMENT_ADAPTERS,
+      useFactory: (
+        vnpayAdapter: VNPayPaymentAdapter,
+        zaloPayAdapter: ZaloPayPaymentAdapter
+      ): PaymentAdapter[] => [vnpayAdapter, zaloPayAdapter],
+      inject: [VNPayPaymentAdapter, ZaloPayPaymentAdapter],
+    },
+  ],
   exports: [PaymentService],
 })
 export class PaymentModule {}

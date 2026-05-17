@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
+import { RbacService } from './rbac.service';
 
 @Module({
   imports: [
@@ -11,7 +12,7 @@ import { UserService } from './user.service';
     }),
   ],
   controllers: [UserController],
-  providers: [UserService, PrismaService],
+  providers: [UserService, RbacService, PrismaService],
   exports: [],
 })
 export class UserModule {}

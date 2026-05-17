@@ -7,6 +7,7 @@ import {
   PaymentMessage,
   AdminFindAllPaymentsDto,
   PaymentStatus,
+  PaymentMethod,
 } from '@movie-hub/shared-types';
 import { attachRequestContextToPayload } from '@movie-hub/shared-types/common/observability.util';
 
@@ -55,8 +56,16 @@ export class PaymentService {
     );
   }
 
-  async getPayment(id: string, userId: string, request?: unknown) {
-    return this.sendWithContext(PaymentMessage.FIND_ONE, { id, userId }, request);
+  async getPayment(id: string, userId?: string, request?: unknown) {
+    try {
+      return await this.sendWithContext(
+        PaymentMessage.FIND_ONE,
+        { id, userId },
+        request
+      );
+    } catch (error) {
+      throw new RpcException(error);
+    }
   }
 
   async getPaymentByBooking(
@@ -74,21 +83,46 @@ export class PaymentService {
     );
   }
 
-  async handleVNPayIPN(params: Record<string, string>, request?: unknown) {
-    return this.sendWithContext(PaymentMessage.VNPAY_IPN, { params }, request);
-  }
-
-  async handleVNPayReturn(
+  async handleProviderIPN(
+    provider: PaymentMethod,
     params: Record<string, string>,
     request?: unknown
   ) {
-    return this.sendWithContext(PaymentMessage.VNPAY_RETURN, { params }, request);
+    try {
+      return await this.sendWithContext(
+        PaymentMessage.PROVIDER_IPN,
+        { provider, params },
+        request
+      );
+    } catch (error) {
+      throw new RpcException(error);
+    }
+  }
+
+  async handleProviderReturn(
+    provider: PaymentMethod,
+    params: Record<string, string>,
+    request?: unknown
+  ) {
+    try {
+      return await this.sendWithContext(
+        PaymentMessage.PROVIDER_RETURN,
+        { provider, params },
+        request
+      );
+    } catch (error) {
+      throw new RpcException(error);
+    }
   }
 
   // ==================== ADMIN OPERATIONS ====================
 
   async adminFindAll(filters: AdminFindAllPaymentsDto, request?: unknown) {
-    return this.sendWithContext(PaymentMessage.ADMIN_FIND_ALL, { filters }, request);
+    return this.sendWithContext(
+      PaymentMessage.ADMIN_FIND_ALL,
+      { filters },
+      request
+    );
   }
 
   async findByStatus(
@@ -129,11 +163,14 @@ export class PaymentService {
     return this.sendWithContext(PaymentMessage.CANCEL, { paymentId }, request);
   }
 
-  async getStatistics(filters: {
-    startDate?: Date;
-    endDate?: Date;
-    paymentMethod?: string;
-  }, request?: unknown) {
+  async getStatistics(
+    filters: {
+      startDate?: Date;
+      endDate?: Date;
+      paymentMethod?: string;
+    },
+    request?: unknown
+  ) {
     return this.sendWithContext(
       PaymentMessage.GET_STATISTICS,
       {

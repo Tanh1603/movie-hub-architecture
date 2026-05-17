@@ -18,43 +18,77 @@ import {
 } from '../../../generated/prisma';
 import { PrismaClientKnownRequestError } from '../../../generated/prisma/runtime/library';
 import { RpcException } from '@nestjs/microservices';
+import { ClerkSyncService } from './clerk-sync.service';
+
 @Injectable()
 export class StaffService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly clerkSyncService: ClerkSyncService
+  ) {}
 
   async create(
     createStaffDto: CreateStaffRequest
   ): Promise<ServiceResult<StaffResponse>> {
-    const staff = await this.prisma.staff.create({
-      data: {
-        cinemaId: createStaffDto.cinemaId,
-        fullName: createStaffDto.fullName,
-        email: createStaffDto.email,
-        phone: createStaffDto.phone,
-        gender: createStaffDto.gender as unknown as Gender,
-        dob: createStaffDto.dob,
-        position: createStaffDto.position as unknown as StaffPosition,
-        status: createStaffDto.status as unknown as StaffStatus,
-        workType: createStaffDto.workType as unknown as WorkType,
-        shiftType: createStaffDto.shiftType as unknown as ShiftType,
-        salary: createStaffDto.salary,
-        hireDate: createStaffDto.hireDate,
-      },
-      select: {
-        id: true,
-        cinemaId: true,
-        fullName: true,
-        email: true,
-        phone: true,
-        gender: true,
-        dob: true,
-        position: true,
-        status: true,
-        workType: true,
-        shiftType: true,
-        salary: true,
-        hireDate: true,
-      },
+    const staff = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.staff.upsert({
+        where: { email: createStaffDto.email },
+        update: {
+          fullName: createStaffDto.fullName,
+          phone: createStaffDto.phone,
+          gender: createStaffDto.gender as unknown as Gender,
+          dob: createStaffDto.dob,
+          position: createStaffDto.position as unknown as StaffPosition,
+          status: createStaffDto.status as unknown as StaffStatus,
+          workType: createStaffDto.workType as unknown as WorkType,
+          shiftType: createStaffDto.shiftType as unknown as ShiftType,
+          salary: createStaffDto.salary,
+          hireDate: createStaffDto.hireDate,
+          cinemaId: createStaffDto.cinemaId,
+        },
+        create: {
+          cinemaId: createStaffDto.cinemaId,
+          fullName: createStaffDto.fullName,
+          email: createStaffDto.email,
+          phone: createStaffDto.phone,
+          gender: createStaffDto.gender as unknown as Gender,
+          dob: createStaffDto.dob,
+          position: createStaffDto.position as unknown as StaffPosition,
+          status: createStaffDto.status as unknown as StaffStatus,
+          workType: createStaffDto.workType as unknown as WorkType,
+          shiftType: createStaffDto.shiftType as unknown as ShiftType,
+          salary: createStaffDto.salary,
+          hireDate: createStaffDto.hireDate,
+        },
+        select: {
+          id: true,
+          cinemaId: true,
+          fullName: true,
+          email: true,
+          phone: true,
+          gender: true,
+          dob: true,
+          position: true,
+          status: true,
+          workType: true,
+          shiftType: true,
+          salary: true,
+          hireDate: true,
+        },
+      });
+
+      await this.clerkSyncService.enqueueUpsert(
+        {
+          email: createStaffDto.email,
+          fullName: createStaffDto.fullName,
+          position: createStaffDto.position,
+          cinemaId: createStaffDto.cinemaId,
+          status: createStaffDto.status,
+        },
+        tx
+      );
+
+      return created;
     });
 
     return {
@@ -188,37 +222,73 @@ export class StaffService {
     id: string,
     updateStaffDto: UpdateStaffRequest
   ): Promise<ServiceResult<StaffResponse>> {
-    const staff = await this.prisma.staff.update({
-      where: { id },
-      data: {
-        fullName: updateStaffDto.fullName ?? undefined,
-        phone: updateStaffDto.phone ?? undefined,
-        gender: (updateStaffDto.gender as unknown as Gender) ?? undefined,
-        dob: updateStaffDto.dob ?? undefined,
-        position:
-          (updateStaffDto.position as unknown as StaffPosition) ?? undefined,
-        status: (updateStaffDto.status as unknown as StaffStatus) ?? undefined,
-        workType: (updateStaffDto.workType as unknown as WorkType) ?? undefined,
-        shiftType:
-          (updateStaffDto.shiftType as unknown as ShiftType) ?? undefined,
-        salary: updateStaffDto.salary,
-        hireDate: updateStaffDto.hireDate,
-      },
-      select: {
-        id: true,
-        cinemaId: true,
-        fullName: true,
-        email: true,
-        phone: true,
-        gender: true,
-        dob: true,
-        position: true,
-        status: true,
-        workType: true,
-        shiftType: true,
-        salary: true,
-        hireDate: true,
-      },
+    const staff = await this.prisma.$transaction(async (tx) => {
+      const current = await tx.staff.findUnique({
+        where: { id },
+        select: {
+          email: true,
+          fullName: true,
+          cinemaId: true,
+          status: true,
+          position: true,
+        },
+      });
+      if (!current) {
+        throw new RpcException({
+          summary: 'Update staff failed',
+          statusCode: 404,
+          code: 'STAFF_NOT_FOUND',
+          message: 'Staff does not exist',
+        });
+      }
+
+      const updated = await tx.staff.update({
+        where: { id },
+        data: {
+          fullName: updateStaffDto.fullName ?? undefined,
+          phone: updateStaffDto.phone ?? undefined,
+          gender: (updateStaffDto.gender as unknown as Gender) ?? undefined,
+          dob: updateStaffDto.dob ?? undefined,
+          position:
+            (updateStaffDto.position as unknown as StaffPosition) ?? undefined,
+          status:
+            (updateStaffDto.status as unknown as StaffStatus) ?? undefined,
+          workType:
+            (updateStaffDto.workType as unknown as WorkType) ?? undefined,
+          shiftType:
+            (updateStaffDto.shiftType as unknown as ShiftType) ?? undefined,
+          salary: updateStaffDto.salary,
+          hireDate: updateStaffDto.hireDate,
+        },
+        select: {
+          id: true,
+          cinemaId: true,
+          fullName: true,
+          email: true,
+          phone: true,
+          gender: true,
+          dob: true,
+          position: true,
+          status: true,
+          workType: true,
+          shiftType: true,
+          salary: true,
+          hireDate: true,
+        },
+      });
+
+      await this.clerkSyncService.enqueueUpsert(
+        {
+          email: current.email,
+          fullName: updateStaffDto.fullName ?? current.fullName,
+          position: String(updateStaffDto.position ?? current.position),
+          cinemaId: current.cinemaId,
+          status: String(updateStaffDto.status ?? current.status),
+        },
+        tx
+      );
+
+      return updated;
     });
 
     return {
@@ -228,16 +298,38 @@ export class StaffService {
 
   async remove(id: string): Promise<ServiceResult<void>> {
     try {
-      await this.prisma.staff.delete({
-        where: { id },
+      await this.prisma.$transaction(async (tx) => {
+        const existing = await tx.staff.findUnique({
+          where: { id },
+          select: { email: true },
+        });
+
+        if (!existing) {
+          throw new RpcException({
+            summary: 'Delete staff failed',
+            statusCode: 404,
+            code: 'STAFF_NOT_FOUND',
+            message: 'Staff does not exist',
+          });
+        }
+
+        await tx.staff.delete({
+          where: { id },
+        });
+
+        await this.clerkSyncService.enqueueDelete({ email: existing.email }, tx);
       });
+
       return {
         data: undefined,
         message: 'Delete staff successfully!',
       };
     } catch (e) {
+      if (e instanceof RpcException) {
+        throw e;
+      }
+
       if (e instanceof PrismaClientKnownRequestError) {
-        // Không tồn tại
         if (e.code === 'P2025') {
           throw new RpcException({
             summary: 'Delete staff failed',
@@ -247,7 +339,6 @@ export class StaffService {
           });
         }
 
-        // Bị ràng buộc FK (có liên quan đến booking hoặc cinema)
         if (e.code === 'P2003') {
           throw new RpcException({
             summary: 'Delete staff failed',
@@ -259,7 +350,6 @@ export class StaffService {
         }
       }
 
-      // Fallback
       throw new RpcException({
         summary: 'Delete staff failed',
         statusCode: 500,

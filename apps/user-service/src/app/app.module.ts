@@ -1,14 +1,18 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import Joi from 'joi';
 import { StaffModule } from './staff/staff.module';
 import { UserModule } from './user/user.module';
+import { ClerkModule } from './clerk.module';
 import { HealthController } from './health.controller';
 import { SharedMetricsModule } from '@movie-hub/shared-metrics';
 import { PrismaService } from './prisma.service';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
+    ClerkModule,
     StaffModule,
     UserModule,
     SharedMetricsModule,
@@ -20,6 +24,12 @@ import { PrismaService } from './prisma.service';
         TCP_PORT: Joi.number().required(),
         HTTP_PORT: Joi.number().optional(),
         CLERK_SECRET_KEY: Joi.string().required(),
+        DEFAULT_ADMIN_EMAIL: Joi.string().email().optional(),
+        DEFAULT_ADMIN_INITIAL_PASSWORD: Joi.string().min(8).optional(),
+        DEFAULT_STAFF_INITIAL_PASSWORD: Joi.string().min(8).optional(),
+        CLERK_SYNC_MAX_ATTEMPTS: Joi.number().min(1).max(3).optional(),
+        CLERK_SYNC_PROCESS_CRON: Joi.string().optional(),
+        CLERK_SYNC_RECONCILIATION_CRON: Joi.string().optional(),
       }),
     }),
   ],
