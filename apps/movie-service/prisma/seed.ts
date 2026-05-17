@@ -57,7 +57,7 @@ async function main() {
       backdropUrl:
         'https://image.tmdb.org/t/p/original/AcKVlWaNVVVFQwro3nLXqPljcYA.jpg',
       runtime: 166,
-      releaseDate: new Date('2024-02-28'),
+      releaseDate: new Date('2026-05-16'),
       ageRating: AgeRating.T13,
       originalLanguage: 'en',
       spokenLanguages: ['vi', 'en'],
@@ -84,7 +84,7 @@ async function main() {
       backdropUrl:
         'https://image.tmdb.org/t/p/original/w13Jg8p7icmPjOJ1rTmlQIP3h5E.jpg',
       runtime: 100,
-      releaseDate: new Date('2024-06-14'),
+      releaseDate: new Date('2026-05-20'),
       ageRating: AgeRating.P,
       originalLanguage: 'en',
       spokenLanguages: ['vi', 'en'],
@@ -111,7 +111,7 @@ async function main() {
       backdropUrl:
         'https://image.tmdb.org/t/p/original/jIvdc7HqE0nqnEqMAH0lZVzfCwZ.jpg',
       runtime: 180,
-      releaseDate: new Date('2023-07-21'),
+      releaseDate: new Date('2026-06-10'),
       ageRating: AgeRating.T18,
       originalLanguage: 'en',
       spokenLanguages: ['vi', 'en'],
@@ -138,7 +138,7 @@ async function main() {
       backdropUrl:
         'https://image.tmdb.org/t/p/original/sRLC052ieEzkQs9dEtPMfFxYkej.jpg',
       runtime: 115,
-      releaseDate: new Date('2024-03-29'),
+      releaseDate: new Date('2026-05-15'),
       ageRating: AgeRating.T13,
       originalLanguage: 'en',
       spokenLanguages: ['vi', 'en'],
@@ -178,15 +178,15 @@ async function main() {
 
     const releaseStart =
       movieData.title === 'Godzilla x Kong: Đế Chúa & Quái Vật'
-        ? new Date('2026-02-10') // Upcoming (Future)
-        : new Date('2025-12-20'); // Now Showing (Past)
+        ? new Date('2026-06-10') // Upcoming (Future)
+        : new Date('2026-05-16'); // Now Showing (Past)
 
     await prisma.movieRelease.create({
       data: {
         id: movieData.releaseId,
         movieId: movie.id,
         startDate: releaseStart,
-        endDate: new Date('2026-02-28'),
+        endDate: new Date('2026-07-15'),
         note: 'Lịch phát hành chiếu rạp dịp Tết 2026',
       },
     });

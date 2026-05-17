@@ -268,6 +268,52 @@ services:
       start_period: 10s
     command: sh -c "npx --yes prisma@6.16.2 db push --accept-data-loss --skip-generate && node main.js"
 
+  backup-service:
+    build:
+      context: .
+      dockerfile: apps/backup-service/Dockerfile
+      target: production
+    container_name: moviehub-backup-service
+    restart: unless-stopped
+    env_file:
+      - ./apps/backup-service/.env
+    user: '0:0'
+    ports:
+      - '4005:3006'
+    depends_on:
+      postgres-user:
+        condition: service_healthy
+      postgres-movie:
+        condition: service_healthy
+      postgres-cinema:
+        condition: service_healthy
+      postgres-booking:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - moviehub-network
+    volumes:
+      # Required for the current docker exec-based backup strategy.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - backup_data:/data/backups
+      - restore_data:/data/restores
+      - backup_metadata:/data
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:3006/health/live',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
   api-gateway:
     build:
       context: .
@@ -414,3 +460,9 @@ volumes:
     name: moviehub_prometheus_data
   grafana_data:
     name: moviehub_grafana_data
+  backup_data:
+    name: moviehub_backup_data
+  restore_data:
+    name: moviehub_restore_data
+  backup_metadata:
+    name: moviehub_backup_metadata

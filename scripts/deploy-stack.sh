@@ -63,7 +63,7 @@ init_swarm() {
 # Build all service images (or use existing)
 build_images() {
     log_info "Building service images..."
-    docker compose -f "$REPO_ROOT/docker-compose.yml" build api-gateway user-service movie-service cinema-service booking-service
+    docker compose -f "$REPO_ROOT/docker-compose.yml" build api-gateway user-service movie-service cinema-service booking-service backup-service
     log_info "Images built successfully"
 }
 

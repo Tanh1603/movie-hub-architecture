@@ -126,6 +126,7 @@
     "react-snowfall": "^2.4.0",
     "recharts": "^2.15.4",
     "reflect-metadata": "^0.1.13",
+    "sqlite3": "^5.1.6",
     "rxjs": "^7.8.0",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
