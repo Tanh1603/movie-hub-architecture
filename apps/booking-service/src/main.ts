@@ -3,6 +3,7 @@
  * This is only a minimal backend to get started.
  */
 
+import { LoggingInterceptor } from '@movie-hub/shared-types/common/logging.interceptor';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
@@ -94,6 +95,7 @@ async function bootstrap() {
   });
 
   app.useGlobalFilters(new AllExceptionsFilter());
+  app.useGlobalInterceptors(new LoggingInterceptor('Booking-Service'));
 
   await app.startAllMicroservices();
   await app.listen(httpPort);

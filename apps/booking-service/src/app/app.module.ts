@@ -13,6 +13,7 @@ import { TicketModule } from './ticket/ticket.module';
 import { RefundModule } from './refund/refund.module';
 import { BookingRedisModule } from './redis/redis.module';
 import { NotificationModule } from './notification/notification.module';
+import { OutboxModule } from './outbox/outbox.module';
 import { HealthController } from './health.controller';
 import Joi from 'joi';
 import { SharedMetricsModule } from '@movie-hub/shared-metrics';
@@ -48,6 +49,7 @@ import { SharedMetricsModule } from '@movie-hub/shared-metrics';
     }),
     BookingRedisModule,
     NotificationModule,
+    OutboxModule,
     BookingModule,
     PaymentModule,
     ConcessionModule,

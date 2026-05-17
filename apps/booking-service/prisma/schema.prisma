@@ -82,6 +82,13 @@ enum LoyaltyTier {
   PLATINUM
 }
 
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  DELIVERED
+  FAILED
+}
+
 // ======================
 // Models
 // ======================
@@ -260,4 +267,24 @@ model LoyaltyTransactions {
 
   @@index([loyalty_account_id])
   @@index([type])
+}
+
+model OutboxEvents {
+  id                String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  aggregate_id      String       @db.Uuid
+  aggregate_type    String       @db.VarChar(100)
+  event_type        String       @db.VarChar(150)
+  payload           Json
+  status            OutboxStatus @default(PENDING)
+  correlation_id    String?      @db.Uuid
+  request_id        String?      @db.Uuid
+  delivery_attempts Int          @default(0)
+  last_error        String?      @db.Text
+  created_at        DateTime     @default(now()) @db.Timestamp(6)
+  updated_at        DateTime     @default(now()) @db.Timestamp(6)
+  processed_at      DateTime?    @db.Timestamp(6)
+
+  @@unique([aggregate_id, event_type])
+  @@index([status, created_at])
+  @@index([aggregate_id])
 }

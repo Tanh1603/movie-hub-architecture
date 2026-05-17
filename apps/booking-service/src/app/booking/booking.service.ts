@@ -35,11 +35,18 @@ import {
   SERVICE_NAME,
 } from '@movie-hub/shared-types';
 import {
+  sanitizeForLogging,
+  serializeStructuredLog,
+  RequestContextMetadata,
+} from '@movie-hub/shared-types/common/observability.util';
+import {
   Prisma,
   Concessions,
   Tickets,
   PromotionType,
 } from '../../../generated/prisma';
+
+const MAX_PAGE_LIMIT = 50;
 
 // Type for booking with full relations using Prisma's generated types
 type BookingWithRelations = Prisma.BookingsGetPayload<{
@@ -75,10 +82,99 @@ export class BookingService {
     private notificationService: NotificationService
   ) {}
 
+  private logInfo(
+    action: string,
+    message: string,
+    metadata?: Record<string, unknown>,
+    context?: Partial<RequestContextMetadata>
+  ) {
+    this.logger.log(
+      serializeStructuredLog({
+        level: 'info',
+        service: BookingService.name,
+        correlationId: context?.correlationId,
+        requestId: context?.requestId,
+        userId: context?.userId,
+        action,
+        message,
+        metadata,
+      })
+    );
+  }
+
+  private logWarn(
+    action: string,
+    message: string,
+    metadata?: Record<string, unknown>,
+    context?: Partial<RequestContextMetadata>
+  ) {
+    this.logger.warn(
+      serializeStructuredLog({
+        level: 'warn',
+        service: BookingService.name,
+        correlationId: context?.correlationId,
+        requestId: context?.requestId,
+        userId: context?.userId,
+        action,
+        message,
+        metadata,
+      })
+    );
+  }
+
+  private normalizePagination(page?: number, limit?: number) {
+    const safePage = Math.max(1, Number(page) || 1);
+    const safeLimit = Math.min(
+      MAX_PAGE_LIMIT,
+      Math.max(1, Number(limit) || 10)
+    );
+    return {
+      page: safePage,
+      limit: safeLimit,
+      skip: (safePage - 1) * safeLimit,
+    };
+  }
+
+  private assertBookingTransition(
+    current: BookingStatus,
+    next: BookingStatus
+  ) {
+    const allowed: Record<BookingStatus, BookingStatus[]> = {
+      [BookingStatus.PENDING]: [
+        BookingStatus.CONFIRMED,
+        BookingStatus.CANCELLED,
+        BookingStatus.EXPIRED,
+      ],
+      [BookingStatus.CONFIRMED]: [
+        BookingStatus.COMPLETED,
+        BookingStatus.CANCELLED,
+        BookingStatus.REFUNDED,
+      ],
+      [BookingStatus.CANCELLED]: [],
+      [BookingStatus.EXPIRED]: [],
+      [BookingStatus.COMPLETED]: [],
+      [BookingStatus.REFUNDED]: [],
+    };
+
+    if (current === next) {
+      return;
+    }
+
+    if (!allowed[current]?.includes(next)) {
+      throw new BadRequestException(
+        `Invalid booking state transition: ${current} -> ${next}`
+      );
+    }
+  }
+
   async createBooking(
     userId: string,
     dto: CreateBookingDto
   ): Promise<ServiceResult<BookingCalculationDto>> {
+    this.logInfo('booking.create.requested', 'Creating booking session', {
+      userId,
+      showtimeId: dto.showtimeId,
+    });
     // ✅ STEP 0: Check if user already has a pending booking for this showtime
     const existingPendingBooking = await this.prisma.bookings.findFirst({
       where: {
@@ -92,6 +188,15 @@ export class BookingService {
     });
 
     if (existingPendingBooking) {
+      this.logInfo(
+        'booking.create.reused_pending',
+        'Reusing existing pending booking session',
+        {
+          bookingId: existingPendingBooking.id,
+          userId,
+          showtimeId: dto.showtimeId,
+        }
+      );
       // Return the existing booking instead of throwing error
       return this.getBookingSummary(existingPendingBooking.id, userId);
     }
@@ -132,8 +237,11 @@ export class BookingService {
       limit?: number;
     } = {}
   ): Promise<ServiceResult<BookingSummaryDto[]>> {
-    const { status, page = 1, limit = 10 } = query || {};
-    const skip = (page - 1) * limit;
+    const { status } = query || {};
+    const { page, limit, skip } = this.normalizePagination(
+      query?.page,
+      query?.limit
+    );
 
     const where: Prisma.BookingsWhereInput = { user_id: userId };
     if (status) {
@@ -291,6 +399,13 @@ export class BookingService {
 
     // Send cancellation email
     this.sendCancellationEmail(updated, showtimeData, refundAmount);
+    this.logInfo('booking.cancelled', 'Booking cancelled successfully', {
+      bookingId: updated.id,
+      userId,
+      previousStatus: booking.status,
+      reason,
+      refundAmount,
+    });
 
     return {
       data: this.mapToDetailDto(updated, showtimeData),
@@ -849,9 +964,10 @@ export class BookingService {
   async adminFindAllBookings(
     filters: AdminFindAllBookingsDto & { cinemaId?: string } = {}
   ): Promise<ServiceResult<BookingSummaryDto[]>> {
-    const page = filters?.page || 1;
-    const limit = filters?.limit || 10;
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = this.normalizePagination(
+      filters?.page,
+      filters?.limit
+    );
 
     const where: Prisma.BookingsWhereInput = {};
 
@@ -1001,9 +1117,10 @@ export class BookingService {
       cinemaId?: string;
     } = {}
   ): Promise<ServiceResult<BookingSummaryDto[]>> {
-    const page = filters?.page || 1;
-    const limit = filters?.limit || 10;
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = this.normalizePagination(
+      filters?.page,
+      filters?.limit
+    );
 
     const where: Prisma.BookingsWhereInput = {};
 
@@ -1085,7 +1202,8 @@ export class BookingService {
   async updateBookingStatus(
     bookingId: string,
     status: BookingStatus,
-    reason?: string
+    reason?: string,
+    context?: RequestContextMetadata
   ): Promise<ServiceResult<BookingDetailDto>> {
     const booking = await this.prisma.bookings.findUnique({
       where: { id: bookingId },
@@ -1095,24 +1213,71 @@ export class BookingService {
       throw new BadRequestException('Booking not found');
     }
 
-    const data: Prisma.BookingsUpdateInput = { status };
+    this.assertBookingTransition(booking.status as BookingStatus, status);
+
+    const bookingData: Prisma.BookingsUpdateInput = { status };
 
     if (status === BookingStatus.CANCELLED) {
-      data.cancelled_at = new Date();
-      data.cancellation_reason = reason;
+      bookingData.cancelled_at = new Date();
+      bookingData.cancellation_reason = reason;
+      if (booking.payment_status === PaymentStatus.PENDING) {
+        bookingData.payment_status = PaymentStatus.FAILED;
+      }
     }
 
-    const updated = await this.prisma.bookings.update({
-      where: { id: bookingId },
-      data,
-      include: {
-        tickets: true,
-        booking_concessions: {
-          include: {
-            concession: true,
+    if (status === BookingStatus.CONFIRMED) {
+      bookingData.payment_status = PaymentStatus.COMPLETED;
+      bookingData.expires_at = null;
+    }
+
+    if (status === BookingStatus.EXPIRED) {
+      bookingData.payment_status = PaymentStatus.FAILED;
+      bookingData.expires_at = null;
+    }
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const bookingUpdate = await tx.bookings.update({
+        where: { id: bookingId },
+        data: bookingData,
+        include: {
+          tickets: true,
+          booking_concessions: {
+            include: {
+              concession: true,
+            },
           },
         },
-      },
+      });
+
+      if (status === BookingStatus.CONFIRMED) {
+        await tx.tickets.updateMany({
+          where: { booking_id: bookingId },
+          data: { status: TicketStatus.VALID },
+        });
+      }
+
+      if (status === BookingStatus.CANCELLED) {
+        await tx.tickets.updateMany({
+          where: { booking_id: bookingId },
+          data: { status: TicketStatus.CANCELLED },
+        });
+      }
+
+      if (status === BookingStatus.EXPIRED) {
+        await tx.tickets.updateMany({
+          where: { booking_id: bookingId },
+          data: { status: TicketStatus.EXPIRED },
+        });
+      }
+
+      if (status === BookingStatus.COMPLETED) {
+        await tx.tickets.updateMany({
+          where: { booking_id: bookingId },
+          data: { status: TicketStatus.USED, used_at: new Date() },
+        });
+      }
+
+      return bookingUpdate;
     });
 
     // Fetch showtime data
@@ -1122,6 +1287,12 @@ export class BookingService {
     } catch {
       showtimeData = null;
     }
+    this.logInfo('booking.status.updated', 'Updated booking status', {
+      bookingId,
+      previousStatus: booking.status,
+      nextStatus: status,
+      reason,
+    }, context);
 
     return {
       data: this.mapToDetailDto(updated, showtimeData),
@@ -1133,30 +1304,43 @@ export class BookingService {
    * Confirm booking (after successful payment)
    */
   async confirmBooking(
-    bookingId: string
+    bookingId: string,
+    context?: RequestContextMetadata
   ): Promise<ServiceResult<BookingDetailDto>> {
-    return this.updateBookingStatus(bookingId, BookingStatus.CONFIRMED);
+    this.logInfo('booking.confirm.requested', 'Confirm booking requested', {
+      bookingId,
+    }, context);
+    return this.updateBookingStatus(bookingId, BookingStatus.CONFIRMED, undefined, context);
   }
 
   /**
    * Complete booking (after showtime ends)
    */
   async completeBooking(
-    bookingId: string
+    bookingId: string,
+    context?: RequestContextMetadata
   ): Promise<ServiceResult<BookingDetailDto>> {
-    return this.updateBookingStatus(bookingId, BookingStatus.COMPLETED);
+    this.logInfo('booking.complete.requested', 'Complete booking requested', {
+      bookingId,
+    }, context);
+    return this.updateBookingStatus(bookingId, BookingStatus.COMPLETED, undefined, context);
   }
 
   /**
    * Expire booking (auto-expiration of pending bookings)
    */
   async expireBooking(
-    bookingId: string
+    bookingId: string,
+    context?: RequestContextMetadata
   ): Promise<ServiceResult<BookingDetailDto>> {
+    this.logInfo('booking.expire.requested', 'Expire booking requested', {
+      bookingId,
+    }, context);
     return this.updateBookingStatus(
       bookingId,
       BookingStatus.EXPIRED,
-      'Payment timeout'
+      'Payment timeout',
+      context
     );
   }
 
@@ -1173,10 +1357,9 @@ export class BookingService {
       showtimeId?: string;
     } = {}
   ): Promise<any> {
-    console.log(
-      `[BookingService] getBookingStatistics called with filters:`,
-      filters
-    );
+    this.logInfo('booking.statistics.requested', 'Generating booking statistics', {
+      filters: sanitizeForLogging(filters) as Record<string, unknown>,
+    });
     const where: Prisma.BookingsWhereInput = {};
 
     if (filters?.startDate || filters?.endDate) {
@@ -1204,9 +1387,9 @@ export class BookingService {
       },
     });
 
-    console.log(
-      `[BookingService] Found ${bookings.length} raw bookings in DB.`
-    );
+    this.logInfo('booking.statistics.loaded', 'Loaded bookings for statistics calculation', {
+      bookingCount: bookings.length,
+    });
 
     const totalBookings = bookings.length;
     const totalRevenue = bookings.reduce(
@@ -2140,10 +2323,11 @@ export class BookingService {
         newBookingDetailResult.data
       )
       .catch((error) => {
-        console.error(
-          '[Booking] Failed to send reschedule email (async):',
-          error
-        );
+        this.logWarn('booking.rescheduled.email_failed', 'Failed to send reschedule email', {
+          bookingId: id,
+          userId,
+          error: sanitizeForLogging(error),
+        });
       });
 
     return newBookingDetailResult;
