@@ -11,7 +11,7 @@ import {
 } from '@movie-hub/shacdn-ui/carousel';
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { Play, Info } from 'lucide-react';
-import { useGetMovies } from '@/hooks/movie-hooks';
+import { useGetMovies } from '@/features/client/movies/hooks';
 import Link from 'next/link';
 
 // Placeholder gradients if not provided by backend

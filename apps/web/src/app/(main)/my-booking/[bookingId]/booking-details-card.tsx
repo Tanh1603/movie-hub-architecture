@@ -23,9 +23,9 @@ import {
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { CalendarDays, Popcorn, Ticket } from 'lucide-react';
 import { formatPrice } from '../../../utils/format-price';
-import { bookingsApi } from '@/libs/api/services';
-import { useGetBookingById } from '@/hooks/booking-hooks';
-import { BookingStatus } from '@/libs/types/booking.type';
+import { bookingsApi } from '@/api/services';
+import { useGetBookingById } from '@/features/client/booking/hooks';
+import { BookingStatus } from '@/types/booking.type';
 import { toast } from 'sonner';
 import { useState, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -34,7 +34,6 @@ import { Loader } from '@/components/loader';
 import { ErrorFallback } from '@/components/error-fallback';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-
 export function BookingCard({ bookingId }: { bookingId: string }) {
   const {
     data: booking,

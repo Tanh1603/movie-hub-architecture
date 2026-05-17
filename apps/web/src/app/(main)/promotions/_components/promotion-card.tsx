@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from '@movie-hub/shacdn-ui/card';
 import { Skeleton } from '@movie-hub/shacdn-ui/skeleton';
-import { PromotionDto } from '@/libs/types/promotion.type';
+import { PromotionDto } from '@/types/promotion.type';
 
 import { CalendarDays, TicketPercent } from 'lucide-react';
 

@@ -1,7 +1,7 @@
 import {
   getCinemaDetail
-} from '@/libs/actions/cinemas/cinema-action';
-import { getQueryClient } from '@/libs/get-query-client';
+} from '@/api/services';
+import { getQueryClient } from '@/shared/query/get-query-client';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import CinemaDetailCard from './_components/cinema-detail-card';
 import { MoviesAtCinema } from './_components/movies-list-cinema';

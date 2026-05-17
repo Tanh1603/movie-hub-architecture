@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { ThemeEffects, ThemeEffectType } from './theme-effects';
-import { configApi } from '../../libs/api/services';
+import { configApi } from '@/api/services';
 import { useAuth } from '@clerk/nextjs';
-import { setAuthTokenGetter } from '../../libs/api/api-client';
+import { setAuthTokenGetter } from '@/api/api-client';
 
 interface AppearanceConfig {
   theme: 'light' | 'dark' | 'system';

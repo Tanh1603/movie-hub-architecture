@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { DateSelect7Days } from '@/components/date-select-7days';
-import { useGetAllMoviesWithShowtimes } from '@/hooks/cinema-hooks';
+import { useGetAllMoviesWithShowtimes } from '@/features/client/cinemas/hooks';
 
 import { AlertCircle } from 'lucide-react';
 import { MovieWithCinemaCard } from './_components/movie-with-cinema-card';

@@ -1,7 +1,6 @@
-import { useAuth } from '@clerk/clerk-react';
+import { clientQueryKeys } from '@/features/client/shared/query-keys';
 import {
   CreateBookingDto,
-  PaginationQuery,
   UpdateBookingDto,
 } from '@movie-hub/shared-types';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -12,10 +11,10 @@ import {
   getBookingDetails,
   getUserBookings,
   updateBooking,
-} from '../libs/actions/booking/booking-action';
-import { getQueryClient } from '../libs/get-query-client';
-import { BookingStatus } from '../libs/types/booking.type';
-import { useBookingStore } from '../stores/booking-store';
+} from '@/api/services';
+import { getQueryClient } from '@/shared/query/get-query-client';
+import { BookingStatus } from '@/types/booking.type';
+import { useBookingStore } from '@/stores/booking-store';
 
 export const useCreateBooking = () => {
   const { setBookingId } = useBookingStore();
@@ -30,9 +29,10 @@ export const useCreateBooking = () => {
       setBookingId(result.data.bookingId);
     },
     onError: (error) => {
-      toast.error(
-        error?.message || 'Đã có lỗi xảy ra khi tạo đặt vé. Vui lòng thử lại.'
-      );
+          toast.error(
+            error?.message ||
+              'Đã có lỗi xảy ra khi tạo đặt vé. Vui lòng thử lại.'
+          );
     },
   });
 };
@@ -45,7 +45,7 @@ interface UseGetBookingsProps {
 
 export const useGetBookings = ({ status, page = 1 }: UseGetBookingsProps) => {
   return useQuery({
-    queryKey: ['my-bookings', status, page],
+    queryKey: clientQueryKeys.bookings.list(status, page),
     queryFn: async () => {
       const data = await getUserBookings(status, { page });
       return data;
@@ -56,7 +56,7 @@ export const useGetBookings = ({ status, page = 1 }: UseGetBookingsProps) => {
 
 export const useGetBookingById = (bookingId: string) => {
   return useQuery({
-    queryKey: ['booking-details', bookingId],
+    queryKey: clientQueryKeys.bookings.detail(bookingId),
     queryFn: async () => {
       const response = await getBookingDetails(bookingId);
       return response.data;
@@ -69,7 +69,7 @@ export const useGetBookingById = (bookingId: string) => {
 export const useCheckUserBookingAtShowtime = (showtimeId: string) => {
   const { setBookingId } = useBookingStore();
   return useQuery({
-    queryKey: ['check-user-booking', showtimeId],
+    queryKey: clientQueryKeys.bookings.byShowtime(showtimeId),
     queryFn: async () => {
       const response = await checkUserBookingAtShowtime(showtimeId);
       if (response.data) {
@@ -98,10 +98,10 @@ export const useUpdateBooking = () => {
       queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
     },
     onError: (error) => {
-      toast.error(
-        error?.message ||
-          'Đã có lỗi xảy ra khi cập nhật đặt vé. Vui lòng thử lại.'
-      );
+          toast.error(
+            error?.message ||
+              'Đã có lỗi xảy ra khi cập nhật đặt vé. Vui lòng thử lại.'
+          );
     },
   });
 };

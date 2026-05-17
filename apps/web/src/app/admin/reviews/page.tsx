@@ -1,9 +1,8 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState, useMemo } from 'react';
-import { Eye, Filter, Trash2, Star } from 'lucide-react';
+import { Eye, Trash2, Star } from 'lucide-react';
 import { Button } from '@movie-hub/shacdn-ui/button';
 import {
   Card,
@@ -37,7 +36,7 @@ import {
 } from '@movie-hub/shacdn-ui/select';
 import { Label } from '@movie-hub/shacdn-ui/label';
 import { Input } from '@movie-hub/shacdn-ui/input';
-import { useReviews, useDeleteReview, useMovies } from '@/libs/api';
+import { useReviews, useDeleteReview, useMovies } from '@/features/admin/shared/api-hooks';
 
 export default function ReviewsPage() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
@@ -563,3 +562,5 @@ export default function ReviewsPage() {
     </div>
   );
 }
+
+

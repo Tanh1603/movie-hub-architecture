@@ -1,17 +1,18 @@
+import { clientQueryKeys } from '@/features/client/shared/query-keys';
 import { useAuth } from '@clerk/nextjs';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   createGenre,
-  CreateGenreRequest,
   getGenreDetail,
   getGenres,
   updateGenre,
-} from '../libs/actions/genre/genre-action';
+} from '@/api/services';
+import type { CreateGenreRequest } from '@/types';
 
 export const useGetGenres = (token: string) => {
   return useQuery({
-    queryKey: ['genres'],
+    queryKey: clientQueryKeys.genres.list(),
     queryFn: async () => {
       return await getGenres();
     },
@@ -20,7 +21,7 @@ export const useGetGenres = (token: string) => {
 
 export const useGetDetailGenre = (id: string) => {
   return useQuery({
-    queryKey: ['genres', id],
+    queryKey: clientQueryKeys.genres.detail(id),
     queryFn: async () => {
       return await getGenreDetail(id);
     },
@@ -42,7 +43,7 @@ export const useCreateGenre = (data: CreateGenreRequest) => {
     },
     onSuccess: () => {
       toast.success('Tạo thể loại thành công');
-      queryClient.invalidateQueries({ queryKey: ['genres'] });
+      queryClient.invalidateQueries({ queryKey: clientQueryKeys.genres.list() });
     },
     onError: (error) => {
       toast.error(error?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
@@ -65,8 +66,8 @@ export const useUpdateGenre = (id: string, genreData: CreateGenreRequest) => {
     },
     onSuccess: () => {
       toast.success('Cập nhật thể loại thành công');
-      queryClient.invalidateQueries({ queryKey: ['genres'] });
-      queryClient.invalidateQueries({ queryKey: ['genres', id] });
+      queryClient.invalidateQueries({ queryKey: clientQueryKeys.genres.list() });
+      queryClient.invalidateQueries({ queryKey: clientQueryKeys.genres.detail(id) });
     },
     onError: (error) => {
       toast.error(error?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
@@ -89,8 +90,8 @@ export const useDeleteGenre = (id: string) => {
     },
     onSuccess: () => {
       toast.success('Xóa thể loại thành công');
-      queryClient.invalidateQueries({ queryKey: ['genres'] });
-      queryClient.invalidateQueries({ queryKey: ['genres', id] });
+      queryClient.invalidateQueries({ queryKey: clientQueryKeys.genres.list() });
+      queryClient.invalidateQueries({ queryKey: clientQueryKeys.genres.detail(id) });
     },
     onError: (error) => {
       toast.error(error?.message || 'Có lỗi xảy ra. Vui lòng thử lại.');

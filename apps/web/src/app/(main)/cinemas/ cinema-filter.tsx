@@ -12,8 +12,8 @@ import { Input } from '@movie-hub/shacdn-ui/input';
 
 import { MapPin, SlidersHorizontal } from 'lucide-react';
 import { CinemaLocationCard } from '../_components/cinema-loaction-card';
-import { useGetCinemasWithFilters } from '@/hooks/cinema-hooks';
-import { CinemaLocationResponse } from '@/libs/types/cinema.type';
+import { useGetCinemasWithFilters } from '@/features/client/cinemas/hooks';
+import { CinemaLocationResponse } from '@/types/cinema.type';
 import { Loader } from '@/components/loader';
 
 type SortBy = 'distance' | 'rating' | 'name';

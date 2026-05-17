@@ -1,9 +1,10 @@
 'use client';
 import { useState, useMemo } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
-import { CinemaLocationResponse } from '@/libs/types/cinema.type';
-import { useGetMovieShowtimesAtCinema } from '@/hooks/cinema-hooks';
+import { CinemaLocationResponse } from '@/types/cinema.type';
+
 import { Skeleton } from '@movie-hub/shacdn-ui/skeleton';
+import { useGetMovieShowtimesAtCinema } from '@/features/client/cinemas/hooks';
 
 interface CinemaShowtimeProps {
   movieId: string;
@@ -21,14 +22,12 @@ export const CinemaShowtime = ({
   selectedShowtime,
 }: CinemaShowtimeProps) => {
   const [isOpen, setIsOpen] = useState(true);
-
   // Query showtimes theo ngày
   const { data: showtimes, isLoading } = useGetMovieShowtimesAtCinema(
     cinema.id,
     movieId,
     { date: selectedDate }
   );
-
   const handleClick = (showtimeId: string) => {
     onSelectShowtime(showtimeId);
   };

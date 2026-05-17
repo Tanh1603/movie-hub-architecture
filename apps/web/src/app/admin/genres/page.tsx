@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, Tag } from 'lucide-react';
@@ -23,8 +22,13 @@ import {
 import { Label } from '@movie-hub/shacdn-ui/label';
 import { Input } from '@movie-hub/shacdn-ui/input';
 import { useToast } from '../_libs/use-toast';
-import { useGenres, useCreateGenre, useUpdateGenre, useDeleteGenre } from '@/libs/api';
-import type { Genre } from '@/libs/api/types';
+import {
+  useAdminCreateGenre,
+  useAdminDeleteGenre,
+  useAdminGenres,
+  useAdminUpdateGenre,
+} from '@/features/admin/genres';
+import type { Genre } from '@/types';
 
 export default function GenresPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -38,11 +42,11 @@ export default function GenresPage() {
   const { toast } = useToast();
 
   // API hooks
-  const { data: genresData = [], isLoading: loading, error } = useGenres();
+  const { data: genresData = [], isLoading: loading, error } = useAdminGenres();
   const genres = genresData || [];
-  const createGenre = useCreateGenre();
-  const updateGenre = useUpdateGenre();
-  const deleteGenre = useDeleteGenre();
+  const createGenre = useAdminCreateGenre();
+  const updateGenre = useAdminUpdateGenre();
+  const deleteGenre = useAdminDeleteGenre();
 
   // Show error toast if query fails
   if (error) {
@@ -305,3 +309,4 @@ export default function GenresPage() {
     </div>
   );
 }
+

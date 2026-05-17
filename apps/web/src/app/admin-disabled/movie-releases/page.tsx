@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -24,9 +23,9 @@ import {
 } from '@movie-hub/shacdn-ui/select';
 import { Badge } from '@movie-hub/shacdn-ui/badge';
 import { useToast } from '../../admin/_libs/use-toast';
-import { useMovieReleases, useDeleteMovieRelease, useMovies, useCinemas, useHallsGroupedByCinema } from '@/libs/api';
-import type { MovieRelease } from '@/libs/api';
-import type { Movie, Hall } from '@/libs/api/types';
+import { useMovieReleases, useDeleteMovieRelease, useMovies, useCinemas, useHallsGroupedByCinema } from '@/features/admin/shared/api-hooks';
+import type { MovieRelease } from '@/types';
+import type { Movie, Hall } from '@/types';
 import { format } from 'date-fns';
 import MovieReleaseDialog from '../../admin/_components/forms/MovieReleaseDialog';
 import ShowtimeDialog from '../../admin/_components/forms/ShowtimeDialog';
@@ -277,7 +276,7 @@ export default function MovieReleasesPage() {
                       <Badge 
                         className={`${getStatusColor(status)} border-0 shadow-lg backdrop-blur-sm font-semibold px-3 py-1`}
                       >
-                        {status === 'active' ? '🎬 Now Showing' : status === 'upcoming' ? '🎭 Coming Soon' : '📼 Ended'}
+                        {status === 'active' ? '🎬 Now Showing' : status === 'upcoming' ? '🎭 Coming Soon' : '🏁 Ended'}
                       </Badge>
                     </div>
 
@@ -461,3 +460,4 @@ export default function MovieReleasesPage() {
     </div>
   );
 }
+

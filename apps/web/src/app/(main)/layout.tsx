@@ -1,4 +1,4 @@
-import { getAllCinemas } from '../../libs/actions/cinemas/cinema-action';
+import { getAllCinemas } from '@/api/services';
 import { Footer } from './_components/footer';
 import { Navbar } from './_components/navbar';
 

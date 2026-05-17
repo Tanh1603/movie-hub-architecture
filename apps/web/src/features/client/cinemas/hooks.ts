@@ -1,3 +1,4 @@
+import { clientQueryKeys } from '@/features/client/shared/query-keys';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import {
   getAllMoviesWithShowtimes,
@@ -10,14 +11,14 @@ import {
   searchCinemas,
   ShowtimesFilterDTO,
   getAllCinemas,
-} from '../libs/actions/cinemas/cinema-action';
+} from '@/api/services';
 import {
   CinemaListResponse,
   CinemaLocationResponse,
-} from '../libs/types/cinema.type';
+} from '@/types/cinema.type';
 import { PaginationQuery, ServiceResult } from '@movie-hub/shared-types/common';
 import { ShowtimeSummaryResponse } from '@movie-hub/shared-types';
-import { MovieWithShowtimeResponse } from '../libs/types/movie.type';
+import { MovieWithShowtimeResponse } from '@/types/movie.type';
 
 export const useGetMovieShowtimesAtCinema = (
   cinemaId: string,
@@ -42,7 +43,7 @@ export const useGetCinemasNearby = (
   limit?: number
 ) => {
   return useQuery({
-    queryKey: ['cinemas', 'nearby', langtitude, longtitude, radius, limit],
+    queryKey: clientQueryKeys.cinemas.nearby(langtitude, longtitude, radius, limit),
     queryFn: async () => {
       const response: ServiceResult<CinemaListResponse> =
         await GetCinemasNearby(langtitude, longtitude, radius, limit);
@@ -67,7 +68,7 @@ export const useGetCinemasWithFilters = (params: {
   sortOrder?: string;
 }) => {
   return useInfiniteQuery<CinemaListResponse>({
-    queryKey: ['cinemas', params],
+    queryKey: clientQueryKeys.cinemas.filters(params),
     queryFn: async ({ pageParam = 1 }) => {
       const response: ServiceResult<CinemaListResponse> =
         await getCinemasWithFilters({
@@ -93,7 +94,7 @@ export const useSearchCinemas = (
   latitude?: string
 ) => {
   return useQuery({
-    queryKey: ['cinemas', 'search', query, longitude, latitude],
+    queryKey: clientQueryKeys.cinemas.search(query, longitude, latitude),
     queryFn: async () => {
       const response: ServiceResult<CinemaLocationResponse[]> =
         await searchCinemas(query, longitude, latitude);
@@ -105,7 +106,7 @@ export const useSearchCinemas = (
 
 export const useGetCinemaDetail = (cinemaId: string) => {
   return useQuery({
-    queryKey: ['cinemas', 'detail', cinemaId],
+    queryKey: clientQueryKeys.cinemas.detail(cinemaId),
     queryFn: async () => {
       const response: ServiceResult<CinemaLocationResponse> =
         await getCinemaDetail(cinemaId);
@@ -120,7 +121,7 @@ export const useGetMoviesAtCinema = (
   query: PaginationQuery
 ) => {
   return useInfiniteQuery({
-    queryKey: ['movies-at-cinema', cinemaId, query],
+    queryKey: clientQueryKeys.cinemas.moviesAtCinema(cinemaId, query as Record<string, unknown>),
     queryFn: async ({ pageParam = 1 }) => {
       // gọi getMovies và merge query params
       return await getMovieAtCinemas(cinemaId, {
@@ -146,7 +147,7 @@ export const useGetMoviesAtCinema = (
 };
 export const useGetAllMoviesWithShowtimes = (query: ShowtimesFilterDTO) => {
   return useQuery({
-    queryKey: ['movies-with-showtimes', query],
+    queryKey: clientQueryKeys.cinemas.moviesWithShowtimes(query as Record<string, unknown>),
     queryFn: async () => {
       const response = await getAllMoviesWithShowtimes(query);
       return response.data;
@@ -156,7 +157,7 @@ export const useGetAllMoviesWithShowtimes = (query: ShowtimesFilterDTO) => {
 
 export const useGetAllCinemas = () => {
   return useQuery({
-    queryKey: ['cinemas', 'all'],
+    queryKey: clientQueryKeys.cinemas.allList(),
     queryFn: async () => {
       const response = await getAllCinemas();
       return response.data;

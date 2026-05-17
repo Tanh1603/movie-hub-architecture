@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useGetCinemasNearby } from '@/hooks/cinema-hooks';
+import { useGetCinemasNearby } from '@/features/client/cinemas/hooks';
 import { useRouter } from 'next/navigation';
 import { CinemaLocationCard } from './cinema-loaction-card';
 import { ErrorFallback } from '@/components/error-fallback';
 import { BlurCircle } from '@/components/blur-circle';
-import type { CinemaLocationResponse } from '@/libs/types/cinema.type';
+import type { CinemaLocationResponse } from '@/types/cinema.type';
 import {
   Carousel,
   CarouselContent,

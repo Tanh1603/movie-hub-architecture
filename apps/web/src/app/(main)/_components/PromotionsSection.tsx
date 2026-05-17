@@ -8,7 +8,7 @@ import {
   CarouselPrevious,
 } from '@movie-hub/shacdn-ui/carousel';
 import { useUser } from '@clerk/nextjs';
-import { useFindPromotionByTypes } from '@/hooks/promotion-hook';
+import { useFindPromotionByTypes } from '@/features/client/promotions/hooks';
 import { ArrowRight, TicketPercent } from 'lucide-react';
 import Link from 'next/link';
 import { PromotionCard } from '../promotions/_components/promotion-card';

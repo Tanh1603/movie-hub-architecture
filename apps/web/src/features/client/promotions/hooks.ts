@@ -1,14 +1,15 @@
+import { clientQueryKeys } from '@/features/client/shared/query-keys';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   findAllPromotions,
   validatePromotion,
-} from '../libs/actions/promotion/promotion-actions';
-import { useBookingStore } from '../stores/booking-store';
+} from '@/api/services';
+import { useBookingStore } from '@/stores/booking-store';
 import {
   PromotionType,
   ValidatePromotionDto,
-} from '../libs/types/promotion.type';
+} from '@/types/promotion.type';
 
 export const useValidationPromotion = () => {
   const { setPromotionCode } = useBookingStore();
@@ -38,7 +39,7 @@ export const useValidationPromotion = () => {
 
 export const useFindPromotionByTypes = (type?: PromotionType) => {
   return useQuery({
-    queryKey: ['promotions', type],
+    queryKey: clientQueryKeys.promotions.list(type),
     queryFn: async () => {
       const response = await findAllPromotions('true', type);
       return response.data;

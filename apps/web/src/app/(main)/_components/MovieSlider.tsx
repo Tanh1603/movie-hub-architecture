@@ -11,7 +11,7 @@ import {
   CarouselPrevious,
 } from '@movie-hub/shacdn-ui/carousel';
 import { BlurCircle } from '@/components/blur-circle';
-import { useGetMovies } from '@/hooks/movie-hooks';
+import { useGetMovies } from '@/features/client/movies/hooks';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';

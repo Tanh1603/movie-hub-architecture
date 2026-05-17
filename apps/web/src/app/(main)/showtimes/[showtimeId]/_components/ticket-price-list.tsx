@@ -1,6 +1,6 @@
 'use client';
 
-import { SeatTypeEnum } from '@/libs/types/showtime.type';
+import { SeatTypeEnum } from '@/types/showtime.type';
 import React from 'react';
 import { Accessibility, Star } from 'lucide-react';
 

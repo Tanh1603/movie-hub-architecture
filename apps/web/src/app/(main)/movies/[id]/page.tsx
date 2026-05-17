@@ -1,14 +1,10 @@
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
-export const dynamic = 'force-dynamic';
-import { getMovieDetail } from '@/libs/actions/movies/movie-action';
+import { getMovieDetail } from '@/api/services';
 import { DateSelect } from './_components/date-select';
 import { MovieCast } from './_components/movie-cast';
 import { MovieHeader } from './_components/movie-header';
-import { getQueryClient } from '@/libs/get-query-client';
-import {
-  getAvailableCities,
-  getCinemaDetail,
-} from '@/libs/actions/cinemas/cinema-action';
+import { getQueryClient } from '@/shared/query/get-query-client';
+import { getAvailableCities, getCinemaDetail } from '@/api/services';
 import { TrailerModal } from '@/components/modal/trailer-modal';
 import { MovieReviews } from './_components/movie-reviews';
 

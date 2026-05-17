@@ -1,17 +1,17 @@
+import { clientQueryKeys } from '@/features/client/shared/query-keys';
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
 import {
   getSessionTTL,
   getShowtimeSeats,
-} from '../libs/actions/cinemas/showtime/showtime-action';
-import { useAuth } from '@clerk/nextjs';
+} from '@/api/services';
 import { ApiResponse } from '@movie-hub/shared-types/common';
 import { ShowtimeSeatResponse } from '@movie-hub/shared-types';
 
 export const useGetShowtimeSeats = (showtimeId: string) => {
   return useQuery({
-    queryKey: ['showtimes', showtimeId, 'seats'],
+    queryKey: clientQueryKeys.showtimes.seats(showtimeId),
     queryFn: async () => {
       const response: ApiResponse<ShowtimeSeatResponse> =
         await getShowtimeSeats(showtimeId);
@@ -27,7 +27,7 @@ export const useGetShowtimeSeats = (showtimeId: string) => {
 
 export const useGetSessionTTL = (showtimeId: string) => {
   return useQuery({
-    queryKey: ['showtimes', showtimeId, 'ttl',],
+    queryKey: clientQueryKeys.showtimes.ttl(showtimeId),
     queryFn: async () => {
      return await getSessionTTL(showtimeId);
     },

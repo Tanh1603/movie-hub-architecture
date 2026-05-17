@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
 import { Clock, Film, Building2, DoorOpen, Ticket } from 'lucide-react';
@@ -21,9 +20,11 @@ import {
 import { Badge } from '@movie-hub/shacdn-ui/badge';
 import { useToast } from '../_libs/use-toast';
 import { format } from 'date-fns';
-import { useShowtimes, useShowtimeSeats, useMovies, useHallsGroupedByCinema } from '@/libs/api';
 import { useMemo } from 'react';
-import type { TicketPricingDto, SeatRowDto, SeatItemDto, Showtime } from '@/libs/api/types';
+import { useAdminHallsGroupedByCinema } from '@/features/admin/cinemas';
+import { useAdminMovies } from '@/features/admin/movies';
+import { useAdminShowtimes, useAdminShowtimeSeats } from '@/features/admin/showtimes';
+import type { CinemasGroupedResponse, Hall, TicketPricingDto, SeatRowDto, SeatItemDto } from '@/types';
 
 type ReservationStatus = 'AVAILABLE' | 'HELD' | 'CONFIRMED' | 'CANCELLED';
 type SeatType = 'STANDARD' | 'VIP' | 'COUPLE' | 'PREMIUM' | 'WHEELCHAIR';
@@ -34,23 +35,29 @@ export default function ShowtimeSeatsPage() {
   useToast();
 
   // API hooks
-  const { data: showtimesData = [] } = useShowtimes();
-  const showtimes = showtimesData || [];
-  const { data: seatsResponse, isLoading: loading } = useShowtimeSeats(selectedShowtimeId);
-  const { data: moviesData = [] } = useMovies();
-  const movies = moviesData || [];
-  const { data: hallsByCinema = {} } = useHallsGroupedByCinema();
-  const halls = useMemo(() => Object.values(hallsByCinema).flatMap((g: any) => (g.halls || [])), [hallsByCinema]);
+  const { data: showtimesData = [] } = useAdminShowtimes();
+  const showtimes = showtimesData;
+  const { data: seatsResponse, isLoading: loading } = useAdminShowtimeSeats(selectedShowtimeId || null);
+  const { data: moviesData = [] } = useAdminMovies();
+  const movies = moviesData;
+  const { data: hallsByCinema = {} } = useAdminHallsGroupedByCinema();
+  const halls = useMemo(
+    () =>
+      Object.values(hallsByCinema as CinemasGroupedResponse).flatMap(
+        (group) => group.halls || []
+      ),
+    [hallsByCinema]
+  );
 
   const movieMap = useMemo(() => {
     const m: Record<string,string> = {};
-    movies.forEach((mv: any) => { if (mv?.id) m[mv.id] = mv.title || 'Không Xác Định'; });
+    movies.forEach((mv) => { if (mv?.id) m[mv.id] = mv.title || 'Không Xác Định'; });
     return m;
   }, [movies]);
 
   const hallMap = useMemo(() => {
     const m: Record<string,string> = {};
-    (halls || []).forEach((h: any) => { if (h?.id) m[h.id] = h.name || 'Phòng Không Xác Định'; });
+    halls.forEach((h: Hall) => { if (h?.id) m[h.id] = h.name || 'Phòng Không Xác Định'; });
     return m;
   }, [halls]);
 
@@ -141,9 +148,11 @@ export default function ShowtimeSeatsPage() {
               <SelectValue placeholder="Chọn suất chiếu" />
             </SelectTrigger>
             <SelectContent>
-              {showtimes.map((showtime: any) => {
+              {showtimes.map((showtime) => {
                 // TIMEZONE WORKAROUND: BE adds +7h in mapper, we need to subtract it
-                const correctedStartTime = new Date(new Date(showtime.startTime || showtime.start_time || showtime.start).getTime() - 7 * 60 * 60 * 1000);
+                const correctedStartTime = new Date(
+                  new Date(showtime.startTime).getTime() - 7 * 60 * 60 * 1000
+                );
                 return (
                   <SelectItem key={showtime.id} value={showtime.id}>
                     <div className="flex items-center gap-2 text-sm">
@@ -473,3 +482,6 @@ export default function ShowtimeSeatsPage() {
     </div>
   );
 }
+
+
+

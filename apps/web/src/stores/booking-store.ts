@@ -11,7 +11,7 @@ import {
   SeatRowDto,
   SeatTypeEnum,
   ShowtimeSeatResponse,
-} from '../libs/types/showtime.type';
+} from '@/types/showtime.type';
 
 type SeatItem = {
   type: string;
