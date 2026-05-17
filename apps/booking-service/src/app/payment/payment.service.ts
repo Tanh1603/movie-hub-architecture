@@ -29,7 +29,6 @@ import {
   sanitizeForLogging,
   RequestContextMetadata,
 } from '@movie-hub/shared-types/common/observability.util';
-import { BOOKING_CONFIRMED_NOTIFICATION } from '../outbox/outbox.service';
 
 const MAX_PAGE_LIMIT = 50;
 
@@ -139,6 +138,7 @@ export class PaymentService {
     bookingId: string,
     dto: CreatePaymentDto,
     ipAddr: string,
+    userId: string,
     context?: RequestContextMetadata
   ): Promise<ServiceResult<PaymentDetailDto>> {
     const traceId = crypto.randomUUID();
@@ -692,8 +692,22 @@ export class PaymentService {
   }
 
   async findByBooking(
-    bookingId: string
+    bookingId: string,
+    userId: string
   ): Promise<ServiceResult<PaymentDetailDto[]>> {
+    const booking = await this.prisma.bookings.findUnique({
+      where: { id: bookingId },
+      select: { user_id: true },
+    });
+
+    if (!booking) {
+      throw new Error('Booking not found');
+    }
+
+    if (booking.user_id !== userId) {
+      throw new Error('You do not have access to this booking payments');
+    }
+
     const payments = await this.prisma.payments.findMany({
       where: { booking_id: bookingId },
       orderBy: { created_at: 'desc' },
@@ -839,9 +853,10 @@ export class PaymentService {
   async adminFindAllPayments(
     filters: AdminFindAllPaymentsDto = {}
   ): Promise<ServiceResult<PaymentDetailDto[]>> {
-    const page = filters?.page || 1;
-    const limit = filters?.limit || 10;
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = this.normalizePagination(
+      filters.page,
+      filters.limit
+    );
 
     const where: any = {};
 
@@ -890,10 +905,10 @@ export class PaymentService {
    */
   async findPaymentsByStatus(
     status: PaymentStatus,
-    page = 1,
-    limit = 10
+    pageDto = 1,
+    limitDto = 10
   ): Promise<ServiceResult<PaymentDetailDto[]>> {
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = this.normalizePagination(pageDto, limitDto);
 
     const [payments, total] = await Promise.all([
       this.prisma.payments.findMany({
@@ -932,9 +947,10 @@ export class PaymentService {
       limit?: number;
     } = {}
   ): Promise<ServiceResult<PaymentDetailDto[]>> {
-    const page = filters?.page || 1;
-    const limit = filters?.limit || 10;
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = this.normalizePagination(
+      filters.page,
+      filters.limit
+    );
 
     const where: any = {};
 

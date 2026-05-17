@@ -67,7 +67,7 @@ export class PaymentController {
       request
     );
     // EXCEPTION: Extract data from ServiceResult for VNPay IPN - VNPay expects raw { RspCode, Message }
-    return result.data;
+    return (result as any).data;
   }
 
   @Post(':provider/ipn')
@@ -88,7 +88,7 @@ export class PaymentController {
       provider,
       params
     );
-    return result.data;
+    return (result as any).data;
   }
 
   /**
