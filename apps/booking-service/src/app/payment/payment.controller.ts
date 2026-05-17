@@ -7,7 +7,6 @@ import {
   FindPaymentsByStatusDto,
   FindPaymentsByDateRangeDto,
   GetPaymentStatisticsDto,
-  PaymentMethod,
 } from '@movie-hub/shared-types';
 import { RequestContextMetadata } from '@movie-hub/shared-types/common/observability.util';
 
@@ -62,10 +61,7 @@ export class PaymentController {
   async handleVNPayReturn(
     @Payload() payload: { params: Record<string, string> }
   ) {
-    return this.paymentService.handlePaymentReturn(
-      PaymentMethod.VNPAY,
-      payload.params
-    );
+    return this.paymentService.handleVNPayReturn(payload.params);
   }
 
   // ==================== ADMIN OPERATIONS ====================

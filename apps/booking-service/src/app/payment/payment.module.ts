@@ -7,8 +7,6 @@ import { BookingRedisModule } from '../redis/redis.module';
 import { NotificationModule } from '../notification/notification.module';
 import { TicketModule } from '../ticket/ticket.module';
 import { SERVICE_NAME } from '@movie-hub/shared-types';
-import { PaymentStrategyFactory } from './strategies/payment-strategy.factory';
-import { VNPayStrategy } from './strategies/providers/vnpay.strategy';
 
 @Module({
   imports: [
@@ -21,18 +19,13 @@ import { VNPayStrategy } from './strategies/providers/vnpay.strategy';
         transport: Transport.TCP,
         options: {
           host: process.env.USER_HOST || 'localhost',
-          port: parseInt(process.env.USER_PORT as string) || 3001,
+          port: parseInt(process.env.USER_PORT) || 3001,
         },
       },
     ]),
   ],
   controllers: [PaymentController],
-  providers: [
-    PaymentService,
-    PrismaService,
-    VNPayStrategy,
-    PaymentStrategyFactory,
-  ],
+  providers: [PaymentService, PrismaService],
   exports: [PaymentService],
 })
 export class PaymentModule {}
