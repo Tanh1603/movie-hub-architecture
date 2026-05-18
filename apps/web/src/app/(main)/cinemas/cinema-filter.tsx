@@ -11,7 +11,7 @@ import { Button } from '@movie-hub/shacdn-ui/button';
 import { Input } from '@movie-hub/shacdn-ui/input';
 
 import { MapPin, SlidersHorizontal } from 'lucide-react';
-import { CinemaLocationCard } from '../_components/cinema-loaction-card';
+import { CinemaLocationCard } from '../_components/cinema-location-card';
 import { useGetCinemasWithFilters } from '@/features/client/cinemas/hooks';
 import { CinemaLocationResponse } from '@/types/cinema.type';
 import { Loader } from '@/components/loader';

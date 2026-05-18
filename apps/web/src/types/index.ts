@@ -12,5 +12,7 @@ export * from './staff.type';
 export * from './review.type';
 export * from './system-config.type';
 export * from './admin.type';
+export * from './rbac.type';
+
 
 

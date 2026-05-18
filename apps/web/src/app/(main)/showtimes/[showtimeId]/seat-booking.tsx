@@ -35,7 +35,7 @@ export const SeatBooking = ({ showtimeId }: { showtimeId: string }) => {
   useEffect(() => {
     if (isLoading) return;
 
-    if (checking?.data) {
+    if (checking) {
       return;
     }
 

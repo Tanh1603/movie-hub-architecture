@@ -11,13 +11,8 @@ export const useGetShowtimeSeats = (showtimeId: string) => {
   return useQuery({
     queryKey: clientQueryKeys.showtimes.seats(showtimeId),
     queryFn: async () => {
-      const response: ApiResponse<ShowtimeSeatResponse> =
-        await getShowtimeSeats(showtimeId);
-      if (response.success) {
-        return response.data;
-      }
-
-      throw new Error(response.message ?? 'Failed to fetch showtime seats');
+      const response = await getShowtimeSeats(showtimeId);
+      return response.data;
     },
     enabled: !!showtimeId,
   });
@@ -27,7 +22,8 @@ export const useGetSessionTTL = (showtimeId: string) => {
   return useQuery({
     queryKey: clientQueryKeys.showtimes.ttl(showtimeId),
     queryFn: async () => {
-     return await getSessionTTL(showtimeId);
+      const response = await getSessionTTL(showtimeId);
+      return response.data;
     },
     enabled: !!showtimeId,
     staleTime: 3000,

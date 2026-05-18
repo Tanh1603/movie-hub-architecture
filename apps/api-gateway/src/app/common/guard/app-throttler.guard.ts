@@ -4,7 +4,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 @Injectable()
 export class AppThrottlerGuard extends ThrottlerGuard {
   protected async shouldSkip(context: ExecutionContext): Promise<boolean> {
-    if (process.env.NODE_ENV === 'development') {
+    if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'production') {
       return true;
     }
     return false;

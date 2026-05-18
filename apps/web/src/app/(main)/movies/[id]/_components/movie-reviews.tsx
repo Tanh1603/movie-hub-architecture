@@ -20,8 +20,7 @@ export function MovieReviews({ movieId }: MovieReviewsProps) {
     queryKey: ['movie-reviews', movieId],
     queryFn: async () => {
       const response = await moviesApi.getReviews(movieId);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (response as any).data || response;
+      return response.data;
     },
   });
 

@@ -12,7 +12,10 @@ import { adminQueryKeys } from '../shared/query-keys';
 export const useAdminGenres = () =>
   useQuery({
     queryKey: adminQueryKeys.genres.lists(),
-    queryFn: () => genresApi.getAll(),
+    queryFn: async () => {
+      const response = await genresApi.getAll();
+      return response.data;
+    },
   });
 
 export const useAdminCreateGenre = () => {

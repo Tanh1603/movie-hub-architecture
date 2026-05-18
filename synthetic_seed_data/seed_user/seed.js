@@ -71,6 +71,7 @@ const permissions = [
   { name: 'showtime:read:cinema', resourceCode: 'showtime', action: 'READ', scope: 'CINEMA' },
   { name: 'showtime:update:cinema', resourceCode: 'showtime', action: 'UPDATE', scope: 'CINEMA' },
   { name: 'dashboard:read:global', resourceCode: 'dashboard', action: 'READ', scope: 'GLOBAL' },
+  { name: 'dashboard:read:cinema', resourceCode: 'dashboard', action: 'READ', scope: 'CINEMA' },
   { name: 'rbac:read:global', resourceCode: 'rbac', action: 'READ', scope: 'GLOBAL' },
   { name: 'rbac:update:global', resourceCode: 'rbac', action: 'UPDATE', scope: 'GLOBAL' },
   { name: 'config:read:global', resourceCode: 'config', action: 'READ', scope: 'GLOBAL' },
@@ -104,6 +105,7 @@ const rolePermissionMatrix = {
     'refund:update:cinema',
     'showtime:read:cinema',
     'showtime:update:cinema',
+    'dashboard:read:cinema',
   ],
   STAFF: [
     'booking:read:cinema',
@@ -183,7 +185,9 @@ async function main() {
   // Get or Create Clerk Admin dynamically
   const secretKey = process.env.CLERK_SECRET_KEY;
   const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'admin@gm.com';
-  const adminPassword = process.env.DEFAULT_ADMIN_INITIAL_PASSWORD || 'Admin@12345';
+  const adminPassword = process.env.DEFAULT_ADMIN_INITIAL_PASSWORD || 'M0vi3Hub#2026!Admin';
+  const managerPassword = process.env.DEFAULT_MANAGER_INITIAL_PASSWORD || 'M0vi3Hub#2026!Manager';
+  const staffPassword = process.env.DEFAULT_STAFF_INITIAL_PASSWORD || 'M0vi3Hub#2026!Staff';
 
   const clerkClient = secretKey ? createClerkClient({ secretKey }) : null;
 
@@ -196,6 +200,7 @@ async function main() {
         adminClerkUserId = userList.data[0].id;
         console.log(`✅ Found existing Clerk admin user: ${adminEmail} -> ${adminClerkUserId}`);
         await clerkClient.users.updateUser(adminClerkUserId, {
+          password: adminPassword,
           publicMetadata: { role: 'ADMIN' }
         });
         console.log(`   ✅ Synced publicMetadata for ADMIN`);
@@ -355,13 +360,14 @@ async function main() {
           resolvedClerkId = userList.data[0].id;
           console.log(`   ✅ Found Clerk manager user: ${manager.email} -> ${resolvedClerkId}`);
           await clerkClient.users.updateUser(resolvedClerkId, {
+            password: managerPassword,
             publicMetadata: managerMetadata
           });
           console.log(`      ✅ Synced publicMetadata for CINEMA_MANAGER`);
         } else {
           const created = await clerkClient.users.createUser({
             emailAddress: [manager.email],
-            password: 'Manager@12345',
+            password: managerPassword,
             skipPasswordChecks: true,
             publicMetadata: managerMetadata
           });
@@ -407,13 +413,14 @@ async function main() {
           resolvedClerkId = userList.data[0].id;
           console.log(`   ✅ Found Clerk staff user: ${staff.email} -> ${resolvedClerkId}`);
           await clerkClient.users.updateUser(resolvedClerkId, {
+            password: staffPassword,
             publicMetadata: staffMetadata
           });
           console.log(`      ✅ Synced publicMetadata for TICKET_CLERK`);
         } else {
           const created = await clerkClient.users.createUser({
             emailAddress: [staff.email],
-            password: 'Staff@12345',
+            password: staffPassword,
             skipPasswordChecks: true,
             publicMetadata: staffMetadata
           });

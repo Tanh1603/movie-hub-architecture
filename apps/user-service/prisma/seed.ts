@@ -59,6 +59,7 @@ const permissions: PermissionSeed[] = [
   { name: 'showtime:read:cinema', resourceCode: 'showtime', action: PermissionAction.READ, scope: PermissionScope.CINEMA },
   { name: 'showtime:update:cinema', resourceCode: 'showtime', action: PermissionAction.UPDATE, scope: PermissionScope.CINEMA },
   { name: 'dashboard:read:global', resourceCode: 'dashboard', action: PermissionAction.READ, scope: PermissionScope.GLOBAL },
+  { name: 'dashboard:read:cinema', resourceCode: 'dashboard', action: PermissionAction.READ, scope: PermissionScope.CINEMA },
   { name: 'rbac:read:global', resourceCode: 'rbac', action: PermissionAction.READ, scope: PermissionScope.GLOBAL },
   { name: 'rbac:update:global', resourceCode: 'rbac', action: PermissionAction.UPDATE, scope: PermissionScope.GLOBAL },
   { name: 'config:read:global', resourceCode: 'config', action: PermissionAction.READ, scope: PermissionScope.GLOBAL },
@@ -92,6 +93,7 @@ const rolePermissionMatrix: Record<string, string[]> = {
     'refund:update:cinema',
     'showtime:read:cinema',
     'showtime:update:cinema',
+    'dashboard:read:cinema',
   ],
   ASSISTANT_MANAGER: [
     'booking:read:cinema',
@@ -103,6 +105,7 @@ const rolePermissionMatrix: Record<string, string[]> = {
     'refund:read:cinema',
     'showtime:read:cinema',
     'showtime:update:cinema',
+    'dashboard:read:cinema',
   ],
   TICKET_CLERK: [
     'booking:read:cinema',

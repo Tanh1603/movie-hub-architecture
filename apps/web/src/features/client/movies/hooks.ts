@@ -3,9 +3,8 @@ import { useAuth } from '@clerk/nextjs';
 import {
   MovieDetailResponse,
   MovieQuery,
-  MovieSummary,
 } from '@movie-hub/shared-types';
-import { ServiceResult } from '@movie-hub/shared-types/common';
+
 import {
   useInfiniteQuery,
   useMutation,
@@ -27,12 +26,17 @@ export const useGetMovies = (initialQuery?: Omit<MovieQuery, 'page'>) => {
     queryKey: clientQueryKeys.movies.list(initialQuery as Record<string, unknown> | undefined),
     queryFn: async ({ pageParam = 1 }) => {
       // gọi getMovies và merge query params
-      return await getMovies({
+      const response = await getMovies({
         ...initialQuery,
         page: pageParam,
       } as MovieQuery);
+      
+      return {
+        data: response.data,
+        meta: response.meta
+      };
     },
-    getNextPageParam: (lastPage: ServiceResult<MovieSummary[]>) => {
+    getNextPageParam: (lastPage: any) => {
       const meta = lastPage.meta;
       if (!meta) return undefined;
       return meta.page < meta.totalPages ? meta.page + 1 : undefined;
@@ -48,11 +52,13 @@ export const useGetMovies = (initialQuery?: Omit<MovieQuery, 'page'>) => {
 };
 
 export const useGetMovieDetail = (movieId: string) => {
-  return useQuery<ServiceResult<MovieDetailResponse>>({
+  return useQuery<MovieDetailResponse>({
     queryKey: clientQueryKeys.movies.detail(movieId),
     queryFn: async () => {
-      return await getMovieDetail(movieId);
+      const response = await getMovieDetail(movieId);
+      return response.data;
     },
+    enabled: !!movieId,
   });
 };
 

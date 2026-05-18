@@ -11,7 +11,7 @@ import {
   UpsertRolePermissionsRequest,
 } from '@movie-hub/shared-types';
 
-@Controller('users')
+@Controller({ version: '1', path: 'users' })
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -38,6 +38,12 @@ export class UserController {
       userId: req.userId,
       ...req.staffContext,
     };
+  }
+
+  @Get('me/permissions')
+  @UseGuards(ClerkAuthGuard)
+  getMePermissions(@Req() req: any) {
+    return this.userService.getUserEffectivePermissions(req.userId);
   }
 
   @Get('rbac/roles')

@@ -101,7 +101,7 @@ export class ClerkAuthGuard implements CanActivate {
       );
       this.authFailuresCounter.inc({ reason: 'invalid_token' });
       this.logger.warn(
-        `Token verification failed account=${this.fingerprint(accountKey)} correlationId=${correlationId}`
+        `Token verification failed account=${this.fingerprint(accountKey)} error=${error instanceof Error ? error.message : String(error)} correlationId=${correlationId}`
       );
       throw new UnauthorizedException('Invalid or expired authentication token');
     }
@@ -186,7 +186,7 @@ export class ClerkAuthGuard implements CanActivate {
       );
       if (!hasPermission) {
         this.logger.warn(
-          `Missing permission userId=${userId} required=${JSON.stringify(requiredPermission)} correlationId=${correlationId}`
+          `Missing permission userId=${userId} required=${JSON.stringify(requiredPermission)} actualPermissions=[${permissions.join(',')}] correlationId=${correlationId}`
         );
         throw new ForbiddenException('Insufficient permissions');
       }
@@ -244,14 +244,34 @@ export class ClerkAuthGuard implements CanActivate {
     userPermissions: string[],
     required: PermissionRequirement
   ): boolean {
-    const normalizedAction = required.action.toLowerCase();
-    const normalizedScope = (required.scope || 'global').toLowerCase();
-    const candidates = new Set<string>([
-      `${required.resource.toLowerCase()}:${normalizedAction}:${normalizedScope}`,
-      `${required.resource.toLowerCase()}:${normalizedAction}`,
-    ]);
+    const rResource = required.resource.toLowerCase();
+    const rAction = required.action.toLowerCase();
+    const rScope = (required.scope || 'global').toLowerCase();
 
-    return userPermissions.some((permission) => candidates.has(permission));
+    return userPermissions.some((up) => {
+      const parts = up.split(':');
+      if (parts.length < 2) return false;
+      const resource = parts[0].toLowerCase();
+      const action = parts[1].toLowerCase();
+      const scope = (parts[2] || 'global').toLowerCase();
+
+      if (resource !== rResource) return false;
+
+      const matchesAction =
+        action === rAction ||
+        action === 'manage' ||
+        (action === 'update' && rAction === 'read') ||
+        (action === 'create' && rAction === 'read'); // create usually implies read in some contexts, but let's stick to manage/update
+
+      if (!matchesAction) return false;
+
+      // Scope inheritance: global > cinema > own
+      if (scope === 'global') return true;
+      if (scope === 'cinema' && (rScope === 'cinema' || rScope === 'own')) return true;
+      if (scope === 'own' && rScope === 'own') return true;
+
+      return false;
+    });
   }
 
   private pickEffectiveRole(userRoles: string[]): AppRole | null {

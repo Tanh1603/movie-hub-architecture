@@ -12,7 +12,10 @@ export const useAdminMovies = (params?: {
 }) =>
   useQuery({
     queryKey: adminQueryKeys.movies.list(params),
-    queryFn: () => moviesApi.getAll(params),
+    queryFn: async () => {
+      const response = await moviesApi.getAll(params);
+      return response.data;
+    },
   });
 
 export const useAdminCreateMovie = () => {

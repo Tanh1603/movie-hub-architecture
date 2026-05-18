@@ -14,7 +14,8 @@ export const useGetGenres = (token: string) => {
   return useQuery({
     queryKey: clientQueryKeys.genres.list(),
     queryFn: async () => {
-      return await getGenres();
+      const response = await getGenres();
+      return response.data;
     },
   });
 };
@@ -23,7 +24,8 @@ export const useGetDetailGenre = (id: string) => {
   return useQuery({
     queryKey: clientQueryKeys.genres.detail(id),
     queryFn: async () => {
-      return await getGenreDetail(id);
+      const response = await getGenreDetail(id);
+      return response.data;
     },
   });
 };

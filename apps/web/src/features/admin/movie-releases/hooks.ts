@@ -15,15 +15,19 @@ export const useAdminMovieReleases = (params?: {
 }) =>
   useQuery({
     queryKey: adminQueryKeys.movieReleases.list(params),
-    queryFn: () => movieReleasesApi.getAll(params),
+    queryFn: async () => {
+      const response = await movieReleasesApi.getAll(params);
+      return response.data;
+    },
   });
 
 export const useAdminMovieRelease = (id: string | null) =>
   useQuery({
     queryKey: adminQueryKeys.movieReleases.detail(id || ''),
-    queryFn: () => {
+    queryFn: async () => {
       if (!id) throw new Error('ID is required');
-      return movieReleasesApi.getById(id);
+      const response = await movieReleasesApi.getById(id);
+      return response.data;
     },
     enabled: !!id,
   });

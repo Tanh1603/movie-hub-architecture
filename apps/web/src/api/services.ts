@@ -1,5 +1,5 @@
 import type { AxiosRequestConfig } from 'axios';
-import apiClient, { api } from './api-client';
+import apiClient, { api, wrapServiceResult } from './api-client';
 import z from 'zod';
 import {
   BookingCalculationDto,
@@ -89,6 +89,8 @@ import type {
   RecentReviewDto,
   RevenueReportDto,
   OccupancyDto,
+  RolePermissionView,
+  PermissionView,
 } from '@/types';
 
 
@@ -146,9 +148,9 @@ export const genresApi = {
 // ============================================================================
 
 export const cinemasApi = {
-  getAll: async (params?: CinemaFiltersParams): Promise<Cinema[]> => {
+  getAll: async (params?: CinemaFiltersParams) => {
     const response = await api.get<Cinema[]>('/cinemas', { params });
-    return response || [];
+    return response || wrapServiceResult([] as Cinema[]);
   },
 
   getById: (id: string) => api.get<Cinema>(`/cinemas/${id}`),
@@ -174,7 +176,7 @@ export const hallsApi = {
     api.get<Hall[]>(`/halls/cinema/${cinemaId}`),
 
   // Workaround for getting all halls grouped by cinema
-  getAllGroupedByCinema: async (): Promise<CinemasGroupedResponse> => {
+  getAllGroupedByCinema: async () => {
     const cinemas = await cinemasApi.getAll();
     const result: CinemasGroupedResponse = {};
 
@@ -195,7 +197,7 @@ export const hallsApi = {
       })
     );
 
-    return result;
+    return wrapServiceResult(result);
   },
 
   create: (data: CreateHallRequest) =>
@@ -218,7 +220,7 @@ export const showtimesApi = {
   // Use BE endpoint with proper filters
   getWithFilters: async (
     filters: ShowtimeFiltersParams
-  ): Promise<Showtime[]> => {
+  ) => {
     const { cinemaId, movieId, date, hallId } = filters;
 
     // Build query params for BE endpoint
@@ -230,9 +232,9 @@ export const showtimesApi = {
 
     try {
       const result = await api.get<Showtime[]>('/showtimes', { params });
-      return result || [];
+      return result || wrapServiceResult([] as Showtime[]);
     } catch {
-      return [];
+      return wrapServiceResult([] as Showtime[]);
     }
   },
 
@@ -266,7 +268,7 @@ export const showtimesApi = {
 // ============================================================================
 
 export const movieReleasesApi = {
-  getAll: async (params?: MovieReleasesListParams): Promise<MovieRelease[]> => {
+  getAll: async (params?: MovieReleasesListParams)=> {
     // When movieId is provided, fetch releases for that specific movie
     if (params?.movieId) {
       return api.get<MovieRelease[]>(
@@ -283,7 +285,7 @@ export const movieReleasesApi = {
     } catch {
       // Continue anyway - we can still fetch releases by iterating through them individually
       // This fallback won't work for the full list, but is better than complete failure
-      return [];
+      return wrapServiceResult([] as MovieRelease[]);
     }
 
     const allReleases: MovieRelease[] = [];
@@ -308,10 +310,10 @@ export const movieReleasesApi = {
       }
     }
 
-    return allReleases;
+    return wrapServiceResult(allReleases);
   },
 
-  getById: async (id: string): Promise<MovieRelease | null> => {
+  getById: async (id: string)=> {
     try {
       const release = await api.get<MovieRelease>(
         `/movie-releases/${id}`
@@ -330,9 +332,9 @@ export const movieReleasesApi = {
         }
       }
 
-      return release;
+      return wrapServiceResult(release);
     } catch {
-      return null;
+      return null as any;
     }
   },
 
@@ -352,14 +354,14 @@ export const movieReleasesApi = {
 
 export const ticketPricingApi = {
   // Backend endpoint: GET /ticket-pricings/hall/:hallId
-  getAll: (params?: TicketPricingFiltersParams): Promise<TicketPricing[]> => {
+  getAll: (params?: TicketPricingFiltersParams)=> {
     if (params?.hallId) {
       return api.get<TicketPricing[]>(
         `/ticket-pricings/hall/${params.hallId}`
       );
     }
     // If no hallId, return empty array (consider implementing fetch for all halls if needed)
-    return Promise.resolve([] as TicketPricing[]);
+    return Promise.resolve(wrapServiceResult([] as TicketPricing[]));
   },
 
   getByHall: (hallId: string) =>
@@ -530,22 +532,22 @@ export const promotionsApi = {
 
 export const clientBookingsApi = {
   create: (createBookingDto: CreateBookingDto) =>
-    api.post<ServiceResult<BookingCalculationDto>>(
+    api.post<BookingCalculationDto>(
       '/bookings',
       createBookingDto
     ),
   update: (bookingId: string, dto: UpdateBookingDto) =>
     api.put(`/bookings/${bookingId}`, dto),
   list: (status: BookingStatus | undefined, pagination: PaginationQuery) =>
-    api.get<ServiceResult<BookingSummaryDto[]>>('/bookings', {
+    api.get<BookingSummaryDto[]>('/bookings', {
       params: { status, ...pagination },
     }),
   detail: (bookingId: string) =>
-    api.get<ServiceResult<BookingDetailDto>>(`/bookings/${bookingId}`),
+    api.get<BookingDetailDto>(`/bookings/${bookingId}`),
   cancel: (bookingId: string, reason?: string) =>
     api.post(`/bookings/${bookingId}/cancel`, { reason }),
   checkAtShowtime: (showtimeId: string, includeStatuses?: string) =>
-    api.get<ServiceResult<BookingCalculationDto | null>>(
+    api.get<BookingCalculationDto | null>(
       `/bookings/showtime/${showtimeId}/check`,
       { params: { includeStatuses } }
     ),
@@ -567,26 +569,26 @@ export const clientCinemasApi = {
     movieId: string,
     query: GetShowtimesQuery
   ) =>
-    api.get<ServiceResult<ShowtimeSummaryResponse[]>>(
+    api.get<ShowtimeSummaryResponse[]>(
       `/cinemas/${cinemaId}/movies/${movieId}/showtimes`,
       { params: query }
     ),
   getMovieAtCinemas: (cinemaId: string, query: PaginationQuery) =>
-    api.get<ServiceResult<MovieWithShowtimeResponse[]>>(
+    api.get<MovieWithShowtimeResponse[]>(
       `/cinemas/cinema/${cinemaId}/movies`,
       { params: query }
     ),
   getAllMoviesWithShowtimes: (query: ShowtimesFilterDTO) =>
-    api.get<ServiceResult<MovieWithCinemaAndShowtimeResponse[]>>(
+    api.get<MovieWithCinemaAndShowtimeResponse[]>(
       '/cinemas/movies/showtimes',
       { params: query }
     ),
   getNearby: (lat: number, lon: number, radius?: number, limit?: number) =>
-    api.get<ServiceResult<CinemaListResponse>>('/cinemas/nearby', {
+    api.get<CinemaListResponse>('/cinemas/nearby', {
       params: { lat, lon, radius, limit },
     }),
   search: (query: string, lon?: string, lat?: string) =>
-    api.get<ServiceResult<CinemaLocationResponse[]>>('/cinemas/search', {
+    api.get<CinemaLocationResponse[]>('/cinemas/search', {
       params: { query, lon, lat },
     }),
   getWithFilters: (params: {
@@ -602,14 +604,14 @@ export const clientCinemasApi = {
     limit?: number;
     sortBy?: string;
     sortOrder?: string;
-  }) => api.get<ServiceResult<CinemaListResponse>>('/cinemas/filters', { params }),
+  }) => api.get<CinemaListResponse>('/cinemas/filters', { params }),
   getDetail: (cinemaId: string, userLatitude?: number, userLongitude?: number) =>
-    api.get<ServiceResult<CinemaLocationResponse>>(`/cinemas/${cinemaId}`, {
+    api.get<CinemaLocationResponse>(`/cinemas/${cinemaId}`, {
       params: { userLatitude, userLongitude },
     }),
   getAvailableCities: () =>
-    api.get<ServiceResult<string[]>>('/cinemas/locations/cities'),
-  getAll: () => api.get<ServiceResult<CinemaDetailResponse[]>>('/cinemas'),
+    api.get<string[]>('/cinemas/locations/cities'),
+  getAll: () => api.get<CinemaDetailResponse[]>('/cinemas'),
 };
 
 export const getMovieShowtimesAtCinema = clientCinemasApi.getMovieShowtimesAtCinema;
@@ -628,7 +630,7 @@ export const clientConcessionsApi = {
     category?: ConcessionCategory;
     available?: boolean;
   }) =>
-    api.get<ServiceResult<ConcessionDto[]>>('/concessions', {
+    api.get<ConcessionDto[]>('/concessions', {
       params: {
         cinemaId: query.cinemaId,
         category: query.category,
@@ -640,7 +642,7 @@ export const clientConcessionsApi = {
 export const findAllConcessions = clientConcessionsApi.list;
 
 export const clientGenresApi = {
-  list: () => api.get<ServiceResult<GenreResponse[]>>('/genres'),
+  list: () => api.get<GenreResponse[]>('/genres'),
   detail: (id: string) => api.get<GenreResponse>(`/genres/${id}`),
   create: (data: CreateGenreRequest, token: string) =>
     api.post<GenreResponse>('/genres', data, {
@@ -664,9 +666,9 @@ export const deleteGenre = clientGenresApi.delete;
 
 export const clientMoviesApi = {
   list: (query: MovieQuery) =>
-    api.get<ServiceResult<MovieSummary[]>>('/movies', { params: query }),
+    api.get<MovieSummary[]>('/movies', { params: query }),
   detail: (movieId: string) =>
-    api.get<ServiceResult<MovieDetailResponse>>(`/movies/${movieId}`),
+    api.get<MovieDetailResponse>(`/movies/${movieId}`),
   create: (movieData: CreateMovieRequest, token: string) =>
     api.post<MovieSummary>('/movies', movieData, {
       headers: { Authorization: `Bearer ${token}` },
@@ -689,16 +691,16 @@ export const deleteMovie = clientMoviesApi.delete;
 
 export const clientPaymentsApi = {
   create: (bookingId: string, createPaymentDto: CreatePaymentDto) =>
-    api.post<ServiceResult<PaymentDetailDto>>(
+    api.post<PaymentDetailDto>(
       `/payments/bookings/${bookingId}`,
       createPaymentDto
     ),
   getByBooking: (token: string, bookingId: string) =>
-    api.get<ServiceResult<PaymentDetailDto[]>>(
+    api.get<PaymentDetailDto[]>(
       `/payments/bookings/${bookingId}`
     ),
   getDetails: (token: string, paymentId: string) =>
-    api.get<ServiceResult<PaymentDetailDto>>(`/payments/${paymentId}`, {
+    api.get<PaymentDetailDto>(`/payments/${paymentId}`, {
       headers: { Authorization: `Bearer ${token}` },
     }),
 };
@@ -709,18 +711,18 @@ export const getPaymentDetails = clientPaymentsApi.getDetails;
 
 export const clientPromotionsApi = {
   list: (active?: string, type?: PromotionType) =>
-    api.get<ServiceResult<PromotionDto[]>>('/promotions', {
+    api.get<PromotionDto[]>('/promotions', {
       params: { active, type },
     }),
   validate: (code: string, validateDto: ValidatePromotionDto) =>
-    api.post<ServiceResult<ValidatePromotionResponseDto>>(
+    api.post<ValidatePromotionResponseDto>(
       `/promotions/validate/${code}`,
       validateDto
     ),
   findByCode: (code: string) =>
-    api.get<ServiceResult<PromotionDto>>(`/promotions/${code}`),
+    api.get<PromotionDto>(`/promotions/${code}`),
   findById: (id: string) =>
-    api.get<ServiceResult<PromotionDto>>(`/promotions/${id}`),
+    api.get<PromotionDto>(`/promotions/${id}`),
 };
 
 export const findAllPromotions = clientPromotionsApi.list;
@@ -730,11 +732,7 @@ export const findPromotionById = clientPromotionsApi.findById;
 
 export const clientShowtimesApi = {
   getSeats: (showtimeId: string) =>
-    api.get<
-      import('@movie-hub/shared-types/common').ApiResponse<
-        import('@movie-hub/shared-types').ShowtimeSeatResponse
-      >
-    >(`/showtimes/${showtimeId}/seats`),
+    api.get<ShowtimeSeatResponse>(`/showtimes/${showtimeId}/seats`),
   getSessionTTL: (showtimeId: string) =>
     api.get<{ ttl: number }>(`/showtimes/showtime/${showtimeId}/ttl`),
 };
@@ -742,7 +740,32 @@ export const clientShowtimesApi = {
 export const getShowtimeSeats = clientShowtimesApi.getSeats;
 export const getSessionTTL = clientShowtimesApi.getSessionTTL;
 
-const DASHBOARD_BASE = '/api/v1/dashboard';
+// ============================================================================
+// RBAC API
+// ============================================================================
+
+export const rbacApi = {
+  getRoles: () => api.get<RolePermissionView[]>('/users/rbac/roles'),
+  
+  getPermissions: () => api.get<PermissionView[]>('/users/rbac/permissions'),
+  
+  updateRolePermissions: (role: string, permissions: string[]) =>
+    api.put<void>(`/users/rbac/roles/${role}/permissions`, { permissions }),
+    
+  assignUserRole: (userId: string, role: string) =>
+    api.post<void>(`/users/rbac/users/${userId}/roles/${role}`),
+    
+  removeUserRole: (userId: string, role: string) =>
+    api.delete<void>(`/users/rbac/users/${userId}/roles/${role}`),
+    
+  getUserEffectivePermissions: (userId: string) =>
+    api.get<string[]>(`/users/rbac/users/${userId}/permissions`),
+
+  getMyPermissions: () =>
+    api.get<string[]>('/users/me/permissions'),
+};
+
+const DASHBOARD_BASE = '/dashboard';
 
 export async function getDashboardStats(cinemaId?: string): Promise<DashboardStatsDto> {
   const params = cinemaId ? `?cinemaId=${cinemaId}` : '';
@@ -799,7 +822,10 @@ export async function getRecentBookings(limit = 10, cinemaId?: string): Promise<
 }
 
 export async function getRecentReviews(limit = 10, cinemaId?: string): Promise<RecentReviewDto[]> {
-  return api.get<RecentReviewDto[]>(`${DASHBOARD_BASE}/recent-reviews?limit=${limit}`);
+  const params = new URLSearchParams();
+  params.append('limit', limit.toString());
+  if (cinemaId) params.append('cinemaId', cinemaId);
+  return api.get<RecentReviewDto[]>(`${DASHBOARD_BASE}/recent-reviews?${params.toString()}`);
 }
 
 export async function getOccupancy(date?: string, cinemaId?: string): Promise<OccupancyDto[]> {

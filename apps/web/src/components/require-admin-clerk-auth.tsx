@@ -85,7 +85,7 @@ export const RequireAdminClerkAuth = ({
         </motion.div>
       ) : (() => {
           const userRole = user?.publicMetadata?.role as AppRole | undefined;
-          const isStaff = VALID_STAFF_ROLES.includes(userRole as any);
+          const isStaff = userRole ? VALID_STAFF_ROLES.includes(userRole) : false;
 
           if (!isStaff) {
             return (

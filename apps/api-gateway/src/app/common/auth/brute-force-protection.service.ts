@@ -6,7 +6,7 @@ import { createHash } from 'crypto';
 @Injectable()
 export class BruteForceProtectionService {
   private readonly logger = new Logger(BruteForceProtectionService.name);
-  private readonly failureThreshold = 5;
+  private readonly failureThreshold = 30;
   private readonly lockSeconds = 5 * 60;
 
   constructor(

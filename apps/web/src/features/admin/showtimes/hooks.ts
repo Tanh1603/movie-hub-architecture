@@ -15,16 +15,20 @@ import { adminQueryKeys } from '../shared/query-keys';
 export const useAdminShowtimes = (filters?: ShowtimeFiltersParams) =>
   useQuery({
     queryKey: adminQueryKeys.showtimes.list(filters),
-    queryFn: () => showtimesApi.getWithFilters(filters || {}),
+    queryFn: async () => {
+      const response = await showtimesApi.getWithFilters(filters || {});
+      return response;
+    },
     staleTime: 2 * 60 * 1000, // 2 minutes for showtimes
   });
 
 export const useAdminShowtime = (id: string | null) =>
   useQuery({
     queryKey: adminQueryKeys.showtimes.detail(id || ''),
-    queryFn: () => {
+    queryFn: async () => {
       if (!id) throw new Error('ID is required');
-      return showtimesApi.getById(id);
+      const response = await showtimesApi.getById(id);
+      return response;
     },
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
@@ -97,9 +101,10 @@ export const useAdminBatchCreateShowtimes = () => {
 export const useAdminShowtimeSeats = (showtimeId: string | null) =>
   useQuery<ShowtimeSeatResponse>({
     queryKey: [...adminQueryKeys.showtimes.all, 'seats', showtimeId],
-    queryFn: () => {
+    queryFn: async () => {
       if (!showtimeId) throw new Error('showtimeId is required');
-      return showtimesApi.getSeats(showtimeId);
+      const response = await showtimesApi.getSeats(showtimeId);
+      return response;
     },
     enabled: !!showtimeId,
   });

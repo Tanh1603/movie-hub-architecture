@@ -13,6 +13,7 @@ import {
   reviewsApi,
   concessionsApi,
   promotionsApi,
+  rbacApi,
 } from '@/api/services';
 export {
   moviesApi,
@@ -27,6 +28,7 @@ export {
   reviewsApi,
   concessionsApi,
   promotionsApi,
+  rbacApi,
 };
 import type {
   CreateMovieRequest,
@@ -163,6 +165,12 @@ export const queryKeys = {
     details: () => [...queryKeys.promotions.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.promotions.details(), id] as const,
   },
+  rbac: {
+    all: ['rbac'] as const,
+    roles: () => [...queryKeys.rbac.all, 'roles'] as const,
+    permissions: () => [...queryKeys.rbac.all, 'permissions'] as const,
+    userPermissions: (userId: string) => [...queryKeys.rbac.all, 'user-permissions', userId] as const,
+  },
 };
 
 // ============================================================================
@@ -176,14 +184,20 @@ export const useMovies = (params?: {
 }) => {
   return useQuery({
     queryKey: queryKeys.movies.list(params),
-    queryFn: () => moviesApi.getAll(params),
+    queryFn: async () => {
+      const response = await moviesApi.getAll(params);
+      return response.data;
+    },
   });
 };
 
 export const useMovie = (id: string) => {
   return useQuery({
     queryKey: queryKeys.movies.detail(id),
-    queryFn: () => moviesApi.getById(id),
+    queryFn: async () => {
+      const response = await moviesApi.getById(id);
+      return response.data;
+    },
     enabled: !!id,
   });
 };
@@ -235,7 +249,10 @@ export const useDeleteMovie = () => {
 export const useGenres = () => {
   return useQuery({
     queryKey: queryKeys.genres.lists(),
-    queryFn: () => genresApi.getAll(),
+    queryFn: async () => {
+      const response = await genresApi.getAll();
+      return response.data;
+    },
     staleTime: 60 * 60 * 1000, // 1 hour
     gcTime: 24 * 60 * 60 * 1000,
   });
@@ -244,7 +261,10 @@ export const useGenres = () => {
 export const useGenre = (id: string) => {
   return useQuery({
     queryKey: queryKeys.genres.detail(id),
-    queryFn: () => genresApi.getById(id),
+    queryFn: async () => {
+      const response = await genresApi.getById(id);
+      return response.data;
+    },
     enabled: !!id,
     staleTime: 60 * 60 * 1000,
   });
@@ -301,7 +321,10 @@ export const useCinemas = (params?: {
 }) => {
   return useQuery({
     queryKey: queryKeys.cinemas.list(params),
-    queryFn: () => cinemasApi.getAll(params),
+    queryFn: async () => {
+      const response = await cinemasApi.getAll(params);
+      return response.data;
+    },
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 };
@@ -309,7 +332,10 @@ export const useCinemas = (params?: {
 export const useCinema = (id: string) => {
   return useQuery({
     queryKey: queryKeys.cinemas.detail(id),
-    queryFn: () => cinemasApi.getById(id),
+    queryFn: async () => {
+      const response = await cinemasApi.getById(id);
+      return response.data;
+    },
     enabled: !!id,
     staleTime: 30 * 60 * 1000, // 30 minutes
   });
@@ -362,7 +388,10 @@ export const useDeleteCinema = () => {
 export const useHallsByCinema = (cinemaId: string) => {
   return useQuery({
     queryKey: queryKeys.halls.byCinema(cinemaId),
-    queryFn: () => hallsApi.getByCinema(cinemaId),
+    queryFn: async () => {
+      const response = await hallsApi.getByCinema(cinemaId);
+      return response.data;
+    },
     enabled: !!cinemaId,
     staleTime: 15 * 60 * 1000, // 15 minutes
   });
@@ -371,7 +400,10 @@ export const useHallsByCinema = (cinemaId: string) => {
 export const useHallsGroupedByCinema = () => {
   return useQuery({
     queryKey: queryKeys.halls.grouped(),
-    queryFn: () => hallsApi.getAllGroupedByCinema(),
+    queryFn: async () => {
+      const response = await hallsApi.getAllGroupedByCinema();
+      return response.data;
+    },
     staleTime: 30 * 60 * 1000, // 30 minutes
     gcTime: 24 * 60 * 60 * 1000,
   });
@@ -380,7 +412,10 @@ export const useHallsGroupedByCinema = () => {
 export const useHall = (id: string) => {
   return useQuery({
     queryKey: queryKeys.halls.detail(id),
-    queryFn: () => hallsApi.getById(id),
+    queryFn: async () => {
+      const response = await hallsApi.getById(id);
+      return response.data;
+    },
     enabled: !!id,
     staleTime: 30 * 60 * 1000,
   });
@@ -438,16 +473,20 @@ export const useDeleteHall = () => {
 export const useShowtimes = (filters?: ShowtimeFiltersParams) => {
   return useQuery({
     queryKey: queryKeys.showtimes.list(filters),
-    queryFn: () => showtimesApi.getWithFilters(filters || {}),
+    queryFn: async () => {
+      const response = await showtimesApi.getWithFilters(filters || {});
+      return response.data;
+    },
   });
 };
 
 export const useShowtime = (id: string | null) => {
   return useQuery({
     queryKey: queryKeys.showtimes.detail(id || ''),
-    queryFn: () => {
+    queryFn: async () => {
       if (!id) throw new Error('ID is required');
-      return showtimesApi.getById(id);
+      const response = await showtimesApi.getById(id);
+      return response.data;
     },
     enabled: !!id,
   });
@@ -548,7 +587,10 @@ export const useMovieReleases = (params?: {
 }) => {
   return useQuery({
     queryKey: queryKeys.movieReleases.list(params),
-    queryFn: () => movieReleasesApi.getAll(params),
+    queryFn: async () => {
+      const response = await movieReleasesApi.getAll(params);
+      return response.data;
+    },
     // Enable fetching even without movieId to get all releases
   });
 };
@@ -556,9 +598,10 @@ export const useMovieReleases = (params?: {
 export const useMovieRelease = (id: string | null) => {
   return useQuery({
     queryKey: queryKeys.movieReleases.detail(id || ''),
-    queryFn: () => {
+    queryFn: async () => {
       if (!id) throw new Error('ID is required');
-      return movieReleasesApi.getById(id);
+      const response = await movieReleasesApi.getById(id);
+      return response.data;
     },
     enabled: !!id,
   });
@@ -766,7 +809,10 @@ export const useDeleteMovieRelease = () => {
 export const useTicketPricing = (params?: TicketPricingFiltersParams) => {
   return useQuery({
     queryKey: queryKeys.ticketPricing.list(params),
-    queryFn: () => ticketPricingApi.getAll(params),
+    queryFn: async () => {
+      const response = await ticketPricingApi.getAll(params);
+      return response.data;
+    },
   });
 };
 
@@ -797,9 +843,10 @@ export const useUpdateTicketPricing = () => {
 export const useShowtimeSeats = (showtimeId?: string) => {
   return useQuery({
     queryKey: queryKeys.showtimes.seats(showtimeId || ''),
-    queryFn: () => {
+    queryFn: async () => {
       if (!showtimeId) throw new Error('Showtime ID is required');
-      return showtimesApi.getSeats(showtimeId);
+      const response = await showtimesApi.getSeats(showtimeId);
+      return response.data;
     },
     enabled: !!showtimeId,
   });
@@ -830,14 +877,20 @@ export const useUpdateSeatStatus = () => {
 export const useStaff = (params?: StaffFiltersParams) => {
   return useQuery({
     queryKey: queryKeys.staff.list(params),
-    queryFn: () => staffApi.getAll(params),
+    queryFn: async () => {
+      const response = await staffApi.getAll(params);
+      return response.data;
+    },
   });
 };
 
 export const useStaffById = (id: string) => {
   return useQuery({
     queryKey: queryKeys.staff.detail(id),
-    queryFn: () => staffApi.getById(id),
+    queryFn: async () => {
+      const response = await staffApi.getById(id);
+      return response.data;
+    },
     enabled: !!id,
   });
 };
@@ -926,14 +979,20 @@ export const useDeleteStaff = () => {
 export const useBookings = (params?: BookingFiltersParams) => {
   return useQuery({
     queryKey: queryKeys.bookings.list(params),
-    queryFn: () => bookingsApi.getAll(params),
+    queryFn: async () => {
+      const response = await bookingsApi.getAll(params);
+      return response.data;
+    },
   });
 };
 
 export const useBookingById = (id: string) => {
   return useQuery({
     queryKey: queryKeys.bookings.detail(id),
-    queryFn: () => bookingsApi.getById(id),
+    queryFn: async () => {
+      const response = await bookingsApi.getById(id);
+      return response.data;
+    },
     enabled: !!id,
   });
 };
@@ -941,7 +1000,10 @@ export const useBookingById = (id: string) => {
 export const useBookingsByShowtime = (showtimeId: string) => {
   return useQuery({
     queryKey: queryKeys.bookings.byShowtime(showtimeId),
-    queryFn: () => bookingsApi.getByShowtime(showtimeId),
+    queryFn: async () => {
+      const response = await bookingsApi.getByShowtime(showtimeId);
+      return response.data;
+    },
     enabled: !!showtimeId,
   });
 };
@@ -991,7 +1053,10 @@ export const useConfirmBooking = () => {
 export const useReviews = (params?: ReviewFiltersParams) => {
   return useQuery({
     queryKey: queryKeys.reviews.list(params),
-    queryFn: () => reviewsApi.getAll(params),
+    queryFn: async () => {
+      const response = await reviewsApi.getAll(params);
+      return response.data;
+    },
   });
 };
 
@@ -1013,14 +1078,20 @@ export const useDeleteReview = () => {
 export const useConcessions = (params?: ConcessionFiltersParams) => {
   return useQuery({
     queryKey: queryKeys.concessions.list(params),
-    queryFn: () => concessionsApi.getAll(params),
+    queryFn: async () => {
+      const response = await concessionsApi.getAll(params);
+      return response.data;
+    },
   });
 };
 
 export const useConcession = (id: string) => {
   return useQuery({
     queryKey: queryKeys.concessions.detail(id),
-    queryFn: () => concessionsApi.getById(id),
+    queryFn: async () => {
+      const response = await concessionsApi.getById(id);
+      return response.data;
+    },
     enabled: !!id,
   });
 };
@@ -1108,14 +1179,20 @@ export const useUpdateConcessionInventory = () => {
 export const usePromotions = (params?: PromotionFiltersParams) => {
   return useQuery({
     queryKey: queryKeys.promotions.list(params),
-    queryFn: () => promotionsApi.getAll(params),
+    queryFn: async () => {
+      const response = await promotionsApi.getAll(params);
+      return response.data;
+    },
   });
 };
 
 export const usePromotion = (id: string) => {
   return useQuery({
     queryKey: queryKeys.promotions.detail(id),
-    queryFn: () => promotionsApi.getById(id),
+    queryFn: async () => {
+      const response = await promotionsApi.getById(id);
+      return response.data;
+    },
     enabled: !!id,
   });
 };
@@ -1186,5 +1263,96 @@ export const useTogglePromotionActive = () => {
         (error as Error)?.message || 'Không thể cập nhật trạng thái khuyến mãi'
       );
     },
+  });
+};
+
+// ============================================================================
+// RBAC HOOKS
+// ============================================================================
+
+export const useRbacRoles = () => {
+  return useQuery({
+    queryKey: queryKeys.rbac.roles(),
+    queryFn: async () => {
+      const response = await rbacApi.getRoles();
+      return response.data;
+    },
+  });
+};
+
+export const useRbacPermissions = () => {
+  return useQuery({
+    queryKey: queryKeys.rbac.permissions(),
+    queryFn: async () => {
+      const response = await rbacApi.getPermissions();
+      return response.data;
+    },
+  });
+};
+
+export const useUpdateRolePermissions = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ role, permissions }: { role: string; permissions: string[] }) =>
+      rbacApi.updateRolePermissions(role, permissions),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.rbac.roles() });
+      toast.success('Cập nhật quyền thành công');
+    },
+    onError: (error: unknown) => {
+      toast.error((error as Error)?.message || 'Không thể cập nhật quyền');
+    },
+  });
+};
+
+export const useAssignUserRole = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ userId, role }: { userId: string; role: string }) =>
+      rbacApi.assignUserRole(userId, role),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.rbac.roles() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.staff.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.rbac.userPermissions(variables.userId),
+      });
+      toast.success('Gán vai trò thành công');
+    },
+    onError: (error: unknown) => {
+      toast.error((error as Error)?.message || 'Không thể gán vai trò');
+    },
+  });
+};
+
+export const useRemoveUserRole = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ userId, role }: { userId: string; role: string }) =>
+      rbacApi.removeUserRole(userId, role),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.rbac.roles() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.staff.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.rbac.userPermissions(variables.userId),
+      });
+      toast.success('Gỡ vai trò thành công');
+    },
+    onError: (error: unknown) => {
+      toast.error((error as Error)?.message || 'Không thể gỡ vai trò');
+    },
+  });
+};
+
+export const useUserEffectivePermissions = (userId: string) => {
+  return useQuery({
+    queryKey: queryKeys.rbac.userPermissions(userId),
+    queryFn: async () => {
+      const response = await rbacApi.getUserEffectivePermissions(userId);
+      return response.data;
+    },
+    enabled: !!userId,
   });
 };

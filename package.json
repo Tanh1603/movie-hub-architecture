@@ -5,6 +5,7 @@
   "scripts": {
     "dev:core": "nx run-many -t=serve --projects=api-gateway,cinema-service,movie-service --output-style=stream",
     "dev:all": "nx run-many -t=serve --all --outputStyle=stream",
+    "dev:kill": "powershell -Command \"Get-NetTCPConnection -LocalPort 3000,3001,3002,3003,3004,4200 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }\"",
     "prisma:generate": "nx run-many -t=prisma:generate --all",
     "test:unit": "nx run-many --target=test --all --parallel --coverage --ci --watchAll=false --testPathIgnorePatterns='.*\\.e2e-spec\\.ts$'",
     "test:integration": "nx run-many --target=e2e --all --parallel --coverage --ci --watchAll=false",

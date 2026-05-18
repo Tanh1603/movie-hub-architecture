@@ -14,25 +14,37 @@ export class TransformInterceptor implements NestInterceptor {
       map((data) => {
         const request: Request = context.switchToHttp().getRequest();
 
-        // Handle case where data is already wrapped in a response object from microservice
-        // or where data is a plain array
-        let responseData: Record<string, unknown>;
+        // Standardize the response structure
+        // We want: { success: true, data: T, meta?: Meta, message?: string, ... }
+        let responseData: any;
 
-        if (Array.isArray(data)) {
-          // If data is an array, wrap it in a { data: [...] } object
-          responseData = { data };
-        } else if (data && typeof data === 'object') {
-          // If data is an object, use it directly but ensure meta cleanup
-          if (
-            Object.prototype.hasOwnProperty.call(data, 'meta') &&
-            !data.meta
-          ) {
-            delete data.meta; // Remove meta if it's null or undefined
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
+          // If it's already a ServiceResult style object { data, meta?, message? }
+          if ('data' in data) {
+            responseData = { ...data };
+          } else {
+            // It's a plain object (e.g. from a service that doesn't use ServiceResult)
+            // Wrap it in data
+            responseData = { data };
+            
+            // Move message and meta to top level if they exist in the object
+            if ('message' in (data as any)) {
+              responseData.message = (data as any).message;
+              delete responseData.data.message;
+            }
+            if ('meta' in (data as any)) {
+              responseData.meta = (data as any).meta;
+              delete responseData.data.meta;
+            }
           }
-          responseData = data;
         } else {
-          // For primitives or null/undefined
+          // It's an array, a primitive, or null
           responseData = { data };
+        }
+
+        // Final cleanup of meta
+        if (responseData.meta === null || responseData.meta === undefined) {
+          delete responseData.meta;
         }
 
         return {

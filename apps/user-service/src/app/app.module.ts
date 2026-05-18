@@ -20,6 +20,7 @@ import { securityMetricProviders } from './security-metrics';
         CLERK_SECRET_KEY: Joi.string().required(),
         DEFAULT_ADMIN_EMAIL: Joi.string().email().optional(),
         DEFAULT_ADMIN_INITIAL_PASSWORD: Joi.string().min(8).optional(),
+        DEFAULT_MANAGER_INITIAL_PASSWORD: Joi.string().min(8).optional(),
         DEFAULT_STAFF_INITIAL_PASSWORD: Joi.string().min(8).optional(),
         CLERK_SYNC_MAX_ATTEMPTS: Joi.number().min(1).max(3).optional(),
         CLERK_SYNC_PROCESS_CRON: Joi.string().optional(),

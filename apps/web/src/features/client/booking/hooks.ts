@@ -47,8 +47,12 @@ export const useGetBookings = ({ status, page = 1 }: UseGetBookingsProps) => {
   return useQuery({
     queryKey: clientQueryKeys.bookings.list(status, page),
     queryFn: async () => {
-      const data = await getUserBookings(status, { page });
-      return data;
+      const response = await getUserBookings(status, { page });
+      // Return plain object for hydration safety
+      return {
+        data: response.data,
+        meta: response.meta,
+      };
     },
     staleTime: 1000 * 60,
   });
@@ -75,7 +79,7 @@ export const useCheckUserBookingAtShowtime = (showtimeId: string) => {
       if (response.data) {
         setBookingId(response.data.bookingId);
       }
-      return response;
+      return response.data;
     },
     enabled: !!showtimeId,
   });

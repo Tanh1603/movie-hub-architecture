@@ -25,7 +25,7 @@ import { AppRole } from '@movie-hub/shared-types';
   path: 'dashboard',
 })
 @UseGuards(ClerkAuthGuard, RoleGuard)
-@Roles(AppRole.ADMIN)
+@Roles(AppRole.ADMIN, AppRole.CINEMA_MANAGER, AppRole.STAFF)
 @UseInterceptors(new TransformInterceptor())
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
@@ -35,7 +35,7 @@ export class DashboardController {
    * Returns KPI summary: total movies, cinemas, revenue, bookings, etc.
    */
   @Get('stats')
-  @Permission({ resource: 'dashboard', action: 'read', scope: 'global' })
+  @Permission({ resource: 'dashboard', action: 'read', scope: 'cinema' })
   async getStats(@Req() req: any, @Query('cinemaId') cinemaId?: string) {
     const activeCinemaId = req.staffContext?.cinemaId || cinemaId;
     return { data: await this.dashboardService.getStats(activeCinemaId) };
@@ -46,7 +46,7 @@ export class DashboardController {
    * Returns revenue report with optional date filters
    */
   @Get('revenue')
-  @Permission({ resource: 'dashboard', action: 'read', scope: 'global' })
+  @Permission({ resource: 'dashboard', action: 'read', scope: 'cinema' })
   async getRevenueReport(
     @Req() req: any,
     @Query('startDate') startDate?: string,
@@ -69,7 +69,7 @@ export class DashboardController {
    * Returns top movies by bookings with movie metadata
    */
   @Get('top-movies')
-  @Permission({ resource: 'dashboard', action: 'read', scope: 'global' })
+  @Permission({ resource: 'dashboard', action: 'read', scope: 'cinema' })
   async getTopMovies(
     @Req() req: any,
     @Query('limit') limit?: string,
@@ -94,7 +94,7 @@ export class DashboardController {
    * Returns top cinemas by revenue with cinema metadata
    */
   @Get('top-cinemas')
-  @Permission({ resource: 'dashboard', action: 'read', scope: 'global' })
+  @Permission({ resource: 'dashboard', action: 'read', scope: 'cinema' })
   async getTopCinemas(
     @Req() req: any,
     @Query('limit') limit?: string,
@@ -119,8 +119,7 @@ export class DashboardController {
    * Returns latest bookings with enriched movie/cinema data
    */
   @Get('recent-bookings')
-  @Get('recent-bookings')
-  @Permission({ resource: 'dashboard', action: 'read', scope: 'global' })
+  @Permission({ resource: 'dashboard', action: 'read', scope: 'cinema' })
   async getRecentBookings(
     @Req() req: any,
     @Query('limit') limit?: string,
@@ -141,7 +140,7 @@ export class DashboardController {
    * Returns latest reviews with movie titles
    */
   @Get('recent-reviews')
-  @Permission({ resource: 'dashboard', action: 'read', scope: 'global' })
+  @Permission({ resource: 'dashboard', action: 'read', scope: 'cinema' })
   async getRecentReviews(@Query('limit') limit?: string) {
     const parsedLimit = limit ? parseInt(limit, 10) : 10;
     return { data: await this.dashboardService.getRecentReviews(parsedLimit) };
@@ -153,7 +152,7 @@ export class DashboardController {
    */
   @Get('occupancy')
   @Get('occupancy')
-  @Permission({ resource: 'dashboard', action: 'read', scope: 'global' })
+  @Permission({ resource: 'dashboard', action: 'read', scope: 'cinema' })
   async getOccupancy(
     @Req() req: any,
     @Query('date') date?: string,

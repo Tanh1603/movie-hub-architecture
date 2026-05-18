@@ -12,14 +12,20 @@ export const useAdminCinemas = (params?: {
 }) =>
   useQuery({
     queryKey: adminQueryKeys.cinemas.list(params),
-    queryFn: () => cinemasApi.getAll(params),
+    queryFn: async () => {
+      const response = await cinemasApi.getAll(params);
+      return response.data;
+    },
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
 export const useAdminHallsGroupedByCinema = () =>
   useQuery({
     queryKey: adminQueryKeys.cinemas.hallsGrouped(),
-    queryFn: () => hallsApi.getAllGroupedByCinema(),
+    queryFn: async () => {
+      const response = await hallsApi.getAllGroupedByCinema();
+      return response.data;
+    },
     staleTime: 30 * 60 * 1000, // 30 minutes
     gcTime: 24 * 60 * 60 * 1000,
   });

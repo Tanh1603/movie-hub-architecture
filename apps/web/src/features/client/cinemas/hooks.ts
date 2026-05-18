@@ -14,11 +14,9 @@ import {
 } from '@/api/services';
 import {
   CinemaListResponse,
-  CinemaLocationResponse,
 } from '@/types/cinema.type';
-import { PaginationQuery, ServiceResult } from '@movie-hub/shared-types/common';
-import { ShowtimeSummaryResponse } from '@movie-hub/shared-types';
-import { MovieWithShowtimeResponse } from '@/types/movie.type';
+import { PaginationQuery } from '@movie-hub/shared-types/common';
+
 
 export const useGetMovieShowtimesAtCinema = (
   cinemaId: string,
@@ -28,9 +26,11 @@ export const useGetMovieShowtimesAtCinema = (
   return useQuery({
     queryKey: ['cinemas', cinemaId, movieId, query],
     queryFn: async () => {
-      const response: ServiceResult<ShowtimeSummaryResponse[]> =
-        await getMovieShowtimesAtCinema(cinemaId, movieId, query);
-
+      const response = await getMovieShowtimesAtCinema(
+        cinemaId,
+        movieId,
+        query
+      );
       return response.data;
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
@@ -39,24 +39,28 @@ export const useGetMovieShowtimesAtCinema = (
 };
 
 export const useGetCinemasNearby = (
-  langtitude: number,
-  longtitude: number,
+  latitude: number,
+  longitude: number,
   radius?: number,
   limit?: number
 ) => {
   return useQuery({
     queryKey: clientQueryKeys.cinemas.nearby(
-      langtitude,
-      longtitude,
+      latitude,
+      longitude,
       radius,
       limit
     ),
     queryFn: async () => {
-      const response: ServiceResult<CinemaListResponse> =
-        await GetCinemasNearby(langtitude, longtitude, radius, limit);
+      const response = await GetCinemasNearby(
+        latitude,
+        longitude,
+        radius,
+        limit
+      );
       return response.data;
     },
-    enabled: !!langtitude && !!longtitude,
+    enabled: !!latitude && !!longitude,
   });
 };
 
@@ -77,15 +81,15 @@ export const useGetCinemasWithFilters = (params: {
   return useInfiniteQuery<CinemaListResponse>({
     queryKey: clientQueryKeys.cinemas.filters(params),
     queryFn: async ({ pageParam = 1 }) => {
-      const response: ServiceResult<CinemaListResponse> =
-        await getCinemasWithFilters({
-          ...params,
-          page: pageParam as number,
-        });
+      const response = await getCinemasWithFilters({
+        ...params,
+        page: pageParam as number,
+      });
+      // Return the data directly, ensuring it matches CinemaListResponse
       return response.data;
     },
     getNextPageParam: (lastPage) => {
-      if (lastPage.hasMore) {
+      if (lastPage && lastPage.hasMore) {
         return lastPage.page + 1;
       }
       return undefined;
@@ -103,8 +107,7 @@ export const useSearchCinemas = (
   return useQuery({
     queryKey: clientQueryKeys.cinemas.search(query, longitude, latitude),
     queryFn: async () => {
-      const response: ServiceResult<CinemaLocationResponse[]> =
-        await searchCinemas(query, longitude, latitude);
+      const response = await searchCinemas(query, longitude, latitude);
       return response.data;
     },
     enabled: query.trim().length > 0,
@@ -115,8 +118,7 @@ export const useGetCinemaDetail = (cinemaId: string) => {
   return useQuery({
     queryKey: clientQueryKeys.cinemas.detail(cinemaId),
     queryFn: async () => {
-      const response: ServiceResult<CinemaLocationResponse> =
-        await getCinemaDetail(cinemaId);
+      const response = await getCinemaDetail(cinemaId);
       return response.data;
     },
     enabled: !!cinemaId,
@@ -134,14 +136,18 @@ export const useGetMoviesAtCinema = (
     ),
     queryFn: async ({ pageParam = 1 }) => {
       // gọi getMovies và merge query params
-      return await getMovieAtCinemas(cinemaId, {
+      const response = await getMovieAtCinemas(cinemaId, {
         ...query,
         page: pageParam,
       } as PaginationQuery);
+
+      // Return a plain object to survive dehydration
+      return {
+        data: response.data,
+        meta: response.meta,
+      };
     },
-    getNextPageParam: (
-      lastPage: ServiceResult<MovieWithShowtimeResponse[]>
-    ) => {
+    getNextPageParam: (lastPage: any) => {
       const meta = lastPage.meta;
       if (!meta) return undefined;
       return meta.page < meta.totalPages ? meta.page + 1 : undefined;

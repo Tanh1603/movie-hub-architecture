@@ -11,8 +11,8 @@ import { useGetMovieDetail } from '@/features/client/movies/hooks';
 import { ErrorFallback } from '@/components/error-fallback';
 
 export const MovieCast = ({ movieId }: { movieId: string }) => {
-  const { data, isLoading, isError, error } = useGetMovieDetail(movieId);
-  const actors: Actor[] = (data?.data.cast as Actor[]) || [];
+  const { data: movieData, isLoading, isError, error } = useGetMovieDetail(movieId);
+  const actors: Actor[] = (movieData?.cast as Actor[]) || [];
 
   if (isLoading) {
     return (
