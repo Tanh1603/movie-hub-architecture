@@ -13,12 +13,15 @@ export const useAdminCinemas = (params?: {
   useQuery({
     queryKey: adminQueryKeys.cinemas.list(params),
     queryFn: () => cinemasApi.getAll(params),
+    staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
 export const useAdminHallsGroupedByCinema = () =>
   useQuery({
     queryKey: adminQueryKeys.cinemas.hallsGrouped(),
     queryFn: () => hallsApi.getAllGroupedByCinema(),
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 24 * 60 * 60 * 1000,
   });
 
 export const useAdminCreateCinema = () => {

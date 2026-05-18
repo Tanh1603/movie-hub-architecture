@@ -319,7 +319,7 @@ export default function MovieReleaseDialog({
           <Button
             onClick={handleSubmit}
             disabled={!formData.movieId || !formData.startDate || (movies.length === 0 && !fullReleaseDetail)}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="disabled:opacity-50 disabled:cursor-not-allowed bg-brand-gradient"
           >
             {editingRelease ? 'Cập Nhật Phát Hành' : 'Tạo Phát Hành'}
           </Button>

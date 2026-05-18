@@ -131,7 +131,7 @@ export default function GenresPage() {
             resetForm();
             setDialogOpen(true);
           }}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          className="bg-brand-gradient hover-brand-gradient"
         >
           <Plus className="mr-2 h-4 w-4" />
           Thêm Thể Loại
@@ -171,7 +171,7 @@ export default function GenresPage() {
                   resetForm();
                   setDialogOpen(true);
                 }}
-                className="bg-gradient-to-r from-purple-600 to-pink-600"
+                className="bg-brand-gradient"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Thêm Thể Loại Đầu Tiên
@@ -270,7 +270,7 @@ export default function GenresPage() {
             </Button>
             <Button
               onClick={handleSubmit}
-              className="bg-gradient-to-r from-purple-600 to-pink-600"
+              className="bg-brand-gradient"
             >
               {editingGenre ? 'Cập Nhật Thể Loại' : 'Tạo Thể Loại'}
             </Button>

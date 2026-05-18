@@ -326,7 +326,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                             item.disabled
                               ? 'bg-amber-900/20 text-amber-400 border border-amber-500/30 cursor-not-allowed'
                               : isActive
-                              ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg shadow-fuchsia-500/40 ring-1 ring-fuchsia-400/30'
+                              ? 'bg-brand-gradient text-white shadow-lg shadow-fuchsia-500/40 ring-1 ring-fuchsia-400/30'
                               : 'text-slate-300 hover:text-white hover:bg-slate-700/50 hover:shadow-md hover:shadow-slate-800/50 cursor-pointer'
                           )}
                         >

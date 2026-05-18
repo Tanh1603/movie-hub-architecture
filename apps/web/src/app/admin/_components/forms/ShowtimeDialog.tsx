@@ -568,7 +568,7 @@ export default function ShowtimeDialog({
           </Button>
           <Button
             onClick={handleSubmit}
-            className="bg-gradient-to-r from-purple-600 to-pink-600"
+            className="bg-brand-gradient"
           >
             {editingShowtime ? 'Cập Nhật Suất Chiếu' : 'Tạo Suất Chiếu'}
           </Button>

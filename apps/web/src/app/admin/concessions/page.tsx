@@ -285,7 +285,7 @@ export default function ConcessionsPage() {
             resetForm();
             setDialogOpen(true);
           }}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          className="bg-brand-gradient hover-brand-gradient"
         >
           <Plus className="mr-2 h-4 w-4" />
           Thêm Mặt Hàng
@@ -511,7 +511,7 @@ export default function ConcessionsPage() {
                 resetForm();
                 setDialogOpen(true);
               }}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              className="bg-brand-gradient hover-brand-gradient"
             >
               <Plus className="mr-2 h-4 w-4" />
               Thêm Mặt Hàng Đầu Tiên
@@ -616,7 +616,7 @@ export default function ConcessionsPage() {
                     {/* Price Section */}
                     <div className="pt-2 border-t border-gray-100">
                       <div className="flex items-baseline justify-between">
-                        <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        <span className="text-2xl font-bold text-brand-gradient">
                           ₫{(concession.price / 1000).toFixed(0)}K
                         </span>
                         <span className="text-xs text-gray-500">Giá</span>
@@ -939,7 +939,7 @@ export default function ConcessionsPage() {
             </Button>
             <Button
               onClick={handleSubmit}
-              className="bg-gradient-to-r from-purple-600 to-pink-600"
+              className="bg-brand-gradient"
               disabled={
                 createConcession.isPending ||
                 updateConcession.isPending ||

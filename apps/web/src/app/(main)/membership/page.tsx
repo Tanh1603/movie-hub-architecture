@@ -145,7 +145,7 @@ export default function MembershipPage() {
 
             <div className="pt-4">
               <SignUpButton mode="modal">
-                <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold h-12 shadow-lg shadow-purple-900/50">
+                <Button className="w-full hover:from-purple-500 hover:to-pink-500 text-white font-bold h-12 shadow-lg shadow-purple-900/50 bg-brand-gradient">
                   Nâng Hạng Ngay
                 </Button>
               </SignUpButton>

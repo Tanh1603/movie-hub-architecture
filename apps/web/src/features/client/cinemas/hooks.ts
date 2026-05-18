@@ -33,6 +33,8 @@ export const useGetMovieShowtimesAtCinema = (
 
       return response.data;
     },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    enabled: !!cinemaId && !!movieId,
   });
 };
 

@@ -668,7 +668,7 @@ function BatchShowtimesContent() {
                     onClick={() => handleTimeSlotToggle(time)}
                     className={
                       formData.timeSlots.includes(time)
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600'
+                        ? 'bg-brand-gradient'
                         : ''
                     }
                   >
@@ -774,7 +774,7 @@ function BatchShowtimesContent() {
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full h-12 text-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+            className="w-full h-12 text-lg bg-brand-gradient hover-brand-gradient"
           >
             {loading ? (
               <>

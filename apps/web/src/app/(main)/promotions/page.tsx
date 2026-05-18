@@ -1,6 +1,6 @@
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { findAllPromotions } from '@/api/services';
-import { getQueryClient } from '@/shared/query/get-query-client';
+import { getQueryClient } from '@/libs/get-query-client';
 import { PromotionType } from '@/types/promotion.type';
 import { PromotionList } from './promotion-list';
 

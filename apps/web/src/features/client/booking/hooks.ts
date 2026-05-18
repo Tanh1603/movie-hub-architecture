@@ -12,7 +12,7 @@ import {
   getUserBookings,
   updateBooking,
 } from '@/api/services';
-import { getQueryClient } from '@/shared/query/get-query-client';
+import { getQueryClient } from '@/libs/get-query-client';
 import { BookingStatus } from '@/types/booking.type';
 import { useBookingStore } from '@/stores/booking-store';
 

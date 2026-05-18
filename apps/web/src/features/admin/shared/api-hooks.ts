@@ -236,6 +236,8 @@ export const useGenres = () => {
   return useQuery({
     queryKey: queryKeys.genres.lists(),
     queryFn: () => genresApi.getAll(),
+    staleTime: 60 * 60 * 1000, // 1 hour
+    gcTime: 24 * 60 * 60 * 1000,
   });
 };
 
@@ -244,6 +246,7 @@ export const useGenre = (id: string) => {
     queryKey: queryKeys.genres.detail(id),
     queryFn: () => genresApi.getById(id),
     enabled: !!id,
+    staleTime: 60 * 60 * 1000,
   });
 };
 
@@ -299,6 +302,7 @@ export const useCinemas = (params?: {
   return useQuery({
     queryKey: queryKeys.cinemas.list(params),
     queryFn: () => cinemasApi.getAll(params),
+    staleTime: 10 * 60 * 1000, // 10 minutes
   });
 };
 
@@ -307,6 +311,7 @@ export const useCinema = (id: string) => {
     queryKey: queryKeys.cinemas.detail(id),
     queryFn: () => cinemasApi.getById(id),
     enabled: !!id,
+    staleTime: 30 * 60 * 1000, // 30 minutes
   });
 };
 
@@ -359,6 +364,7 @@ export const useHallsByCinema = (cinemaId: string) => {
     queryKey: queryKeys.halls.byCinema(cinemaId),
     queryFn: () => hallsApi.getByCinema(cinemaId),
     enabled: !!cinemaId,
+    staleTime: 15 * 60 * 1000, // 15 minutes
   });
 };
 
@@ -366,6 +372,8 @@ export const useHallsGroupedByCinema = () => {
   return useQuery({
     queryKey: queryKeys.halls.grouped(),
     queryFn: () => hallsApi.getAllGroupedByCinema(),
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 24 * 60 * 60 * 1000,
   });
 };
 
@@ -374,6 +382,7 @@ export const useHall = (id: string) => {
     queryKey: queryKeys.halls.detail(id),
     queryFn: () => hallsApi.getById(id),
     enabled: !!id,
+    staleTime: 30 * 60 * 1000,
   });
 };
 

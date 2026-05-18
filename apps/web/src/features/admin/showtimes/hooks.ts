@@ -16,6 +16,7 @@ export const useAdminShowtimes = (filters?: ShowtimeFiltersParams) =>
   useQuery({
     queryKey: adminQueryKeys.showtimes.list(filters),
     queryFn: () => showtimesApi.getWithFilters(filters || {}),
+    staleTime: 2 * 60 * 1000, // 2 minutes for showtimes
   });
 
 export const useAdminShowtime = (id: string | null) =>
@@ -26,6 +27,7 @@ export const useAdminShowtime = (id: string | null) =>
       return showtimesApi.getById(id);
     },
     enabled: !!id,
+    staleTime: 5 * 60 * 1000,
   });
 
 export const useAdminCreateShowtime = () => {

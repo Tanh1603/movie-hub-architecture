@@ -1000,7 +1000,7 @@ export default function ReservationsPage() {
             </Button>
             <Button
               onClick={handleUpdateStatus}
-              className="bg-gradient-to-r from-purple-600 to-pink-600"
+              className="bg-brand-gradient"
               disabled={updateStatus.isPending}
             >
               {updateStatus.isPending

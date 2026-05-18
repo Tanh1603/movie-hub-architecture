@@ -299,7 +299,7 @@ export default function CinemasPage() {
       {/* Header Actions */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold tracking-tight text-brand-gradient">
             Rạp Chiếu Phim
           </h1>
           <p className="text-gray-500 mt-1">
@@ -312,7 +312,7 @@ export default function CinemasPage() {
               resetForm();
               setDialogOpen(true);
             }}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg"
+            className="shadow-lg bg-brand-gradient hover-brand-gradient"
           >
             <Plus className="mr-2 h-4 w-4" />
             Thêm Rạp
@@ -854,7 +854,7 @@ export default function CinemasPage() {
                   fac[''] = '';
                   setFormData({ ...formData, facilities: fac });
                 }}
-                className="mt-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                className="mt-2 text-white bg-brand-gradient hover-brand-gradient"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Thêm Cơ Sở Vật Chất
@@ -960,7 +960,7 @@ export default function CinemasPage() {
             </Button>
             <Button
               onClick={handleSubmit}
-              className="bg-gradient-to-r from-purple-600 to-pink-600"
+              className="bg-brand-gradient"
             >
               {selectedCinema ? 'Cập nhật' : 'Tạo'}
             </Button>

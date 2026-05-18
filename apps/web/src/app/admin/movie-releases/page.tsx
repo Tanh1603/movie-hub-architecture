@@ -189,7 +189,7 @@ export default function MovieReleasesPage() {
             setEditingRelease(null);
             setDialogOpen(true);
           }}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          className="bg-brand-gradient hover-brand-gradient"
         >
           <Plus className="mr-2 h-4 w-4" />
           Thêm Phát Hành
@@ -324,7 +324,7 @@ export default function MovieReleasesPage() {
                   setEditingRelease(null);
                   setDialogOpen(true);
                 }}
-                className="bg-gradient-to-r from-purple-600 to-pink-600"
+                className="bg-brand-gradient"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Add First Release

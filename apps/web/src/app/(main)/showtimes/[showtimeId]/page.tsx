@@ -1,5 +1,5 @@
 import { getShowtimeSeats } from '@/api/services';
-import { getQueryClient } from '@/shared/query/get-query-client';
+import { getQueryClient } from '@/libs/get-query-client';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { SeatBooking } from './seat-booking';
 
