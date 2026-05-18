@@ -31,6 +31,7 @@ import {
 import type { Showtime, Hall } from '@/types';
 import { format } from 'date-fns';
 import ShowtimeDialog from '../_components/forms/ShowtimeDialog';
+import { adjustDateFromBackend } from '@/app/utils/timezone-fix';
 
 export default function ShowtimesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -306,7 +307,7 @@ export default function ShowtimesPage() {
                     {movieShowtimes.map((showtime) => {
                       const cinema = cinemas.find((c) => c.id === showtime.cinemaId);
                       // TIMEZONE WORKAROUND: BE adds +7h in mapper, we need to subtract it
-                      const correctedStartTime = new Date(new Date(showtime.startTime).getTime() - 7 * 60 * 60 * 1000);
+                      const correctedStartTime = adjustDateFromBackend(showtime.startTime);
                       return (
                         <Card key={showtime.id} className="relative">
                           <CardContent className="pt-6">

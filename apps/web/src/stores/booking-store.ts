@@ -377,7 +377,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   connectSocket: (showtimeId: string, userId: string) => {
     if (socket && socket.connected) return;
 
-    socket = io('http://localhost:3000', {
+    socket = io(process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'http://localhost:3000', {
       transports: ['websocket'],
       withCredentials: true,
       query: { showtimeId },

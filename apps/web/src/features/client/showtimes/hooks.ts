@@ -1,6 +1,4 @@
 import { clientQueryKeys } from '@/features/client/shared/query-keys';
-'use client';
-
 import { useQuery } from '@tanstack/react-query';
 import {
   getSessionTTL,

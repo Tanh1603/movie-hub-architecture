@@ -51,6 +51,8 @@ import {
   PaymentStatus as PaymentStatusEnum,
 } from '@movie-hub/shared-types/booking/enum';
 
+import { adjustDateFromBackend } from '@/app/utils/timezone-fix';
+
 export default function ReservationsPage() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedBookingId, setSelectedBookingId] = useState<string>('');
@@ -247,9 +249,8 @@ export default function ReservationsPage() {
   };
 
   const formatDate = (date: string | Date) => {
-    // TIMEZONE WORKAROUND: BE adds +7h in mapper, we need to subtract it
-    const dateObj = new Date(date);
-    const correctedDate = new Date(dateObj.getTime() - 7 * 60 * 60 * 1000);
+    // TIMEZONE FIX: Use adjustDateFromBackend to subtract 7 hours
+    const correctedDate = adjustDateFromBackend(date);
     return correctedDate.toLocaleString('vi-VN', {
       year: 'numeric',
       month: 'short',

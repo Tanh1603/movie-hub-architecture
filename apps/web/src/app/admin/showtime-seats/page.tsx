@@ -25,6 +25,7 @@ import { useAdminHallsGroupedByCinema } from '@/features/admin/cinemas';
 import { useAdminMovies } from '@/features/admin/movies';
 import { useAdminShowtimes, useAdminShowtimeSeats } from '@/features/admin/showtimes';
 import type { CinemasGroupedResponse, Hall, TicketPricingDto, SeatRowDto, SeatItemDto } from '@/types';
+import { adjustDateFromBackend } from '@/app/utils/timezone-fix';
 
 type ReservationStatus = 'AVAILABLE' | 'HELD' | 'CONFIRMED' | 'CANCELLED';
 type SeatType = 'STANDARD' | 'VIP' | 'COUPLE' | 'PREMIUM' | 'WHEELCHAIR';
@@ -149,21 +150,30 @@ export default function ShowtimeSeatsPage() {
             </SelectTrigger>
             <SelectContent>
               {showtimes.map((showtime) => {
-                // TIMEZONE WORKAROUND: BE adds +7h in mapper, we need to subtract it
-                const correctedStartTime = new Date(
-                  new Date(showtime.startTime).getTime() - 7 * 60 * 60 * 1000
+                // TIMEZONE FIX: Use adjustDateFromBackend utility
+                const correctedStartTime = adjustDateFromBackend(
+                  showtime.startTime
                 );
                 return (
                   <SelectItem key={showtime.id} value={showtime.id}>
                     <div className="flex items-center gap-2 text-sm">
-                      <span className="font-semibold">{movieMap[showtime.movieId] || showtime.movieTitle || 'Không Xác Định'}</span>
+                      <span className="font-semibold">
+                        {movieMap[showtime.movieId] ||
+                          showtime.movieTitle ||
+                          'Không Xác Định'}
+                      </span>
                       <span className="text-gray-400">•</span>
-                      <span className="text-gray-600">{hallMap[showtime.hallId] || showtime.hallName || 'Phòng Không Xác Định'}</span>
+                      <span className="text-gray-600">
+                        {hallMap[showtime.hallId] ||
+                          showtime.hallName ||
+                          'Phòng Không Xác Định'}
+                      </span>
                       <span className="text-gray-400">•</span>
-                      <span className="text-gray-600">{format(correctedStartTime, 'MMM dd, HH:mm')}</span>
+                      <span className="text-gray-600">
+                        {format(correctedStartTime, 'MMM dd, HH:mm')}
+                      </span>
                       {showtime.format && (
-                        <>
-                          <span className="text-gray-400">•</span>
+                        <>                          <span className="text-gray-400">•</span>
                           <Badge variant="outline" className="text-xs">{showtime.format}</Badge>
                         </>
                       )}

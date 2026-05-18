@@ -29,6 +29,8 @@ import {
 import type { Showtime, Movie, Cinema, Hall, CreateShowtimeRequest } from '@/types';
 import { FormatEnum } from '@movie-hub/shared-types/cinema/enum';
 
+import { adjustDateFromBackend, formatShowtimeDateForBackend } from '@/app/utils/timezone-fix';
+
 interface ShowtimeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -144,15 +146,11 @@ export default function ShowtimeDialog({
       // 1. When creating, BE uses new Date(string) which parses wrong
       // 2. BE adds +7 hours when returning data (see showtime.mapper.ts line 13, 37)
       // 3. This causes double timezone conversion issues
-      // Solution: We need to subtract 7 hours when loading for edit
+      // Solution: We use adjustDateFromBackend which subtracts 7 hours
 
       let formattedStartTime = '';
       try {
-        const dateFromAPI = new Date(showtimeToUse.startTime);
-        // Subtract 7 hours to compensate for BE's +7 hour addition
-        const correctedDate = new Date(
-          dateFromAPI.getTime() - 7 * 60 * 60 * 1000
-        );
+        const correctedDate = adjustDateFromBackend(showtimeToUse.startTime);
 
         // Format as datetime-local: YYYY-MM-DDTHH:mm
         const year = correctedDate.getFullYear();
@@ -162,12 +160,10 @@ export default function ShowtimeDialog({
         const minutes = String(correctedDate.getMinutes()).padStart(2, '0');
         formattedStartTime = `${year}-${month}-${day}T${hours}:${minutes}`;
 
-        console.log('[ShowtimeDialog] Timezone correction applied:', {
+        console.log('[ShowtimeDialog] Timezone correction applied via utility:', {
           rawFromAPI: showtimeToUse.startTime,
-          dateFromAPI: dateFromAPI.toISOString(),
           correctedDate: correctedDate.toISOString(),
           formatted: formattedStartTime,
-          note: 'Subtracted 7 hours to compensate for BE +7 offset',
         });
       } catch (e) {
         console.warn(
@@ -250,28 +246,13 @@ export default function ShowtimeDialog({
 
     try {
       // WORKAROUND: BE has timezone bug - it uses new Date(string) without timezone handling
-      // We need to send the datetime adjusted for timezone offset
-      // Input from datetime-local: "2026-01-02T19:30" (user's local time)
-      // BE expects: "yyyy-MM-dd HH:mm:ss" but treats it as local browser time
-      // Solution: Send UTC time in the expected format so BE's new Date() parses correctly
+      // Solution: Use formatShowtimeDateForBackend which sends local time in yyyy-MM-dd HH:mm:ss format
+      const localDateTime = new Date(formData.startTime); 
+      const startTimeFormatted = formatShowtimeDateForBackend(localDateTime);
 
-      const localDateTime = new Date(formData.startTime); // Parse as local
-
-      // Format as "yyyy-MM-dd HH:mm:ss" using the localDateTime
-      // This preserves the user's intended time
-      const year = localDateTime.getFullYear();
-      const month = String(localDateTime.getMonth() + 1).padStart(2, '0');
-      const day = String(localDateTime.getDate()).padStart(2, '0');
-      const hours = String(localDateTime.getHours()).padStart(2, '0');
-      const minutes = String(localDateTime.getMinutes()).padStart(2, '0');
-
-      const startTimeFormatted = `${year}-${month}-${day} ${hours}:${minutes}:00`;
-
-      console.log('[ShowtimeDialog] Timezone workaround:', {
+      console.log('[ShowtimeDialog] Timezone workaround via utility:', {
         userInput: formData.startTime,
-        localDateTime: localDateTime.toISOString(),
         formatted: startTimeFormatted,
-        note: 'Sending local time in yyyy-MM-dd HH:mm:ss format',
       });
 
       const payload = {

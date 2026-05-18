@@ -1,9 +1,7 @@
 import { getShowtimeSeats } from '@/api/services';
-import { SeatBooking } from './seat-booking';
 import { getQueryClient } from '@/shared/query/get-query-client';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
-import { checkUserBookingAtShowtime, createBooking, getUserBookings } from '@/api/services';
-import { BookingStatus } from '@/types/booking.type';
+import { SeatBooking } from './seat-booking';
 
 
 

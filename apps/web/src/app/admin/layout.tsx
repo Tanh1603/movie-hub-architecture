@@ -258,8 +258,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   }, []);
 
   const handleLogout = async () => {
-    await signOut();
-    router.push('/admin/login');
+    await signOut({ redirectUrl: '/admin/login' });
   };
 
   return (

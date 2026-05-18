@@ -22,17 +22,17 @@ export const paymentMethods: PaymentMethodUI[] = [
   {
     method: PaymentMethod.VNPAY,
     supported: true,
-    logo: '/logo/vnpay.png'
+    logo: '/logo/vnpay.png',
+  },
+  {
+    method: PaymentMethod.ZALOPAY,
+    supported: true,
+    logo: '/logo/zalo-pay.png',
   },
   {
     method: PaymentMethod.MOMO,
     supported: false,
-    logo: '/logo/momo.png'
-  },
-  {
-    method: PaymentMethod.ZALOPAY,
-    supported: false,
-    logo: '/logo/zalo-pay.png'
+    logo: '/logo/momo.png',
   },
 ];
 export enum PaymentStatus {
