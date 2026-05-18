@@ -11,16 +11,6 @@ import { securityMetricProviders } from './security-metrics';
 
 @Module({
   imports: [
-    PrometheusModule.register({
-      path: '/metrics',
-      defaultMetrics: {
-        enabled: true,
-      },
-    }),
-    ScheduleModule.forRoot(),
-    ClerkModule,
-    StaffModule,
-    UserModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: 'apps/user-service/.env',
@@ -36,6 +26,16 @@ import { securityMetricProviders } from './security-metrics';
         CLERK_SYNC_RECONCILIATION_CRON: Joi.string().optional(),
       }),
     }),
+    PrometheusModule.register({
+      path: '/metrics',
+      defaultMetrics: {
+        enabled: true,
+      },
+    }),
+    ScheduleModule.forRoot(),
+    ClerkModule,
+    StaffModule,
+    UserModule,
   ],
   controllers: [],
   providers: [...securityMetricProviders],

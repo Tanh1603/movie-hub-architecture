@@ -66,7 +66,7 @@ const permissions: PermissionSeed[] = [
 ];
 
 const rolePermissionMatrix: Record<string, string[]> = {
-  SUPER_ADMIN: permissions.map((permission) => permission.name),
+  ADMIN: permissions.map((permission) => permission.name),
   CUSTOMER: [
     'booking:read:own',
     'booking:update:own',
@@ -155,7 +155,7 @@ async function main() {
   }
 
   const roles = {
-    SUPER_ADMIN: await prisma.role.create({ data: { name: 'SUPER_ADMIN' } }),
+    ADMIN: await prisma.role.create({ data: { name: 'ADMIN' } }),
     CUSTOMER: await prisma.role.create({ data: { name: 'CUSTOMER' } }),
     CINEMA_MANAGER: await prisma.role.create({ data: { name: 'CINEMA_MANAGER' } }),
     ASSISTANT_MANAGER: await prisma.role.create({ data: { name: 'ASSISTANT_MANAGER' } }),
@@ -194,7 +194,7 @@ async function main() {
 
   await prisma.userRole.createMany({
     data: [
-      { userId: users.admin, roleId: roles.SUPER_ADMIN.id },
+      { userId: users.admin, roleId: roles.ADMIN.id },
       { userId: users.manager, roleId: roles.CINEMA_MANAGER.id },
       { userId: users.staff, roleId: roles.TICKET_CLERK.id },
       { userId: users.customer1, roleId: roles.CUSTOMER.id },

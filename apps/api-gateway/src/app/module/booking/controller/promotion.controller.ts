@@ -36,12 +36,22 @@ export class PromotionController {
     @Query('type') type?: PromotionType
   ) {
     // Default to active=true for public API if not specified
-    const activeFilter = active === 'false' ? false : active === 'undefined' ? undefined : true;
-    
-    return this.promotionService.findAll(
-      activeFilter,
-      type
-    );
+    const activeFilter =
+      active === 'false'
+        ? false
+        : active === 'undefined' || active === 'null'
+        ? undefined
+        : true;
+
+    const typeFilter =
+      type === undefined ||
+      (type as string) === 'null' ||
+      (type as string) === 'undefined' ||
+      (type as string) === ''
+        ? undefined
+        : type;
+
+    return this.promotionService.findAll(activeFilter, typeFilter);
   }
 
   @Get(':id')

@@ -13,8 +13,7 @@ import { PaymentAdapter } from './adapters/payment-adapter.interface';
 import { WebhookReplayGuardService } from './webhook-replay-guard.service';
 import { PaymentTransitionPolicyService } from './payment-transition-policy.service';
 import { PaymentReconciliationService } from './payment-reconciliation.service';
-
-export const PAYMENT_ADAPTERS = 'PAYMENT_ADAPTERS';
+import { PAYMENT_ADAPTERS } from './payment.constants';
 
 @Module({
   imports: [

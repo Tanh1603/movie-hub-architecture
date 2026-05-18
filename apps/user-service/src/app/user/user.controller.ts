@@ -83,9 +83,4 @@ export class UserController {
   async processClerkWebhook(@Payload() data: unknown) {
     return this.userService.processClerkWebhook(data as any);
   }
-
-  @MessagePattern(UserMessage.AUTH.BOOTSTRAP_SUPER_ADMIN)
-  async bootstrapSuperAdmin(@Payload() data: { correlationId?: string }) {
-    return this.userService.bootstrapDefaultSuperAdmin(data?.correlationId);
-  }
 }

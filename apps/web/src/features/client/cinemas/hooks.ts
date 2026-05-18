@@ -45,7 +45,12 @@ export const useGetCinemasNearby = (
   limit?: number
 ) => {
   return useQuery({
-    queryKey: clientQueryKeys.cinemas.nearby(langtitude, longtitude, radius, limit),
+    queryKey: clientQueryKeys.cinemas.nearby(
+      langtitude,
+      longtitude,
+      radius,
+      limit
+    ),
     queryFn: async () => {
       const response: ServiceResult<CinemaListResponse> =
         await GetCinemasNearby(langtitude, longtitude, radius, limit);
@@ -123,7 +128,10 @@ export const useGetMoviesAtCinema = (
   query: PaginationQuery
 ) => {
   return useInfiniteQuery({
-    queryKey: clientQueryKeys.cinemas.moviesAtCinema(cinemaId, query as Record<string, unknown>),
+    queryKey: clientQueryKeys.cinemas.moviesAtCinema(
+      cinemaId,
+      query as Record<string, unknown>
+    ),
     queryFn: async ({ pageParam = 1 }) => {
       // gọi getMovies và merge query params
       return await getMovieAtCinemas(cinemaId, {
@@ -149,7 +157,9 @@ export const useGetMoviesAtCinema = (
 };
 export const useGetAllMoviesWithShowtimes = (query: ShowtimesFilterDTO) => {
   return useQuery({
-    queryKey: clientQueryKeys.cinemas.moviesWithShowtimes(query as Record<string, unknown>),
+    queryKey: clientQueryKeys.cinemas.moviesWithShowtimes(
+      query as Record<string, unknown>
+    ),
     queryFn: async () => {
       const response = await getAllMoviesWithShowtimes(query);
       return response.data;

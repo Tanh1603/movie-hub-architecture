@@ -136,16 +136,16 @@ export class RbacService {
       return;
     }
 
-    if (input.role === 'SUPER_ADMIN') {
-      const superAdminCount = await this.prisma.userRole.count({
+    if (input.role === 'ADMIN') {
+      const adminCount = await this.prisma.userRole.count({
         where: { roleId: role.id },
       });
       const targetHasRole = await this.prisma.userRole.findFirst({
         where: { userId: input.userId, roleId: role.id },
         select: { id: true },
       });
-      if (targetHasRole && superAdminCount <= 1) {
-        throw new Error('Cannot remove the last SUPER_ADMIN');
+      if (targetHasRole && adminCount <= 1) {
+        throw new Error('Cannot remove the last ADMIN');
       }
     }
 

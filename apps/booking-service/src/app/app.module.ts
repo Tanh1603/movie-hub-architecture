@@ -16,10 +16,11 @@ import { BookingRedisModule } from './redis/redis.module';
 import { NotificationModule } from './notification/notification.module';
 import Joi from 'joi';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
-import { securityMetricProviders } from './security-metrics';
+import { SecurityMetricsModule } from './security-metrics';
 
 @Module({
   imports: [
+    SecurityMetricsModule,
     PrometheusModule.register({
       path: '/metrics',
       defaultMetrics: {
@@ -82,7 +83,6 @@ import { securityMetricProviders } from './security-metrics';
   ],
   controllers: [AppController],
   providers: [
-    ...securityMetricProviders,
     AppService, 
     PrismaService
   ],

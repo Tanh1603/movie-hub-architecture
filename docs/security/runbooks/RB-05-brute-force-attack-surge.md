@@ -46,7 +46,7 @@ Cause: Multiple accounts being locked out simultaneously — credential stuffing
 Security on-call
 
 ## Escalation
-If targeted accounts are admin/SUPER_ADMIN: escalate immediately to security lead + CTO notification.
+If targeted accounts are ADMIN: escalate immediately to security lead + CTO notification.
 
 ## SLA
 - **P1** — 1 hour to containment. Reduce to **P0** if admin accounts are targeted.

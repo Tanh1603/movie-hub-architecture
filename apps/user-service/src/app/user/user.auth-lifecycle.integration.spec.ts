@@ -75,18 +75,4 @@ describe('UserService auth lifecycle integration', () => {
     });
   });
 
-  it('bootstraps SUPER_ADMIN from DEFAULT_ADMIN_EMAIL', async () => {
-    process.env.DEFAULT_ADMIN_EMAIL = 'admin@example.com';
-    clerkClient.users.getUserList.mockResolvedValue({ data: [{ id: 'clerk_admin_1' }] });
-    prisma.role.upsert.mockResolvedValue({ id: 'r-super' });
-    prisma.userRole.findFirst.mockResolvedValue(null);
-
-    const result = await service.bootstrapDefaultSuperAdmin('cid-1');
-
-    expect(result).toEqual({ ok: true, userId: 'clerk_admin_1' });
-    expect(prisma.userRole.create).toHaveBeenCalledWith({
-      data: { userId: 'clerk_admin_1', roleId: 'r-super' },
-    });
-    expect(cache.del).toHaveBeenCalledWith('permissions:clerk_admin_1');
-  });
 });

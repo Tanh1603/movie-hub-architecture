@@ -1,1 +1,1 @@
-export { default, setAuthTokenGetter } from './api/api-client';
+export { default, setAuthTokenGetter } from '../api/api-client';

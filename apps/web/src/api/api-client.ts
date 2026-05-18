@@ -17,7 +17,7 @@ export interface ApiError {
 }
 
 // Normalize backend base URL so services can consistently use `/api/v1/...` paths
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:4000/api/v1';
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:3000/api/v1';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -104,7 +104,14 @@ apiClient.interceptors.response.use(
 export const api = {
   get: async <T>(url: string, config?: AxiosRequestConfig): Promise<T> => {
     const response = await apiClient.get<ApiResponse<T>>(url, config);
-    return response.data.data;
+    const resData = response.data as any;
+    if (resData && typeof resData === 'object' && 'meta' in resData) {
+      return {
+        data: resData.data,
+        meta: resData.meta,
+      } as unknown as T;
+    }
+    return resData.data;
   },
 
   post: async <T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> => {

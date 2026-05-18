@@ -259,7 +259,7 @@ export class ClerkAuthGuard implements CanActivate {
       return null;
     }
 
-    if (userRoles.includes(AppRole.ADMIN) || userRoles.includes('SUPER_ADMIN')) {
+    if (userRoles.includes(AppRole.ADMIN)) {
       return AppRole.ADMIN;
     }
 
@@ -270,7 +270,7 @@ export class ClerkAuthGuard implements CanActivate {
   }
 
   private mapStaffPositionToAppRole(position: string): AppRole {
-    if (position === 'SUPER_ADMIN' || position === AppRole.ADMIN) {
+    if (position === AppRole.ADMIN) {
       return AppRole.ADMIN;
     }
     const role = position as AppRole;

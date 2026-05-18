@@ -192,39 +192,7 @@ export class UserService {
     return { ok: true };
   }
 
-  async bootstrapDefaultSuperAdmin(correlationId?: string) {
-    const email = process.env.DEFAULT_ADMIN_EMAIL;
-    if (!email) {
-      throw new Error('DEFAULT_ADMIN_EMAIL is required');
-    }
 
-    const userList = await this.clerkClient.users.getUserList({
-      emailAddress: [email],
-    });
-    const password = process.env.DEFAULT_ADMIN_INITIAL_PASSWORD;
-    let clerkUserId: string;
-    if (userList.data.length === 0) {
-      if (!password) {
-        this.logger.error(
-          `Missing admin account and DEFAULT_ADMIN_INITIAL_PASSWORD not set correlationId=${correlationId ?? 'n/a'}`
-        );
-        throw new Error('Default admin Clerk account not found');
-      }
-      const created = await this.clerkClient.users.createUser({
-        emailAddress: [email],
-        password,
-        skipPasswordChecks: true,
-      });
-      clerkUserId = created.id;
-    } else {
-      clerkUserId = userList.data[0].id;
-    }
-    await this.assignRole(clerkUserId, 'SUPER_ADMIN');
-    this.logger.log(
-      `Ensured SUPER_ADMIN mapping for clerkUserId=${clerkUserId} correlationId=${correlationId ?? 'n/a'}`
-    );
-    return { ok: true, userId: clerkUserId };
-  }
 
   private async assignCustomerRoleIfMissing(
     userId: string,

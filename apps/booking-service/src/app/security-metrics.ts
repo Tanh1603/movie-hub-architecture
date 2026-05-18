@@ -1,3 +1,4 @@
+import { Global, Module } from '@nestjs/common';
 import { makeCounterProvider } from '@willsoto/nestjs-prometheus';
 import { SECURITY_METRICS } from '@movie-hub/shared-types';
 
@@ -28,3 +29,10 @@ export const securityMetricProviders = [
     labelNames: ['provider'],
   }),
 ];
+
+@Global()
+@Module({
+  providers: securityMetricProviders,
+  exports: securityMetricProviders,
+})
+export class SecurityMetricsModule {}

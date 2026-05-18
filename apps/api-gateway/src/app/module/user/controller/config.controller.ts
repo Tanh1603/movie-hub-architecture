@@ -18,12 +18,6 @@ export class ConfigController {
   constructor(private readonly configService: ConfigService) {}
 
   @Get()
-  @UseGuards(ClerkAuthGuard)
-  @Permission({
-    resource: PermissionResource.CONFIG,
-    action: PermissionAction.READ,
-    scope: PermissionScope.GLOBAL,
-  })
   async findAll() {
     return this.configService.findAll();
   }

@@ -75,7 +75,7 @@ export default function DashboardPage() {
   const { user } = useUser();
   const userRole = user?.publicMetadata?.role as string | undefined;
   const userCinemaId = user?.publicMetadata?.cinemaId as string | undefined;
-  const isAdmin = userRole === 'SUPER_ADMIN' || !userCinemaId;
+  const isAdmin = userRole === 'ADMIN' || !userCinemaId;
   const [cinemas, setCinemas] = useState<{ id: string; name: string }[]>([]);
   const [selectedCinemaId, setSelectedCinemaId] = useState<string | undefined>(
     undefined

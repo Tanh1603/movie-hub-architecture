@@ -115,15 +115,6 @@ export class UserController {
     return this.userService.getUserEffectivePermissions(userId);
   }
 
-  @Post('rbac/bootstrap-super-admin')
-  @UseGuards(ClerkAuthGuard)
-  @Permission({
-    resource: PermissionResource.RBAC,
-    action: PermissionAction.UPDATE,
-    scope: PermissionScope.GLOBAL,
-  })
-  bootstrapSuperAdmin(@Req() req: any) {
-    return this.userService.bootstrapSuperAdmin(req?.correlationId);
-  }
+
 }
 

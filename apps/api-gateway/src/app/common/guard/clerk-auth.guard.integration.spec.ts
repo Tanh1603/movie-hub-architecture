@@ -341,7 +341,7 @@ describe('ClerkAuthGuard integration scenarios', () => {
 
     userClient.send.mockImplementation((pattern: string) => {
       if (pattern === UserMessage.GET_USER_ROLES) {
-        return of(['SUPER_ADMIN']);
+        return of(['ADMIN']);
       }
       if (pattern === UserMessage.GET_USER_DETAIL) {
         return of({ email: 'admin@example.com' });
@@ -388,7 +388,7 @@ describe('ClerkAuthGuard integration scenarios', () => {
 
     userClient.send.mockImplementation((pattern: string) => {
       if (pattern === UserMessage.GET_USER_ROLES) {
-        return of(['SUPER_ADMIN']);
+        return of(['ADMIN']);
       }
       if (pattern === UserMessage.GET_USER_DETAIL) {
         return of({ email: 'admin@example.com' });
