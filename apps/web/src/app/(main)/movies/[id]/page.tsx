@@ -50,7 +50,7 @@ export default async function MovieDetailsPage({
           <DateSelect
             movieId={id}
             cinemaId={cinemaId}
-            availableCities={availableCities.data}
+            availableCities={availableCities?.data ?? []}
           />
 
           <MovieReviews movieId={id} />
