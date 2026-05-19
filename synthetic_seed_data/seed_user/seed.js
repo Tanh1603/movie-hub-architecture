@@ -55,7 +55,11 @@ const permissions = [
   { name: 'booking:update:cinema', resourceCode: 'booking', action: 'UPDATE', scope: 'CINEMA' },
   { name: 'cinema:read:cinema', resourceCode: 'cinema', action: 'READ', scope: 'CINEMA' },
   { name: 'cinema:update:cinema', resourceCode: 'cinema', action: 'UPDATE', scope: 'CINEMA' },
-  { name: 'movie:update:cinema', resourceCode: 'movie', action: 'UPDATE', scope: 'CINEMA' },
+  { name: 'cinema:create:global', resourceCode: 'cinema', action: 'CREATE', scope: 'GLOBAL' },
+  { name: 'cinema:delete:global', resourceCode: 'cinema', action: 'DELETE', scope: 'GLOBAL' },
+  { name: 'movie:create:global', resourceCode: 'movie', action: 'CREATE', scope: 'GLOBAL' },
+  { name: 'movie:update:global', resourceCode: 'movie', action: 'UPDATE', scope: 'GLOBAL' },
+  { name: 'movie:delete:global', resourceCode: 'movie', action: 'DELETE', scope: 'GLOBAL' },
   { name: 'payment:read:own', resourceCode: 'payment', action: 'READ', scope: 'OWN' },
   { name: 'payment:update:own', resourceCode: 'payment', action: 'UPDATE', scope: 'OWN' },
   { name: 'payment:read:cinema', resourceCode: 'payment', action: 'READ', scope: 'CINEMA' },
@@ -93,7 +97,6 @@ const rolePermissionMatrix = {
     'user:read:global',
     'booking:read:cinema',
     'booking:update:cinema',
-    'movie:update:cinema',
     'cinema:read:cinema',
     'cinema:update:cinema',
     'payment:read:cinema',
@@ -185,9 +188,10 @@ async function main() {
   // Get or Create Clerk Admin dynamically
   const secretKey = process.env.CLERK_SECRET_KEY;
   const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'admin@gm.com';
-  const adminPassword = process.env.DEFAULT_ADMIN_INITIAL_PASSWORD || 'M0vi3Hub#2026!Admin';
-  const managerPassword = process.env.DEFAULT_MANAGER_INITIAL_PASSWORD || 'M0vi3Hub#2026!Manager';
-  const staffPassword = process.env.DEFAULT_STAFF_INITIAL_PASSWORD || 'M0vi3Hub#2026!Staff';
+  const adminPassword = process.env.DEFAULT_ADMIN_INITIAL_PASSWORD || 'MovieHub';
+  const managerPassword = process.env.DEFAULT_MANAGER_INITIAL_PASSWORD || 'MovieHub';
+  const staffPassword = process.env.DEFAULT_STAFF_INITIAL_PASSWORD || 'MovieHub';
+  const customerPassword = process.env.DEFAULT_CUSTOMER_INITIAL_PASSWORD || 'MovieHub';
 
   const clerkClient = secretKey ? createClerkClient({ secretKey }) : null;
 
@@ -336,6 +340,17 @@ async function main() {
     }
   ];
 
+  const customerConfigs = [
+    {
+      email: 'customer@gm.com',
+      fullName: 'Nguyen Khach Hang',
+      phone: '0909999888',
+      gender: Gender.MALE,
+      dob: new Date('1998-01-01'),
+      fallbackClerkId: 'user_customer_test_001',
+    }
+  ];
+
   const usersToSeed = [
     { userId: adminClerkUserId, roleId: roles.ADMIN.id },
     { userId: 'user_2tWn3x8y9z0a1b2c3d4e5f6g7h8', roleId: roles.CUSTOMER.id },
@@ -448,6 +463,41 @@ async function main() {
       salary: 12000000,
       hireDate: new Date('2022-09-10'),
     });
+  }
+
+  // Seed Customers
+  for (const customer of customerConfigs) {
+    let resolvedClerkId = customer.fallbackClerkId;
+    const customerMetadata = {
+      role: 'CUSTOMER',
+    };
+    if (clerkClient) {
+      try {
+        const userList = await clerkClient.users.getUserList({ emailAddress: [customer.email] });
+        if (userList.data.length > 0) {
+          resolvedClerkId = userList.data[0].id;
+          console.log(`   ✅ Found Clerk customer user: ${customer.email} -> ${resolvedClerkId}`);
+          await clerkClient.users.updateUser(resolvedClerkId, {
+            password: customerPassword,
+            publicMetadata: customerMetadata
+          });
+          console.log(`      ✅ Synced publicMetadata for CUSTOMER`);
+        } else {
+          const created = await clerkClient.users.createUser({
+            emailAddress: [customer.email],
+            password: customerPassword,
+            skipPasswordChecks: true,
+            publicMetadata: customerMetadata
+          });
+          resolvedClerkId = created.id;
+          console.log(`   ✅ Created Clerk customer user: ${customer.email} -> ${resolvedClerkId}`);
+        }
+      } catch (err) {
+        console.error(`   ⚠️ Failed to create customer for ${customer.email}, using fallback:`, err.message);
+      }
+    }
+
+    usersToSeed.push({ userId: resolvedClerkId, roleId: roles.CUSTOMER.id });
   }
 
   await prisma.userRole.createMany({ data: usersToSeed });

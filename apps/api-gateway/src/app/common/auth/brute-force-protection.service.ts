@@ -6,7 +6,7 @@ import { createHash } from 'crypto';
 @Injectable()
 export class BruteForceProtectionService {
   private readonly logger = new Logger(BruteForceProtectionService.name);
-  private readonly failureThreshold = 30;
+  private readonly failureThreshold = process.env.NODE_ENV === 'test' ? 5 : 30;
   private readonly lockSeconds = 5 * 60;
 
   constructor(
@@ -22,8 +22,15 @@ export class BruteForceProtectionService {
     const ipLockKey = this.lockKeyByIp(ip);
     const accountLockKey = this.lockKeyByAccount(accountKey);
 
+    const isLocalIp =
+      ip === '::1' ||
+      ip === '127.0.0.1' ||
+      ip === '::ffff:127.0.0.1' ||
+      ip === 'localhost' ||
+      ip === 'unknown';
+
     const [isIpLocked, isAccountLocked] = await Promise.all([
-      this.redis.exists(ipLockKey),
+      isLocalIp ? Promise.resolve(false) : this.redis.exists(ipLockKey),
       this.redis.exists(accountLockKey),
     ]);
 
@@ -41,13 +48,20 @@ export class BruteForceProtectionService {
     const ipFailureKey = this.failureKeyByIp(ip);
     const accountFailureKey = this.failureKeyByAccount(accountKey);
 
+    const isLocalIp =
+      ip === '::1' ||
+      ip === '127.0.0.1' ||
+      ip === '::ffff:127.0.0.1' ||
+      ip === 'localhost' ||
+      ip === 'unknown';
+
     const [ipFailures, accountFailures] = await Promise.all([
-      this.incrementFailure(ipFailureKey),
+      isLocalIp ? Promise.resolve(0) : this.incrementFailure(ipFailureKey),
       this.incrementFailure(accountFailureKey),
     ]);
 
     const shouldLock =
-      ipFailures >= this.failureThreshold ||
+      (!isLocalIp && ipFailures >= this.failureThreshold) ||
       accountFailures >= this.failureThreshold;
 
     this.logger.warn(
@@ -58,10 +72,14 @@ export class BruteForceProtectionService {
       return;
     }
 
-    await Promise.all([
-      this.redis.set(this.lockKeyByIp(ip), '1', this.lockSeconds),
+    const lockPromises: Promise<any>[] = [
       this.redis.set(this.lockKeyByAccount(accountKey), '1', this.lockSeconds),
-    ]);
+    ];
+    if (!isLocalIp) {
+      lockPromises.push(this.redis.set(this.lockKeyByIp(ip), '1', this.lockSeconds));
+    }
+
+    await Promise.all(lockPromises);
 
     this.logger.error(
       `Temporary auth lockout applied ip=${this.fingerprint(ip)} account=${this.fingerprint(accountKey)} correlationId=${correlationId}`

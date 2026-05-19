@@ -94,12 +94,19 @@ export class ClerkAuthGuard implements CanActivate {
       if (error instanceof HttpException) {
         throw error;
       }
-      await this.bruteForceProtectionService.recordFailure(
-        request,
-        accountKey,
-        correlationId
-      );
-      this.authFailuresCounter.inc({ reason: 'invalid_token' });
+      const isExpired =
+        error instanceof Error &&
+        (error.message.toLowerCase().includes('expired') ||
+          error.message.toLowerCase().includes('jwt is expired'));
+
+      if (!isExpired) {
+        await this.bruteForceProtectionService.recordFailure(
+          request,
+          accountKey,
+          correlationId
+        );
+      }
+      this.authFailuresCounter.inc({ reason: isExpired ? 'expired_token' : 'invalid_token' });
       this.logger.warn(
         `Token verification failed account=${this.fingerprint(accountKey)} error=${error instanceof Error ? error.message : String(error)} correlationId=${correlationId}`
       );
