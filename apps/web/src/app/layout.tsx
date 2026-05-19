@@ -1,5 +1,4 @@
 import { ClerkProvider } from '@clerk/nextjs';
-export const dynamic = 'force-dynamic';
 import { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Toaster } from 'sonner';
@@ -34,7 +33,6 @@ export default function RootLayout({
                 colorPrimary: '#E11D48',
               },
             }}
-            afterSignOutUrl="/admin/login"
           >
             <PageWrapper>
               <Toaster theme="light" richColors closeButton />

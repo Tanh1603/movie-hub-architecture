@@ -16,8 +16,18 @@ import { RequestContextMiddleware } from './common/middleware/request-context.mi
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AppThrottlerGuard } from './common/guard/app-throttler.guard';
 
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+
+import { securityMetricProviders } from './common/security-metrics';
+
 @Module({
   imports: [
+    PrometheusModule.register({
+      path: '/metrics',
+      defaultMetrics: {
+        enabled: true,
+      },
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: 'apps/api-gateway/.env',
@@ -70,6 +80,7 @@ import { AppThrottlerGuard } from './common/guard/app-throttler.guard';
   ],
   controllers: [HealthController],
   providers: [
+    ...securityMetricProviders,
     {
       provide: APP_GUARD,
       useClass: AppThrottlerGuard,

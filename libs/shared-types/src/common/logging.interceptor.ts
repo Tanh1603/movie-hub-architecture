@@ -6,6 +6,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { Observable, tap } from 'rxjs';
+
 import {
   CORRELATION_ID_HEADER,
   REQUEST_ID_HEADER,
@@ -20,14 +21,17 @@ import {
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
-  private logger: Logger;
+  private readonly logger: Logger;
   private readonly serviceName: string;
-  // Paths to exclude from detailed logging
+
+  // Skip noisy endpoints
   private readonly excludedPaths = new Set([
     '/metrics',
     '/api/metrics',
     '/health',
     '/api/health',
+    '/health/live',
+    '/health/ready',
     '/api/health/live',
     '/api/health/ready',
   ]);
@@ -39,67 +43,110 @@ export class LoggingInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const contextType = context.getType();
+
     let payload: unknown;
     let action = `${contextType}.unknown`;
+
     let httpStatus: number | undefined;
+
     let responseHeaders:
       | {
           setHeader?: (name: string, value: string) => void;
           statusCode?: number;
         }
       | undefined;
+
     let requestContext: RequestContextMetadata = {
       correlationId: undefined as unknown as string,
       requestId: undefined as unknown as string,
       userId: undefined,
     };
 
-    switch (contextType) {
-      case 'http': {
-        const request = context.switchToHttp().getRequest();
-        const response = context.switchToHttp().getResponse();
-        const extractedContext = extractRequestContextFromRequest(request);
+    // =========================
+    // HTTP CONTEXT
+    // =========================
 
-        request.requestContext = extractedContext;
-        request.headers = request.headers || {};
-        request.headers[CORRELATION_ID_HEADER] = extractedContext.correlationId;
-        request.headers[REQUEST_ID_HEADER] = extractedContext.requestId;
+    if (contextType === 'http') {
+      const request = context.switchToHttp().getRequest();
+      const response = context.switchToHttp().getResponse();
 
-        response?.setHeader?.(
-          CORRELATION_ID_HEADER,
-          extractedContext.correlationId
-        );
-        response?.setHeader?.(REQUEST_ID_HEADER, extractedContext.requestId);
-
-        requestContext = extractedContext;
-        payload = {
-          body: request.body,
-          params: request.params,
-          query: request.query,
-        };
-        action = resolveHttpAction(request);
-        responseHeaders = response;
-        break;
+      // Skip logging for noisy health/metrics routes
+      if (this.excludedPaths.has(request.url)) {
+        return next.handle();
       }
-      case 'rpc': {
-        const rpcContext = context.switchToRpc().getContext();
-        const pattern =
-          rpcContext?.pattern ??
-          rpcContext?.args?.[1] ??
-          context.getArgByIndex(1);
-        payload = context.switchToRpc().getData();
-        requestContext = extractRequestContextFromPayload(
-          (payload as Record<string, unknown>) || {}
-        );
-        action = resolveRpcAction(pattern);
-        break;
-      }
-      default:
-        payload = context.getArgs();
-        action = `${contextType}.handler`;
+
+      const extractedContext =
+        extractRequestContextFromRequest(request);
+
+      request.requestContext = extractedContext;
+
+      request.headers = request.headers || {};
+
+      request.headers[CORRELATION_ID_HEADER] =
+        extractedContext.correlationId;
+
+      request.headers[REQUEST_ID_HEADER] =
+        extractedContext.requestId;
+
+      response?.setHeader?.(
+        CORRELATION_ID_HEADER,
+        extractedContext.correlationId
+      );
+
+      response?.setHeader?.(
+        REQUEST_ID_HEADER,
+        extractedContext.requestId
+      );
+
+      requestContext = extractedContext;
+
+      payload = {
+        body: request.body,
+        params: request.params,
+        query: request.query,
+      };
+
+      action = resolveHttpAction(request);
+
+      responseHeaders = response;
     }
 
-    const now = Date.now();
+    // =========================
+    // RPC CONTEXT
+    // =========================
+
+    else if (contextType === 'rpc') {
+      const rpcContext = context.switchToRpc().getContext();
+
+      const pattern =
+        rpcContext?.pattern ??
+        rpcContext?.args?.[1] ??
+        context.getArgByIndex(1);
+
+      payload = context.switchToRpc().getData();
+
+      requestContext = extractRequestContextFromPayload(
+        (payload as Record<string, unknown>) || {}
+      );
+
+      action = resolveRpcAction(pattern);
+    }
+
+    // =========================
+    // OTHER CONTEXT
+    // =========================
+
+    else {
+      payload = context.getArgs();
+      action = `${contextType}.handler`;
+    }
+
+    const startedAt = Date.now();
+
+    // =========================
+    // REQUEST LOG
+    // =========================
+
     this.logger.debug(
       serializeStructuredLog({
         level: 'debug',
@@ -109,6 +156,7 @@ export class LoggingInterceptor implements NestInterceptor {
         userId: requestContext.userId,
         action,
         message: 'Request started',
+
         metadata: {
           contextType,
           payload: sanitizeForLogging(payload),
@@ -118,21 +166,30 @@ export class LoggingInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap({
+        // =========================
+        // SUCCESS LOG
+        // =========================
+
         next: (response) => {
-          const responseTime = Date.now() - now;
+          const durationMs = Date.now() - startedAt;
+
           httpStatus = responseHeaders?.statusCode;
 
           this.logger.log(
             serializeStructuredLog({
               level: 'info',
               service: this.serviceName,
+
               correlationId: requestContext.correlationId,
               requestId: requestContext.requestId,
               userId: requestContext.userId,
+
               action,
               httpStatus,
-              durationMs: responseTime,
+              durationMs,
+
               message: 'Request completed',
+
               metadata: {
                 contextType,
                 response: sanitizeForLogging(response),
@@ -140,30 +197,46 @@ export class LoggingInterceptor implements NestInterceptor {
             })
           );
         },
+
+        // =========================
+        // ERROR LOG
+        // =========================
+
         error: (error) => {
-          const responseTime = Date.now() - now;
+          const durationMs = Date.now() - startedAt;
+
           httpStatus =
-            error?.status || error?.statusCode || responseHeaders?.statusCode;
+            error?.status ||
+            error?.statusCode ||
+            responseHeaders?.statusCode;
+
           this.logger.error(
             serializeStructuredLog({
               level: 'error',
               service: this.serviceName,
+
               correlationId: requestContext.correlationId,
               requestId: requestContext.requestId,
               userId: requestContext.userId,
+
               action,
               httpStatus,
-              durationMs: responseTime,
+              durationMs,
+
               errorCode:
                 error?.code ||
                 error?.name ||
                 String(httpStatus || 'UNHANDLED_ERROR'),
-              message: error?.message || 'Request failed',
+
+              message:
+                error?.message || 'Request failed',
+
               metadata: {
                 contextType,
                 error: sanitizeForLogging(error),
               },
             }),
+
             error?.stack
           );
         },

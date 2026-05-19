@@ -3,7 +3,7 @@
     SeatRowDto,
     SeatStatusEnum,
     SeatTypeEnum
-  } from '@/libs/types/showtime.type';
+  } from '@/types/showtime.type';
   import { Seat } from './seat';
 
   export interface LayoutRenderProps {

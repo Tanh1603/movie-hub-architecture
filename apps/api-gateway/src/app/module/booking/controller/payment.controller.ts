@@ -21,13 +21,13 @@ import { RoleGuard } from '../../../common/guard/role.guard';
 import { CurrentUserId } from '../../../common/decorator/current-user-id.decorator';
 import { Permission } from '../../../common/decorator/permission.decorator';
 import { Roles } from '../../../common/decorator/roles.decorator';
-import { AccessRole } from '../../../common/constants/roles.constants';
 import {
+  AppRole,
   CreatePaymentDto,
   AdminFindAllPaymentsDto,
   PaymentStatus,
+  PaymentMethod,
 } from '@movie-hub/shared-types';
-import { PaymentMethod } from '@movie-hub/shared-types';
 import { Request } from 'express';
 import { SkipThrottle } from '@nestjs/throttler';
 import { SensitiveThrottle } from '../../../common/decorator/sensitive-throttle.decorator';
@@ -109,17 +109,16 @@ export class PaymentController {
   // ==================== ADMIN ENDPOINTS ====================
 
   @Get('admin/all')
-  @UseGuards(ClerkAuthGuard)
-  async adminFindAll(
-    @Query() filters: AdminFindAllPaymentsDto,
-    @Req() request: Request
-  ) {
-    return this.paymentService.adminFindAll(filters, request);
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER, AppRole.STAFF)
+  @Permission({ resource: 'payment', action: 'read', scope: 'cinema' })
+  async adminFindAll(@Query() filters: AdminFindAllPaymentsDto) {
+    return this.paymentService.adminFindAll(filters);
   }
 
   @Get('admin/status/:status')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AccessRole.CINEMA_MANAGER, AccessRole.STAFF)
+  @Roles(AppRole.CINEMA_MANAGER, AppRole.STAFF)
   @Permission({ resource: 'payment', action: 'read', scope: 'cinema' })
   async findByStatus(
     @Param('status') status: PaymentStatus,
@@ -132,7 +131,7 @@ export class PaymentController {
 
   @Put('admin/:id/cancel')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AccessRole.CINEMA_MANAGER)
+  @Roles(AppRole.CINEMA_MANAGER)
   @Permission({ resource: 'payment', action: 'update', scope: 'cinema' })
   async cancelPayment(
     @Param('id') paymentId: string,
@@ -143,7 +142,7 @@ export class PaymentController {
 
   @Get('admin/statistics')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AccessRole.CINEMA_MANAGER)
+  @Roles(AppRole.CINEMA_MANAGER)
   @Permission({ resource: 'payment', action: 'read', scope: 'cinema' })
   async getStatistics(
     @Query('startDate') startDate?: string,
@@ -169,7 +168,7 @@ export class PaymentController {
    */
   @Post('bookings/:bookingId')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AccessRole.CUSTOMER)
+  @Roles(AppRole.CUSTOMER)
   @Permission({ resource: 'payment', action: 'update', scope: 'own' })
   async createPayment(
     @CurrentUserId() userId: string,
@@ -200,7 +199,7 @@ export class PaymentController {
    */
   @Get('booking/:bookingId')
   @UseGuards(ClerkAuthGuard, RoleGuard)
-  @Roles(AccessRole.CUSTOMER)
+  @Roles(AppRole.CUSTOMER)
   @Permission({ resource: 'payment', action: 'read', scope: 'own' })
   async getPaymentsByBooking(
     @CurrentUserId() userId: string,

@@ -93,14 +93,15 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       });
       return;
     } else {
+      const isInternal = status >= 500 || status === HttpStatus.INTERNAL_SERVER_ERROR;
       errorResponse = {
         success: false,
-        message: exception.message || 'Unexpected error',
+        message: isInternal ? 'Internal server error' : (exception.message || 'Unexpected error'),
         errors: [
           {
-            code: 'INTERNAL_ERROR',
+            code: isInternal ? 'INTERNAL_ERROR' : 'UNKNOWN_ERROR',
             field: null,
-            message: (exception as any)?.message || 'Something went wrong',
+            message: isInternal ? 'Something went wrong on our end' : ((exception as any)?.message || 'Something went wrong'),
           },
         ],
         path: request.path,
@@ -108,6 +109,18 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       };
     }
 
+    // Force generic messages for ANY 5xx error
+    if (status >= 500) {
+      errorResponse.message = 'Internal server error';
+      if (errorResponse.errors && errorResponse.errors.length > 0) {
+        errorResponse.errors.forEach(e => {
+          e.message = 'An unexpected error occurred';
+          e.code = e.code === 'UNKNOWN_ERROR' ? 'INTERNAL_ERROR' : e.code;
+        });
+      }
+    }
+
     response.status(status).json(errorResponse);
   }
 }
+

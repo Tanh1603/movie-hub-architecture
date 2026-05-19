@@ -11,7 +11,7 @@ import { DateSelect7Days } from '@/components/date-select-7days';
 import {
   useGetCinemaDetail,
   useGetCinemasWithFilters,
-} from '@/hooks/cinema-hooks';
+} from '@/features/client/cinemas/hooks';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
@@ -22,18 +22,18 @@ import { CinemaShowtime } from './cinema-showtime';
 export const DateSelect = ({
   movieId,
   cinemaId,
-  availableCities,
+  availableCities = [],
 }: {
   movieId: string;
   cinemaId?: string;
-  availableCities: string[];
+  availableCities?: string[];
 }) => {
   const router = useRouter();
   const [selected, setSelected] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
   const [selectedLocation, setSelectedLocation] = useState<string>(
-    availableCities[0] || ''
+    availableCities?.[0] || ''
   );
   const [selectedShowtime, setSelectedShowtime] = useState<string | null>(null);
 

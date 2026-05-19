@@ -1,0 +1,1 @@
+export const PAYMENT_ADAPTERS = 'PAYMENT_ADAPTERS';

@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import {
@@ -51,7 +50,7 @@ import {
 } from '@movie-hub/shacdn-ui/tabs';
 import { Separator } from '@movie-hub/shacdn-ui/separator';
 import { useToast } from '../_libs/use-toast';
-import { configApi } from '../../../libs/api/services';
+import { configApi } from '@/api/services';
 import type { ThemeEffectType } from '../../../components/theme/theme-effects';
 
 // Frontend-specific settings types
@@ -208,9 +207,15 @@ export default function SettingsPage() {
       try {
         const configs = await configApi.getAll();
         // Handle potential response wrapper or direct array
-        const dataList = (configs as any).data || configs;
+        const dataList =
+          !Array.isArray(configs) &&
+          typeof configs === 'object' &&
+          configs !== null &&
+          'data' in configs
+            ? (configs as { data?: unknown }).data
+            : configs;
         const appConfig = Array.isArray(dataList)
-          ? dataList.find((c: any) => c.key === 'appearance')
+          ? dataList.find((c: { key?: string }) => c.key === 'appearance')
           : null;
 
         if (appConfig?.value) {
@@ -1394,3 +1399,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+

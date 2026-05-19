@@ -5,7 +5,7 @@
 - `CUSTOMER`
 - `STAFF` (logical group: `ASSISTANT_MANAGER`, `TICKET_CLERK`, `CONCESSION_STAFF`, `USHER`, `PROJECTIONIST`, `CLEANER`, `SECURITY`)
 - `CINEMA_MANAGER`
-- `ADMIN` (includes `SUPER_ADMIN`)
+- `ADMIN` (formerly `SUPER_ADMIN`)
 
 ## Effective Access Matrix
 

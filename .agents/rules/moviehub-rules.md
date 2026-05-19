@@ -48,7 +48,7 @@ import { LoggingInterceptor } from '@movie-hub/shared-types/common/logging.inter
 
 **`SERVICE_NAME`**: `USER` | `Movie` | `CINEMA` | `BOOKING`
 
-**`AppRole`**: `SUPER_ADMIN` | `ADMIN` | `CINEMA_MANAGER` | `ASSISTANT_MANAGER` | `TICKET_CLERK` | `CONCESSION_STAFF` | `USHER` | `PROJECTIONIST` | `CLEANER` | `SECURITY` | `CUSTOMER`
+**`AppRole`**: `ADMIN` | `CINEMA_MANAGER` | `STAFF` | `CUSTOMER`
 
 **Message constants**: `UserMessage.*`, `MovieServiceMessage.*`, `CinemaMessage.*`, `BookingMessage.*`, `PaymentMessage.*`, `TicketMessage.*`, `LoyaltyMessage.*`, `RefundMessage.*`, `ConcessionMessage.*`, `PromotionMessage.*`
 
@@ -76,13 +76,13 @@ import { LoggingInterceptor } from '@movie-hub/shared-types/common/logging.inter
 export class BookingController {
   @Post()
   @UseGuards(ClerkAuthGuard, RoleGuard)   // always this order
-  @Roles(AccessRole.CUSTOMER)
+  @Roles(AppRole.CUSTOMER)
   @Permission({ resource: 'booking', action: 'manage', scope: 'own' })
   async create(@CurrentUserId() userId: string, @Body() dto: CreateBookingDto) {}
 }
 ```
 
-### AccessRole (gateway-level, `common/constants/roles.constants.ts`)
+### AppRole (shared-types, `rbac/index.ts`)
 `CUSTOMER` | `STAFF` | `CINEMA_MANAGER` | `ADMIN`
 
 ### Common decorators

@@ -17,10 +17,19 @@ import { NotificationModule } from './notification/notification.module';
 import { OutboxModule } from './outbox/outbox.module';
 import { HealthController } from './health.controller';
 import Joi from 'joi';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { SecurityMetricsModule } from './security-metrics';
 import { SharedMetricsModule } from '@movie-hub/shared-metrics';
 
 @Module({
   imports: [
+    SecurityMetricsModule,
+    PrometheusModule.register({
+      path: '/metrics',
+      defaultMetrics: {
+        enabled: true,
+      },
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: 'apps/booking-service/.env',
@@ -60,6 +69,8 @@ import { SharedMetricsModule } from '@movie-hub/shared-metrics';
         PAYMENT_RECON_CRON: Joi.string().optional(),
         PAYMENT_RECON_LOCK_TTL_SECONDS: Joi.number().optional(),
         WEBHOOK_TIMESTAMP_TOLERANCE_MS: Joi.number().default(300_000),
+        NOTIFICATION_PII_SECRET: Joi.string().optional(), // Must be 32 bytes hex for production
+        OUTBOX_PII_RETENTION_DAYS: Joi.number().default(30),
       }),
     }),
     CacheModule.register({

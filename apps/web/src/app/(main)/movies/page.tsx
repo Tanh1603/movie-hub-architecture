@@ -1,5 +1,4 @@
 import { MovieListSummary } from './_components/movie-list';
-export const dynamic = 'force-dynamic';
 
 const MoviesPage = () => {
   return (
@@ -16,3 +15,4 @@ const MoviesPage = () => {
   );
 };
 export default MoviesPage;
+

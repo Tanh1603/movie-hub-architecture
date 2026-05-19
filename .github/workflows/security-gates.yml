@@ -1,0 +1,178 @@
+name: Security Gates
+
+on:
+  pull_request:
+    branches:
+      - main
+      - 'release/**'
+  push:
+    branches:
+      - main
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: write   # needed for PR comment annotation
+
+jobs:
+  # ─────────────────────────────────────────────
+  # CRITICAL — blocks merge on failure
+  # ─────────────────────────────────────────────
+  security-gates-critical:
+    name: 'Security Gates — Critical (blocking)'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate Prisma clients
+        run: npm run prisma:generate
+
+      # ── Gate 1: Auth guard — unauthenticated rejection ──────────────────
+      - name: '[CRITICAL] Auth guard — protected route rejects unauthenticated'
+        run: npx nx test api-gateway --testFile=apps/api-gateway/src/app/common/guard/clerk-auth.guard.integration.spec.ts --passWithNoTests=false
+
+      # ── Gate 2: RBAC — role-based 403 ───────────────────────────────────
+      - name: '[CRITICAL] RBAC — unauthorized roles receive 403'
+        run: npx nx test api-gateway --testFile=apps/api-gateway/src/app/common/guard/authorization-policy.spec.ts --passWithNoTests=false
+
+      # ── Gate 3: Ownership — cross-user access returns 404 ───────────────
+      - name: '[CRITICAL] Ownership — cross-user access returns 404'
+        run: npx nx test api-gateway --testFile=apps/api-gateway/src/app/module/booking/controller/booking-ownership.spec.ts --passWithNoTests=false
+
+      # ── Gate 4: Webhook — signature validation ───────────────────────────
+      - name: '[CRITICAL] Webhook — tampered signatures rejected'
+        run: npx nx test api-gateway --testFile=apps/api-gateway/src/app/module/user/controller/auth-webhook.controller.spec.ts --passWithNoTests=false
+
+      # ── Gate 4: Webhook — timestamp freshness ────────────────────────────
+      - name: '[CRITICAL] Webhook — stale callbacks rejected (payment service)'
+        run: npx nx test booking-service --testPathPattern='webhook-replay-guard' --passWithNoTests=false
+
+      # ── Gate 5: Payment state machine — terminal state immutability ──────
+      - name: '[CRITICAL] Payment — terminal state is immutable'
+        run: npx nx test booking-service --testPathPattern='payment.service.spec' --passWithNoTests=false
+
+      # ── Gate 6: Secret scanning (gitleaks) ───────────────────────────────
+      - name: '[CRITICAL] Secret scanning — no hardcoded credentials'
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+      # ── Gate 7: Log redaction — no PII in logs ───────────────────────────
+      - name: '[CRITICAL] Log redaction — PII not exposed in log output'
+        run: npx nx test booking-service --testPathPattern='pii-crypto.service.spec' --passWithNoTests=false
+
+  # ─────────────────────────────────────────────
+  # NON-CRITICAL — warns but does not block merge
+  # ─────────────────────────────────────────────
+  security-gates-non-critical:
+    name: 'Security Gates — Non-Critical (warn only)'
+    runs-on: ubuntu-latest
+    continue-on-error: true   # NEVER blocks merge
+    outputs:
+      result: ${{ steps.summary.outputs.result }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate Prisma clients
+        run: npm run prisma:generate
+
+      - name: '[NON-CRITICAL] Brute-force lockout threshold tests'
+        id: brute_force
+        continue-on-error: true
+        run: npx nx test api-gateway --testPathPattern='brute-force' --passWithNoTests=true
+
+      - name: '[NON-CRITICAL] Notification outbox dedup tests'
+        id: outbox_dedup
+        continue-on-error: true
+        run: npx nx test booking-service --testPathPattern='notification-outbox' --passWithNoTests=true
+
+      - name: '[NON-CRITICAL] Clerk sync reconciliation tests'
+        id: clerk_sync
+        continue-on-error: true
+        run: npx nx test user-service --testPathPattern='user-sync|clerk-sync' --passWithNoTests=true
+
+      - name: '[NON-CRITICAL] Alert threshold coverage check'
+        id: alert_threshold
+        continue-on-error: true
+        run: |
+          echo "Checking alert rules coverage..."
+          node -e "
+            const fs = require('fs');
+            const rules = fs.readFileSync('infrastructure/prometheus/security.rules.yml', 'utf8');
+            const required = ['auth_failures_total','brute_force_lockouts_total','webhook_signature_fail_total','webhook_replay_detected_total','clerk_sync_retry_exhausted_total','notification_outbox_dead_letter_total'];
+            const missing = required.filter(m => !rules.includes(m));
+            if (missing.length > 0) { console.warn('WARNING: Missing alert rules for:', missing.join(', ')); process.exit(1); }
+            console.log('All required alert rules present.');
+          "
+
+      - name: Build gate summary
+        id: summary
+        if: always()
+        run: |
+          PASS=0; WARN=0
+          [ "${{ steps.brute_force.outcome }}" = "success" ] && PASS=$((PASS+1)) || WARN=$((WARN+1))
+          [ "${{ steps.outbox_dedup.outcome }}" = "success" ] && PASS=$((PASS+1)) || WARN=$((WARN+1))
+          [ "${{ steps.clerk_sync.outcome }}" = "success" ] && PASS=$((PASS+1)) || WARN=$((WARN+1))
+          [ "${{ steps.alert_threshold.outcome }}" = "success" ] && PASS=$((PASS+1)) || WARN=$((WARN+1))
+          echo "result=pass=${PASS} warn=${WARN}" >> "$GITHUB_OUTPUT"
+          echo "### 🔶 Non-Critical Security Gates: ${PASS} passed, ${WARN} warnings" >> "$GITHUB_STEP_SUMMARY"
+
+  # ─────────────────────────────────────────────
+  # PR summary comment
+  # ─────────────────────────────────────────────
+  gate-pr-comment:
+    name: 'Post Gate Summary to PR'
+    runs-on: ubuntu-latest
+    needs: [security-gates-critical, security-gates-non-critical]
+    if: always() && github.event_name == 'pull_request'
+    steps:
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const criticalResult = '${{ needs.security-gates-critical.result }}';
+            const nonCriticalResult = '${{ needs.security-gates-non-critical.result }}';
+            const icon = criticalResult === 'success' ? '✅' : '❌';
+            const warnIcon = nonCriticalResult === 'success' ? '✅' : '⚠️';
+            const body = [
+              '## Security Gate Results',
+              '',
+              `| Tier | Result |`,
+              `|------|--------|`,
+              `| ${icon} **Critical (blocking)** | \`${criticalResult}\` |`,
+              `| ${warnIcon} **Non-Critical (warn only)** | \`${nonCriticalResult}\` |`,
+              '',
+              criticalResult !== 'success'
+                ? '> ❌ **Merge is blocked.** Fix all critical gate failures before merging.'
+                : '> ✅ Critical gates passed. Merge is allowed.',
+              '',
+              '_Runbooks: `docs/security/runbooks/` | Baselines: `docs/security/alert-baselines.md`_',
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });

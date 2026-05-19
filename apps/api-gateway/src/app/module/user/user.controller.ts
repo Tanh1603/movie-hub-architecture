@@ -11,7 +11,7 @@ import {
   UpsertRolePermissionsRequest,
 } from '@movie-hub/shared-types';
 
-@Controller('users')
+@Controller({ version: '1', path: 'users' })
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -38,6 +38,12 @@ export class UserController {
       userId: req.userId,
       ...req.staffContext,
     };
+  }
+
+  @Get('me/permissions')
+  @UseGuards(ClerkAuthGuard)
+  getMePermissions(@Req() req: any) {
+    return this.userService.getUserEffectivePermissions(req.userId);
   }
 
   @Get('rbac/roles')
@@ -115,15 +121,6 @@ export class UserController {
     return this.userService.getUserEffectivePermissions(userId);
   }
 
-  @Post('rbac/bootstrap-super-admin')
-  @UseGuards(ClerkAuthGuard)
-  @Permission({
-    resource: PermissionResource.RBAC,
-    action: PermissionAction.UPDATE,
-    scope: PermissionScope.GLOBAL,
-  })
-  bootstrapSuperAdmin(@Req() req: any) {
-    return this.userService.bootstrapSuperAdmin(req?.correlationId);
-  }
+
 }
 

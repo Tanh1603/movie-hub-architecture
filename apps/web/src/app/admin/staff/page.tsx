@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
@@ -46,7 +45,7 @@ import {
   useUpdateStaff,
   useDeleteStaff,
   useCinemas,
-} from '@/libs/api';
+} from '@/features/admin/shared/api-hooks';
 import type {
   Staff,
   Gender,
@@ -56,7 +55,7 @@ import type {
   StaffPosition,
   CreateStaffRequest,
   UpdateStaffRequest,
-} from '@/libs/api/types';
+} from '@/types';
 
 const POSITIONS: { value: string; label: string }[] = [
   { value: 'CINEMA_MANAGER', label: 'Quản lý rạp chiếu phim' },
@@ -466,7 +465,7 @@ export default function StaffPage() {
             resetForm();
             setDialogOpen(true);
           }}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          className="bg-brand-gradient hover-brand-gradient"
         >
           <Plus className="mr-2 h-4 w-4" />
           Thêm Nhân Viên
@@ -646,7 +645,7 @@ export default function StaffPage() {
                   resetForm();
                   setDialogOpen(true);
                 }}
-                className="bg-gradient-to-r from-purple-600 to-pink-600"
+                className="bg-brand-gradient"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Thêm Nhân Viên Đầu Tiên
@@ -1034,7 +1033,7 @@ export default function StaffPage() {
             </Button>
             <Button
               onClick={handleSubmit}
-              className="bg-gradient-to-r from-purple-600 to-pink-600"
+              className="bg-brand-gradient"
               disabled={
                 createStaff.isPending ||
                 updateStaff.isPending ||
@@ -1057,3 +1056,4 @@ export default function StaffPage() {
     </div>
   );
 }
+

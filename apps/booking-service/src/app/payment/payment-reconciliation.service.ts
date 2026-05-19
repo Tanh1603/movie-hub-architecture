@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma.service';
 import { BookingStatus, PaymentMethod, PaymentStatus } from '@movie-hub/shared-types';
 import { TicketStatus } from '@movie-hub/shared-types';
-import { PAYMENT_ADAPTERS } from './payment.module';
+import { PAYMENT_ADAPTERS } from './payment.constants';
 import { PaymentAdapter } from './adapters/payment-adapter.interface';
 import { PaymentTransitionPolicyService } from './payment-transition-policy.service';
 import { Cron } from '@nestjs/schedule';

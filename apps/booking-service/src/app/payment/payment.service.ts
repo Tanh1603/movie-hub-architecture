@@ -1,4 +1,4 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger, OnModuleInit } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import { PrismaService } from '../prisma.service';
@@ -16,14 +16,18 @@ import {
   UserMessage,
   UserDetailDto,
   SERVICE_NAME,
+  SECURITY_METRICS,
   BookingDetailDto,
 } from '@movie-hub/shared-types';
 import * as crypto from 'crypto';
 import { BookingEventService } from '../redis/booking-event.service';
 import { PaymentAdapter } from './adapters/payment-adapter.interface';
-import { PAYMENT_ADAPTERS } from './payment.module';
+import { PAYMENT_ADAPTERS } from './payment.constants';
 import { WebhookReplayGuardService } from './webhook-replay-guard.service';
 import { PaymentTransitionPolicyService } from './payment-transition-policy.service';
+import { NotificationOutboxService } from '../notification/notification-outbox.service';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { Counter } from 'prom-client';
 import {
   serializeStructuredLog,
   sanitizeForLogging,
@@ -33,7 +37,7 @@ import {
 const MAX_PAGE_LIMIT = 50;
 
 @Injectable()
-export class PaymentService {
+export class PaymentService implements OnModuleInit {
   private readonly logger = new Logger(PaymentService.name);
   private readonly providerTimeoutMs = 30_000;
   private readonly paymentAdaptersByMethod: Map<PaymentMethod, PaymentAdapter>;
@@ -43,14 +47,33 @@ export class PaymentService {
     private bookingEventService: BookingEventService,
     private webhookReplayGuardService: WebhookReplayGuardService,
     private paymentTransitionPolicy: PaymentTransitionPolicyService,
+    private notificationOutboxService: NotificationOutboxService,
     @Inject(SERVICE_NAME.USER) private userClient: ClientProxy,
     private notificationService: NotificationService,
     private ticketService: TicketService,
-    @Inject(PAYMENT_ADAPTERS) paymentAdapters: PaymentAdapter[]
+    @Inject(PAYMENT_ADAPTERS) paymentAdapters: PaymentAdapter[],
+    @InjectMetric(SECURITY_METRICS.WEBHOOK_SIGNATURE_FAIL)
+    private readonly webhookSignatureFailCounter: Counter<string>,
+    @InjectMetric(SECURITY_METRICS.WEBHOOK_REPLAY_DETECTED)
+    private readonly webhookReplayDetectedCounter: Counter<string>,
+    @InjectMetric(SECURITY_METRICS.WEBHOOK_STALE_REJECTED)
+    private readonly webhookStaleRejectedCounter: Counter<string>
   ) {
     this.paymentAdaptersByMethod = new Map(
       paymentAdapters.map((adapter) => [adapter.method, adapter])
     );
+  }
+
+  async onModuleInit() {
+    this.notificationOutboxService.setConsumerCallback(async (payload) => {
+      try {
+        await this.sendBookingConfirmationEmailAsync(payload.bookingId);
+        return true;
+      } catch (e) {
+        this.logger.error('Failed to send confirmation', e);
+        return false;
+      }
+    });
   }
 
   private logInfo(
@@ -279,6 +302,9 @@ export class PaymentService {
       payment_status: string;
       expires_at: Date | null;
       promotion_code: string | null;
+      customer_name: string;
+      customer_email: string;
+      customer_phone: string | null;
     },
     dto: CreatePaymentDto,
     context?: RequestContextMetadata
@@ -344,6 +370,14 @@ export class PaymentService {
           context
         );
       }
+      
+      // Enqueue booking confirmation in outbox within the transaction
+      await this.notificationOutboxService.enqueueBookingConfirmed(tx, {
+        bookingId: booking.id,
+        customerName: booking.customer_name,
+        customerEmail: booking.customer_email,
+        customerPhone: booking.customer_phone || undefined,
+      });
 
       return newPayment;
     });
@@ -432,6 +466,7 @@ export class PaymentService {
             hasTransactionId: Boolean(callback.transactionId),
           }
         );
+        this.webhookSignatureFailCounter.inc({ provider: String(provider).toLowerCase() });
         return { data: adapter.buildIPNResponse('invalid_signature') };
       }
 
@@ -451,6 +486,7 @@ export class PaymentService {
               : 'unknown',
           }
         );
+        this.webhookStaleRejectedCounter.inc({ provider: String(provider).toLowerCase() });
         // Return 200 ack to prevent provider retry storm, but perform no mutation
         return { data: adapter.buildIPNResponse('stale_callback') };
       }
@@ -479,6 +515,7 @@ export class PaymentService {
           'duplicate',
           { dedupIdentity }
         );
+        this.webhookReplayDetectedCounter.inc({ provider: String(provider).toLowerCase() });
         return { data: adapter.buildIPNResponse('already_processed') };
       }
 
@@ -496,6 +533,9 @@ export class PaymentService {
               status: true,
               payment_status: true,
               expires_at: true,
+              customer_name: true,
+              customer_email: true,
+              customer_phone: true,
             },
           },
         },
@@ -512,6 +552,9 @@ export class PaymentService {
                 status: true,
                 payment_status: true,
                 expires_at: true,
+                customer_name: true,
+                customer_email: true,
+                customer_phone: true,
               },
             },
           },
@@ -589,6 +632,14 @@ export class PaymentService {
               `[VNPay IPN] Incrementing usage for promotion: ${bookingWithPromotion.promotion_code}`
             );
           }
+          
+          // Enqueue booking confirmation in outbox within the transaction
+          await this.notificationOutboxService.enqueueBookingConfirmed(tx, {
+            bookingId: payment.booking_id,
+            customerName: payment.booking.customer_name,
+            customerEmail: payment.booking.customer_email,
+            customerPhone: payment.booking.customer_phone || undefined,
+          });
         });
 
         // Publish booking completed event to Redis
@@ -727,6 +778,9 @@ export class PaymentService {
         payment_status: true,
         expires_at: true,
         promotion_code: true,
+        customer_name: true,
+        customer_email: true,
+        customer_phone: true,
       },
     });
 

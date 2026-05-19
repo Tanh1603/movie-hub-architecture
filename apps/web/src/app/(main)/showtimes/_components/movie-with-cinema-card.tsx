@@ -8,7 +8,7 @@ import { useCallback, useMemo } from 'react';
 import type {
   MovieWithCinemaAndShowtimeResponse,
   CinemaShowtimeGroup,
-} from '@/libs/types/movie.type';
+} from '@/types/movie.type';
 import { Skeleton } from '@movie-hub/shacdn-ui/skeleton';
 
 // ICONS

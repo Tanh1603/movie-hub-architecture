@@ -1,9 +1,13 @@
 import { Reflector } from '@nestjs/core';
 import { ForbiddenException } from '@nestjs/common';
 import { RoleGuard } from './role.guard';
-import { AccessRole } from '../constants/roles.constants';
+import { AppRole } from '@movie-hub/shared-types';
 
 describe('RoleGuard', () => {
+  const rbacDeniedCounter = {
+    inc: jest.fn(),
+  } as any;
+
   function makeContext(headers: Record<string, any>) {
     return {
       switchToHttp: () => ({
@@ -18,14 +22,14 @@ describe('RoleGuard', () => {
     const reflector = {
       getAllAndOverride: jest
         .fn()
-        .mockReturnValueOnce([AccessRole.CUSTOMER]),
+        .mockReturnValueOnce([AppRole.CUSTOMER]),
     } as unknown as Reflector;
 
-    const guard = new RoleGuard(reflector);
+    const guard = new RoleGuard(reflector, rbacDeniedCounter);
     const allowed = guard.canActivate(
       makeContext({
         'x-user-id': 'user_1',
-        'x-user-role': 'CUSTOMER',
+        'x-user-role': AppRole.CUSTOMER,
       })
     );
 
@@ -34,15 +38,15 @@ describe('RoleGuard', () => {
 
   it('rejects customer role for operational endpoint', () => {
     const reflector = {
-      getAllAndOverride: jest.fn().mockReturnValueOnce([AccessRole.STAFF]),
+      getAllAndOverride: jest.fn().mockReturnValueOnce([AppRole.STAFF]),
     } as unknown as Reflector;
 
-    const guard = new RoleGuard(reflector);
+    const guard = new RoleGuard(reflector, rbacDeniedCounter);
     expect(() =>
       guard.canActivate(
         makeContext({
           'x-user-id': 'user_1',
-          'x-user-role': 'CUSTOMER',
+          'x-user-role': AppRole.CUSTOMER,
         })
       )
     ).toThrow(ForbiddenException);
@@ -52,10 +56,10 @@ describe('RoleGuard', () => {
     const reflector = {
       getAllAndOverride: jest
         .fn()
-        .mockReturnValueOnce([AccessRole.CUSTOMER]),
+        .mockReturnValueOnce([AppRole.CUSTOMER]),
     } as unknown as Reflector;
 
-    const guard = new RoleGuard(reflector);
+    const guard = new RoleGuard(reflector, rbacDeniedCounter);
     expect(() =>
       guard.canActivate(
         makeContext({
@@ -66,31 +70,31 @@ describe('RoleGuard', () => {
     ).toThrow(ForbiddenException);
   });
 
-  it('allows admin role for admin endpoint without extra confirmation header', () => {
+  it('allows admin role for admin endpoint', () => {
     const reflector = {
-      getAllAndOverride: jest.fn().mockReturnValueOnce([AccessRole.ADMIN]),
+      getAllAndOverride: jest.fn().mockReturnValueOnce([AppRole.ADMIN]),
     } as unknown as Reflector;
 
-    const guard = new RoleGuard(reflector);
+    const guard = new RoleGuard(reflector, rbacDeniedCounter);
     const allowed = guard.canActivate(
       makeContext({
         'x-user-id': 'user_1',
-        'x-user-role': 'ADMIN',
+        'x-user-role': AppRole.ADMIN,
       })
     );
     expect(allowed).toBe(true);
   });
 
-  it('allows assistant manager for ticket clerk endpoint (staff tier)', () => {
+  it('allows staff role for staff endpoint', () => {
     const reflector = {
-      getAllAndOverride: jest.fn().mockReturnValueOnce([AccessRole.STAFF]),
+      getAllAndOverride: jest.fn().mockReturnValueOnce([AppRole.STAFF]),
     } as unknown as Reflector;
 
-    const guard = new RoleGuard(reflector);
+    const guard = new RoleGuard(reflector, rbacDeniedCounter);
     const allowed = guard.canActivate(
       makeContext({
         'x-user-id': 'user_1',
-        'x-user-role': 'STAFF',
+        'x-user-role': AppRole.STAFF,
       })
     );
     expect(allowed).toBe(true);
@@ -100,19 +104,32 @@ describe('RoleGuard', () => {
     const reflector = {
       getAllAndOverride: jest
         .fn()
-        .mockReturnValueOnce([AccessRole.CINEMA_MANAGER]),
+        .mockReturnValueOnce([AppRole.CINEMA_MANAGER]),
     } as unknown as Reflector;
 
-    const guard = new RoleGuard(reflector);
+    const guard = new RoleGuard(reflector, rbacDeniedCounter);
     expect(() =>
       guard.canActivate(
         makeContext({
           'x-user-id': 'user_1',
-          'x-user-role': 'STAFF',
+          'x-user-role': AppRole.STAFF,
         })
       )
     ).toThrow(ForbiddenException);
   });
+
+  it('allows cinema manager for staff endpoint', () => {
+    const reflector = {
+      getAllAndOverride: jest.fn().mockReturnValueOnce([AppRole.STAFF]),
+    } as unknown as Reflector;
+
+    const guard = new RoleGuard(reflector, rbacDeniedCounter);
+    const allowed = guard.canActivate(
+      makeContext({
+        'x-user-id': 'user_1',
+        'x-user-role': AppRole.CINEMA_MANAGER,
+      })
+    );
+    expect(allowed).toBe(true);
+  });
 });
-
-

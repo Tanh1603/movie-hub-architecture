@@ -1,5 +1,5 @@
 import { Button } from '@movie-hub/shacdn-ui/button';
-import { BookingSummaryDto } from '@/libs/types/booking.type';
+import { BookingSummaryDto } from '@/types/booking.type';
 import { format } from 'date-fns';
 import Link from 'next/link';
 

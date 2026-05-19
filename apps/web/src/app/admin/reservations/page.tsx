@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState, useMemo, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
@@ -45,12 +44,14 @@ import {
   useUpdateBookingStatus,
   useConfirmBooking,
   useCinemas,
-} from '@/libs/api';
-import type { BookingStatus, PaymentStatus } from '@/libs/api/types';
+} from '@/features/admin/shared/api-hooks';
+import type { BookingStatus, PaymentStatus } from '@/types';
 import {
   BookingStatus as BookingStatusEnum,
   PaymentStatus as PaymentStatusEnum,
 } from '@movie-hub/shared-types/booking/enum';
+
+import { adjustDateFromBackend } from '@/app/utils/timezone-fix';
 
 export default function ReservationsPage() {
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
@@ -248,9 +249,8 @@ export default function ReservationsPage() {
   };
 
   const formatDate = (date: string | Date) => {
-    // TIMEZONE WORKAROUND: BE adds +7h in mapper, we need to subtract it
-    const dateObj = new Date(date);
-    const correctedDate = new Date(dateObj.getTime() - 7 * 60 * 60 * 1000);
+    // TIMEZONE FIX: Use adjustDateFromBackend to subtract 7 hours
+    const correctedDate = adjustDateFromBackend(date);
     return correctedDate.toLocaleString('vi-VN', {
       year: 'numeric',
       month: 'short',
@@ -274,7 +274,7 @@ export default function ReservationsPage() {
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200/60 shadow-md hover:shadow-lg transition-shadow">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold text-purple-700 uppercase tracking-wider">
-              � Tổng Đặt Chỗ
+              📋 Tổng Đặt Chỗ
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -343,7 +343,7 @@ export default function ReservationsPage() {
           {/* Cinema Filter */}
           <div className="space-y-2">
             <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
-              � Rạp
+              🎬 Rạp
             </label>
             <Select
               value={filterCinemaId}
@@ -1000,7 +1000,7 @@ export default function ReservationsPage() {
             </Button>
             <Button
               onClick={handleUpdateStatus}
-              className="bg-gradient-to-r from-purple-600 to-pink-600"
+              className="bg-brand-gradient"
               disabled={updateStatus.isPending}
             >
               {updateStatus.isPending

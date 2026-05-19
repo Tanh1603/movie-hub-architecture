@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, Tag } from 'lucide-react';
@@ -23,8 +22,13 @@ import {
 import { Label } from '@movie-hub/shacdn-ui/label';
 import { Input } from '@movie-hub/shacdn-ui/input';
 import { useToast } from '../_libs/use-toast';
-import { useGenres, useCreateGenre, useUpdateGenre, useDeleteGenre } from '@/libs/api';
-import type { Genre } from '@/libs/api/types';
+import {
+  useAdminCreateGenre,
+  useAdminDeleteGenre,
+  useAdminGenres,
+  useAdminUpdateGenre,
+} from '@/features/admin/genres';
+import type { Genre } from '@/types';
 
 export default function GenresPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -38,11 +42,11 @@ export default function GenresPage() {
   const { toast } = useToast();
 
   // API hooks
-  const { data: genresData = [], isLoading: loading, error } = useGenres();
+  const { data: genresData = [], isLoading: loading, error } = useAdminGenres();
   const genres = genresData || [];
-  const createGenre = useCreateGenre();
-  const updateGenre = useUpdateGenre();
-  const deleteGenre = useDeleteGenre();
+  const createGenre = useAdminCreateGenre();
+  const updateGenre = useAdminUpdateGenre();
+  const deleteGenre = useAdminDeleteGenre();
 
   // Show error toast if query fails
   if (error) {
@@ -127,7 +131,7 @@ export default function GenresPage() {
             resetForm();
             setDialogOpen(true);
           }}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          className="bg-brand-gradient hover-brand-gradient"
         >
           <Plus className="mr-2 h-4 w-4" />
           Thêm Thể Loại
@@ -167,7 +171,7 @@ export default function GenresPage() {
                   resetForm();
                   setDialogOpen(true);
                 }}
-                className="bg-gradient-to-r from-purple-600 to-pink-600"
+                className="bg-brand-gradient"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Thêm Thể Loại Đầu Tiên
@@ -266,7 +270,7 @@ export default function GenresPage() {
             </Button>
             <Button
               onClick={handleSubmit}
-              className="bg-gradient-to-r from-purple-600 to-pink-600"
+              className="bg-brand-gradient"
             >
               {editingGenre ? 'Cập Nhật Thể Loại' : 'Tạo Thể Loại'}
             </Button>
@@ -305,3 +309,4 @@ export default function GenresPage() {
     </div>
   );
 }
+

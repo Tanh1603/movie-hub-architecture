@@ -7,6 +7,7 @@ import {
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { Film, LogIn } from 'lucide-react';
 import { BlurCircle } from './blur-circle';
+import { motion } from 'framer-motion';
 
 export const RequireSignIn = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -14,7 +15,11 @@ export const RequireSignIn = ({ children }: { children: React.ReactNode }) => {
       <SignedIn>{children}</SignedIn>
 
       <SignedOut>
-        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col items-center justify-center min-h-[60vh]"
+        >
           <BlurCircle top="-100px" left="-100px" />
           <BlurCircle bottom="0" right="0" />
 
@@ -32,7 +37,7 @@ export const RequireSignIn = ({ children }: { children: React.ReactNode }) => {
               Đăng nhập ngay
             </Button>
           </SignInButton>
-        </div>
+        </motion.div>
       </SignedOut>
     </>
   );

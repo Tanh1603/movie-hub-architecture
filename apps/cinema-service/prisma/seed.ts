@@ -124,9 +124,12 @@ const slots = [
   { label: '21:15', hour: 21, minute: 15 },
 ];
 
+const today = new Date();
+const bookingDateStr = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - 2)).toISOString().slice(0, 10);
+
 const bookingRef = {
   bookingId: toUuid('booking-dune2-1'),
-  showtimeSeed: { date: '2025-12-30', slot: slots[0].label, hallId: hallSeed[0].id, movieId: movieRefs.dune2.movieId },
+  showtimeSeed: { date: bookingDateStr, slot: slots[0].label, hallId: hallSeed[0].id, movieId: movieRefs.dune2.movieId },
   seats: ['A-1', 'A-2'],
 };
 
@@ -217,8 +220,8 @@ async function main() {
   }
 
   // Use UTC to keep day string stable across environments and match booking seed IDs
-  const start = new Date(Date.UTC(2025, 11, 28)); // 2025-12-28
-  const end = new Date(Date.UTC(2026, 0, 15)); // 2026-01-15
+  const start = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - 5)); // 5 days ago
+  const end = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 10)); // 10 days hence
   const movieOrder = [movieRefs.dune2, movieRefs.insideOut2, movieRefs.oppenheimer, movieRefs.gxk];
 
   const showtimesPayload: any[] = [];

@@ -7,12 +7,12 @@ export function SensitiveThrottle() {
     Throttle({
       sensitiveBurst: {
         ttl: 10_000,
-        limit: 10,
-        blockDuration: 30_000,
+        limit: 40,
+        blockDuration: 60_000,
       },
       sensitiveSustained: {
         ttl: 60_000,
-        limit: 40,
+        limit: 100,
         blockDuration: 120_000,
       },
     })

@@ -1,16 +1,12 @@
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
-export const dynamic = 'force-dynamic';
-import { getMovieDetail } from '@/libs/actions/movies/movie-action';
 import { DateSelect } from './_components/date-select';
 import { MovieCast } from './_components/movie-cast';
 import { MovieHeader } from './_components/movie-header';
 import { getQueryClient } from '@/libs/get-query-client';
-import {
-  getAvailableCities,
-  getCinemaDetail,
-} from '@/libs/actions/cinemas/cinema-action';
+import { getAvailableCities, getCinemaDetail, getMovieDetail } from '@/api/services';
 import { TrailerModal } from '@/components/modal/trailer-modal';
 import { MovieReviews } from './_components/movie-reviews';
+import { clientQueryKeys } from '@/features/client/shared/query-keys';
 
 export default async function MovieDetailsPage({
   params,
@@ -24,7 +20,7 @@ export default async function MovieDetailsPage({
   const cinemaId = resolvedSearchParams?.cinemaId;
   const queryClient = getQueryClient();
   await queryClient.prefetchQuery({
-    queryKey: ['movie-detail', id],
+    queryKey: clientQueryKeys.movies.detail(id),
     queryFn: () => getMovieDetail(id),
   });
   const availableCities = await queryClient.fetchQuery({
@@ -33,8 +29,11 @@ export default async function MovieDetailsPage({
   });
   if (cinemaId) {
     await queryClient.prefetchQuery({
-      queryKey: ['cinema-detail', cinemaId],
-      queryFn: () => getCinemaDetail(cinemaId),
+      queryKey: clientQueryKeys.cinemas.detail(cinemaId),
+      queryFn: async () => {
+        const response = await getCinemaDetail(cinemaId);
+        return response.data;
+      },
     });
   }
 
@@ -54,7 +53,7 @@ export default async function MovieDetailsPage({
           <DateSelect
             movieId={id}
             cinemaId={cinemaId}
-            availableCities={availableCities.data}
+            availableCities={availableCities?.data ?? []}
           />
 
           <MovieReviews movieId={id} />

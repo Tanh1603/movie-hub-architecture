@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { moviesApi } from '@/libs/api/services';
+import { moviesApi } from '@/api/services';
 import { StarRating } from '@/components/ui/star-rating';
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { Textarea } from '@movie-hub/shacdn-ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { CreateReviewRequest, Review } from '@/libs/api/types';
+import { CreateReviewRequest, Review } from '@/types';
 
 interface ReviewFormProps {
   movieId: string;
@@ -165,7 +165,7 @@ export function ReviewForm({
               Đang gửi...
             </>
           ) : (
-            'Gửi Đánh Giá'
+            'Gửi đánh giá'
           )}
         </Button>
       </form>

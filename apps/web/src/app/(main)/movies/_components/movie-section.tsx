@@ -1,5 +1,5 @@
 'use client';
-import { useGetMovies } from '@/hooks/movie-hooks';
+import { useGetMovies } from '@/features/client/movies/hooks';
 import MovieCard from '../../_components/MovieCard';
 import { useInView } from 'react-intersection-observer';
 import { useEffect } from 'react';

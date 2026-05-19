@@ -10,28 +10,23 @@ import {
   PermissionRequirement,
   SERVICE_NAME,
   UserMessage,
+  SECURITY_METRICS,
 } from '@movie-hub/shared-types';
 import { lastValueFrom } from 'rxjs';
 import { TokenValidationService } from '../auth/token-validation.service';
 import { BruteForceProtectionService } from '../auth/brute-force-protection.service';
 import { Request } from 'express';
 import { createHash } from 'crypto';
-import { AccessRole } from '../constants/roles.constants';
+import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { Counter } from 'prom-client';
 
 @Injectable()
 export class ClerkAuthGuard implements CanActivate {
   private readonly logger = new Logger(ClerkAuthGuard.name);
   private static readonly ROLE_PRECEDENCE: AppRole[] = [
-    AppRole.SUPER_ADMIN,
     AppRole.ADMIN,
     AppRole.CINEMA_MANAGER,
-    AppRole.ASSISTANT_MANAGER,
-    AppRole.TICKET_CLERK,
-    AppRole.CONCESSION_STAFF,
-    AppRole.USHER,
-    AppRole.PROJECTIONIST,
-    AppRole.CLEANER,
-    AppRole.SECURITY,
+    AppRole.STAFF,
     AppRole.CUSTOMER,
   ];
 
@@ -39,7 +34,11 @@ export class ClerkAuthGuard implements CanActivate {
     private readonly reflector: Reflector,
     @Inject(SERVICE_NAME.USER) private readonly userClient: ClientProxy,
     private readonly tokenValidationService: TokenValidationService,
-    private readonly bruteForceProtectionService: BruteForceProtectionService
+    private readonly bruteForceProtectionService: BruteForceProtectionService,
+    @InjectMetric(SECURITY_METRICS.AUTH_FAILURES)
+    private readonly authFailuresCounter: Counter<string>,
+    @InjectMetric(SECURITY_METRICS.BRUTE_FORCE_LOCKOUTS)
+    private readonly bruteForceLockoutsCounter: Counter<string>
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -56,6 +55,7 @@ export class ClerkAuthGuard implements CanActivate {
     const token = this.extractToken(request);
     if (!token) {
       this.logger.warn(`Missing auth token correlationId=${correlationId}`);
+      this.authFailuresCounter.inc({ reason: 'missing' });
       throw new UnauthorizedException('Authentication token is required');
     }
 
@@ -68,6 +68,8 @@ export class ClerkAuthGuard implements CanActivate {
         this.logger.warn(
           `Auth lockout active account=${this.fingerprint(accountKey)} correlationId=${correlationId}`
         );
+        this.authFailuresCounter.inc({ reason: 'lockout' });
+        this.bruteForceLockoutsCounter.inc({ endpoint: request.path ?? 'unknown' });
         throw new HttpException(
           {
             statusCode: HttpStatus.TOO_MANY_REQUESTS,
@@ -97,8 +99,9 @@ export class ClerkAuthGuard implements CanActivate {
         accountKey,
         correlationId
       );
+      this.authFailuresCounter.inc({ reason: 'invalid_token' });
       this.logger.warn(
-        `Token verification failed account=${this.fingerprint(accountKey)} correlationId=${correlationId}`
+        `Token verification failed account=${this.fingerprint(accountKey)} error=${error instanceof Error ? error.message : String(error)} correlationId=${correlationId}`
       );
       throw new UnauthorizedException('Invalid or expired authentication token');
     }
@@ -137,7 +140,7 @@ export class ClerkAuthGuard implements CanActivate {
               };
               request.headers['x-cinema-id'] = String(staffResult.data.cinemaId);
               if (!request.headers['x-user-role']) {
-                request.headers['x-user-role'] = this.mapStaffPositionToAccessRole(
+                request.headers['x-user-role'] = this.mapStaffPositionToAppRole(
                   String(staffResult.data.position)
                 );
               }
@@ -152,7 +155,7 @@ export class ClerkAuthGuard implements CanActivate {
     }
 
     if (!request.headers['x-user-role']) {
-      request.headers['x-user-role'] = AccessRole.CUSTOMER;
+      request.headers['x-user-role'] = AppRole.CUSTOMER;
     }
 
     if (!this.hasValidUserContextHeaders(request)) {
@@ -183,7 +186,7 @@ export class ClerkAuthGuard implements CanActivate {
       );
       if (!hasPermission) {
         this.logger.warn(
-          `Missing permission userId=${userId} required=${JSON.stringify(requiredPermission)} correlationId=${correlationId}`
+          `Missing permission userId=${userId} required=${JSON.stringify(requiredPermission)} actualPermissions=[${permissions.join(',')}] correlationId=${correlationId}`
         );
         throw new ForbiddenException('Insufficient permissions');
       }
@@ -241,51 +244,59 @@ export class ClerkAuthGuard implements CanActivate {
     userPermissions: string[],
     required: PermissionRequirement
   ): boolean {
-    const normalizedAction = required.action.toLowerCase();
-    const normalizedScope = (required.scope || 'global').toLowerCase();
-    const candidates = new Set<string>([
-      `${required.resource.toLowerCase()}:${normalizedAction}:${normalizedScope}`,
-      `${required.resource.toLowerCase()}:${normalizedAction}`,
-    ]);
+    const rResource = required.resource.toLowerCase();
+    const rAction = required.action.toLowerCase();
+    const rScope = (required.scope || 'global').toLowerCase();
 
-    return userPermissions.some((permission) => candidates.has(permission));
+    return userPermissions.some((up) => {
+      const parts = up.split(':');
+      if (parts.length < 2) return false;
+      const resource = parts[0].toLowerCase();
+      const action = parts[1].toLowerCase();
+      const scope = (parts[2] || 'global').toLowerCase();
+
+      if (resource !== rResource) return false;
+
+      const matchesAction =
+        action === rAction ||
+        action === 'manage' ||
+        (action === 'update' && rAction === 'read') ||
+        (action === 'create' && rAction === 'read'); // create usually implies read in some contexts, but let's stick to manage/update
+
+      if (!matchesAction) return false;
+
+      // Scope inheritance: global > cinema > own
+      if (scope === 'global') return true;
+      if (scope === 'cinema' && (rScope === 'cinema' || rScope === 'own')) return true;
+      if (scope === 'own' && rScope === 'own') return true;
+
+      return false;
+    });
   }
 
-  private pickEffectiveRole(userRoles: string[]): AccessRole | null {
+  private pickEffectiveRole(userRoles: string[]): AppRole | null {
     if (!Array.isArray(userRoles) || userRoles.length === 0) {
       return null;
     }
 
-    if (
-      userRoles.includes(AppRole.SUPER_ADMIN) ||
-      userRoles.includes(AppRole.ADMIN)
-    ) {
-      return AccessRole.ADMIN;
-    }
-    if (userRoles.includes(AppRole.CINEMA_MANAGER)) {
-      return AccessRole.CINEMA_MANAGER;
-    }
-    if (userRoles.includes(AppRole.CUSTOMER)) {
-      return AccessRole.CUSTOMER;
-    }
-    if (userRoles.some((role) => ClerkAuthGuard.ROLE_PRECEDENCE.includes(role as AppRole))) {
-      return AccessRole.STAFF;
+    if (userRoles.includes(AppRole.ADMIN)) {
+      return AppRole.ADMIN;
     }
 
-    return null;
+    return (
+      ClerkAuthGuard.ROLE_PRECEDENCE.find((role) => userRoles.includes(role)) ||
+      null
+    );
   }
 
-  private mapStaffPositionToAccessRole(position: string): AccessRole {
-    if (position === AppRole.CINEMA_MANAGER) {
-      return AccessRole.CINEMA_MANAGER;
+  private mapStaffPositionToAppRole(position: string): AppRole {
+    if (position === AppRole.ADMIN) {
+      return AppRole.ADMIN;
     }
-    if (position === AppRole.ADMIN || position === AppRole.SUPER_ADMIN) {
-      return AccessRole.ADMIN;
-    }
-    if (position === AppRole.CUSTOMER) {
-      return AccessRole.CUSTOMER;
-    }
-    return AccessRole.STAFF;
+    const role = position as AppRole;
+    return ClerkAuthGuard.ROLE_PRECEDENCE.includes(role)
+      ? role
+      : AppRole.STAFF;
   }
 
   private fingerprint(value: string): string {

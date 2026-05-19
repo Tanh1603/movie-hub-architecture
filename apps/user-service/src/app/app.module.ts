@@ -5,6 +5,9 @@ import Joi from 'joi';
 import { StaffModule } from './staff/staff.module';
 import { UserModule } from './user/user.module';
 import { ClerkModule } from './clerk.module';
+
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { securityMetricProviders } from './security-metrics';
 import { HealthController } from './health.controller';
 import { SharedMetricsModule } from '@movie-hub/shared-metrics';
 import { PrismaService } from './prisma.service';
@@ -26,14 +29,25 @@ import { PrismaService } from './prisma.service';
         CLERK_SECRET_KEY: Joi.string().required(),
         DEFAULT_ADMIN_EMAIL: Joi.string().email().optional(),
         DEFAULT_ADMIN_INITIAL_PASSWORD: Joi.string().min(8).optional(),
+        DEFAULT_MANAGER_INITIAL_PASSWORD: Joi.string().min(8).optional(),
         DEFAULT_STAFF_INITIAL_PASSWORD: Joi.string().min(8).optional(),
         CLERK_SYNC_MAX_ATTEMPTS: Joi.number().min(1).max(3).optional(),
         CLERK_SYNC_PROCESS_CRON: Joi.string().optional(),
         CLERK_SYNC_RECONCILIATION_CRON: Joi.string().optional(),
       }),
     }),
+    PrometheusModule.register({
+      path: '/metrics',
+      defaultMetrics: {
+        enabled: true,
+      },
+    }),
+    ScheduleModule.forRoot(),
+    ClerkModule,
+    StaffModule,
+    UserModule,
   ],
   controllers: [HealthController],
-  providers: [PrismaService],
+  providers: [PrismaService, ...securityMetricProviders],
 })
 export class AppModule {}

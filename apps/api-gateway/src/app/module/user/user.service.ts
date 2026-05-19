@@ -57,11 +57,5 @@ export class UserService {
     );
   }
 
-  async bootstrapSuperAdmin(correlationId?: string) {
-    return lastValueFrom(
-      this.userClient.send(UserMessage.AUTH.BOOTSTRAP_SUPER_ADMIN, {
-        correlationId,
-      })
-    );
-  }
+  
 }

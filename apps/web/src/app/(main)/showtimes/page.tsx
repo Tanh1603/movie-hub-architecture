@@ -1,7 +1,7 @@
 'use client';
 
 import { DateSelect7Days } from '@/components/date-select-7days';
-import { useGetAllMoviesWithShowtimes } from '@/hooks/cinema-hooks';
+import { useGetAllMoviesWithShowtimes } from '@/features/client/cinemas/hooks';
 import { Loader } from '@/components/loader';
 import { useState } from 'react';
 import { MovieShowtimeCard } from './_components/movie-showtime-card';

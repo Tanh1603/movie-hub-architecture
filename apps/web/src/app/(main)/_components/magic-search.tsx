@@ -1,7 +1,7 @@
 'use client';
 
-import { useSearchCinemas } from '@/hooks/cinema-hooks';
-import { useGetMovies } from '@/hooks/movie-hooks';
+import { useSearchCinemas } from '@/features/client/cinemas/hooks';
+import { useGetMovies } from '@/features/client/movies/hooks';
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { Input } from '@movie-hub/shacdn-ui/input';
 import { Loader2, SearchIcon, XIcon } from 'lucide-react';

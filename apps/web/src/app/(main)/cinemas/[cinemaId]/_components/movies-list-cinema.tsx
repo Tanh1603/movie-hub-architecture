@@ -1,6 +1,6 @@
 'use client';
 import { ErrorFallback } from '@/components/error-fallback';
-import { useGetMoviesAtCinema } from '@/hooks/cinema-hooks';
+import { useGetMoviesAtCinema } from '@/features/client/cinemas/hooks';
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { useCallback } from 'react';
 import MovieCard from '../../../_components/MovieCard';

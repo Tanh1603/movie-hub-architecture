@@ -59,6 +59,7 @@ const permissions: PermissionSeed[] = [
   { name: 'showtime:read:cinema', resourceCode: 'showtime', action: PermissionAction.READ, scope: PermissionScope.CINEMA },
   { name: 'showtime:update:cinema', resourceCode: 'showtime', action: PermissionAction.UPDATE, scope: PermissionScope.CINEMA },
   { name: 'dashboard:read:global', resourceCode: 'dashboard', action: PermissionAction.READ, scope: PermissionScope.GLOBAL },
+  { name: 'dashboard:read:cinema', resourceCode: 'dashboard', action: PermissionAction.READ, scope: PermissionScope.CINEMA },
   { name: 'rbac:read:global', resourceCode: 'rbac', action: PermissionAction.READ, scope: PermissionScope.GLOBAL },
   { name: 'rbac:update:global', resourceCode: 'rbac', action: PermissionAction.UPDATE, scope: PermissionScope.GLOBAL },
   { name: 'config:read:global', resourceCode: 'config', action: PermissionAction.READ, scope: PermissionScope.GLOBAL },
@@ -66,7 +67,7 @@ const permissions: PermissionSeed[] = [
 ];
 
 const rolePermissionMatrix: Record<string, string[]> = {
-  SUPER_ADMIN: permissions.map((permission) => permission.name),
+  ADMIN: permissions.map((permission) => permission.name),
   CUSTOMER: [
     'booking:read:own',
     'booking:update:own',
@@ -92,6 +93,7 @@ const rolePermissionMatrix: Record<string, string[]> = {
     'refund:update:cinema',
     'showtime:read:cinema',
     'showtime:update:cinema',
+    'dashboard:read:cinema',
   ],
   ASSISTANT_MANAGER: [
     'booking:read:cinema',
@@ -103,6 +105,7 @@ const rolePermissionMatrix: Record<string, string[]> = {
     'refund:read:cinema',
     'showtime:read:cinema',
     'showtime:update:cinema',
+    'dashboard:read:cinema',
   ],
   TICKET_CLERK: [
     'booking:read:cinema',
@@ -155,7 +158,7 @@ async function main() {
   }
 
   const roles = {
-    SUPER_ADMIN: await prisma.role.create({ data: { name: 'SUPER_ADMIN' } }),
+    ADMIN: await prisma.role.create({ data: { name: 'ADMIN' } }),
     CUSTOMER: await prisma.role.create({ data: { name: 'CUSTOMER' } }),
     CINEMA_MANAGER: await prisma.role.create({ data: { name: 'CINEMA_MANAGER' } }),
     ASSISTANT_MANAGER: await prisma.role.create({ data: { name: 'ASSISTANT_MANAGER' } }),
@@ -194,7 +197,7 @@ async function main() {
 
   await prisma.userRole.createMany({
     data: [
-      { userId: users.admin, roleId: roles.SUPER_ADMIN.id },
+      { userId: users.admin, roleId: roles.ADMIN.id },
       { userId: users.manager, roleId: roles.CINEMA_MANAGER.id },
       { userId: users.staff, roleId: roles.TICKET_CLERK.id },
       { userId: users.customer1, roleId: roles.CUSTOMER.id },
