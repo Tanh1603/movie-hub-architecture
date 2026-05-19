@@ -49,6 +49,10 @@ export class PrometheusMetricsService {
     return this.registry.metrics();
   }
 
+  getRegistry() {
+    return this.registry;
+  }
+
   incrementInFlight(method: string, route: string): void {
     this.httpRequestsInFlight.inc({ method, route });
   }

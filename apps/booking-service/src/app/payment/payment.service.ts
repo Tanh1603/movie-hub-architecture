@@ -26,7 +26,7 @@ import { PAYMENT_ADAPTERS } from './payment.constants';
 import { WebhookReplayGuardService } from './webhook-replay-guard.service';
 import { PaymentTransitionPolicyService } from './payment-transition-policy.service';
 import { NotificationOutboxService } from '../notification/notification-outbox.service';
-import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { InjectSecurityMetric } from '@movie-hub/shared-metrics';
 import { Counter } from 'prom-client';
 import {
   serializeStructuredLog,
@@ -52,11 +52,11 @@ export class PaymentService implements OnModuleInit {
     private notificationService: NotificationService,
     private ticketService: TicketService,
     @Inject(PAYMENT_ADAPTERS) paymentAdapters: PaymentAdapter[],
-    @InjectMetric(SECURITY_METRICS.WEBHOOK_SIGNATURE_FAIL)
+    @InjectSecurityMetric(SECURITY_METRICS.WEBHOOK_SIGNATURE_FAIL)
     private readonly webhookSignatureFailCounter: Counter<string>,
-    @InjectMetric(SECURITY_METRICS.WEBHOOK_REPLAY_DETECTED)
+    @InjectSecurityMetric(SECURITY_METRICS.WEBHOOK_REPLAY_DETECTED)
     private readonly webhookReplayDetectedCounter: Counter<string>,
-    @InjectMetric(SECURITY_METRICS.WEBHOOK_STALE_REJECTED)
+    @InjectSecurityMetric(SECURITY_METRICS.WEBHOOK_STALE_REJECTED)
     private readonly webhookStaleRejectedCounter: Counter<string>
   ) {
     this.paymentAdaptersByMethod = new Map(

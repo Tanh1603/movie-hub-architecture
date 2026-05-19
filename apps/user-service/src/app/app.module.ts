@@ -6,8 +6,6 @@ import { StaffModule } from './staff/staff.module';
 import { UserModule } from './user/user.module';
 import { ClerkModule } from './clerk.module';
 
-import { PrometheusModule } from '@willsoto/nestjs-prometheus';
-import { securityMetricProviders } from './security-metrics';
 import { HealthController } from './health.controller';
 import { SharedMetricsModule } from '@movie-hub/shared-metrics';
 import { PrismaService } from './prisma.service';
@@ -36,18 +34,8 @@ import { PrismaService } from './prisma.service';
         CLERK_SYNC_RECONCILIATION_CRON: Joi.string().optional(),
       }),
     }),
-    PrometheusModule.register({
-      path: '/metrics',
-      defaultMetrics: {
-        enabled: true,
-      },
-    }),
-    ScheduleModule.forRoot(),
-    ClerkModule,
-    StaffModule,
-    UserModule,
   ],
   controllers: [HealthController],
-  providers: [PrismaService, ...securityMetricProviders],
+  providers: [PrismaService],
 })
 export class AppModule {}

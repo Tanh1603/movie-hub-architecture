@@ -335,8 +335,8 @@ export class BackupService implements OnModuleInit {
   private executeScript(scriptPath: string, env?: NodeJS.ProcessEnv) {
     return new Promise<RunResult>((resolve) => {
       this.logger.log(`Executing backup script: ${scriptPath}`);
-      const child = spawn(scriptPath, {
-        shell: true,
+      // Explicitly use bash instead of shell: true to avoid issues in Alpine Linux
+      const child = spawn('bash', [scriptPath], {
         stdio: 'inherit',
         env: {
           ...process.env,

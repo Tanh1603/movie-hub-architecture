@@ -1,37 +1,38 @@
 import { Global, Module } from '@nestjs/common';
-import { makeCounterProvider } from '@willsoto/nestjs-prometheus';
+import { createSecurityCounterProvider, SharedMetricsModule } from '@movie-hub/shared-metrics';
 import { SECURITY_METRICS } from '@movie-hub/shared-types';
 
 export const securityMetricProviders = [
-  makeCounterProvider({
-    name: SECURITY_METRICS.WEBHOOK_SIGNATURE_FAIL,
-    help: 'Total number of webhook signature validation failures',
-    labelNames: ['provider'],
-  }),
-  makeCounterProvider({
-    name: SECURITY_METRICS.WEBHOOK_REPLAY_DETECTED,
-    help: 'Total number of webhook replays detected',
-    labelNames: ['provider'],
-  }),
-  makeCounterProvider({
-    name: SECURITY_METRICS.WEBHOOK_STALE_REJECTED,
-    help: 'Total number of stale webhooks rejected',
-    labelNames: ['provider'],
-  }),
-  makeCounterProvider({
-    name: SECURITY_METRICS.NOTIFICATION_OUTBOX_DEAD_LETTER,
-    help: 'Total number of notifications moved to dead letter',
-    labelNames: ['event_type'],
-  }),
-  makeCounterProvider({
-    name: SECURITY_METRICS.NOTIFICATION_DISPATCH_FAILURE,
-    help: 'Total number of notification dispatch failures',
-    labelNames: ['provider'],
-  }),
+  createSecurityCounterProvider(
+    SECURITY_METRICS.WEBHOOK_SIGNATURE_FAIL,
+    'Total number of webhook signature validation failures',
+    ['provider']
+  ),
+  createSecurityCounterProvider(
+    SECURITY_METRICS.WEBHOOK_REPLAY_DETECTED,
+    'Total number of webhook replays detected',
+    ['provider']
+  ),
+  createSecurityCounterProvider(
+    SECURITY_METRICS.WEBHOOK_STALE_REJECTED,
+    'Total number of stale webhooks rejected',
+    ['provider']
+  ),
+  createSecurityCounterProvider(
+    SECURITY_METRICS.NOTIFICATION_OUTBOX_DEAD_LETTER,
+    'Total number of notifications moved to dead letter',
+    ['event_type']
+  ),
+  createSecurityCounterProvider(
+    SECURITY_METRICS.NOTIFICATION_DISPATCH_FAILURE,
+    'Total number of notification dispatch failures',
+    ['provider']
+  ),
 ];
 
 @Global()
 @Module({
+  imports: [SharedMetricsModule],
   providers: securityMetricProviders,
   exports: securityMetricProviders,
 })

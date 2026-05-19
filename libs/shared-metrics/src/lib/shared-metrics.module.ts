@@ -6,7 +6,7 @@ import { PrometheusMetricsService } from './prometheus-metrics.service';
 @Module({
   controllers: [MetricsController],
   providers: [PrometheusMetricsService, PrometheusMetricsMiddleware],
-  exports: [PrometheusMetricsService],
+  exports: [PrometheusMetricsService, PrometheusMetricsMiddleware],
 })
 export class SharedMetricsModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {

@@ -17,19 +17,13 @@ import { NotificationModule } from './notification/notification.module';
 import { OutboxModule } from './outbox/outbox.module';
 import { HealthController } from './health.controller';
 import Joi from 'joi';
-import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { SecurityMetricsModule } from './security-metrics';
 import { SharedMetricsModule } from '@movie-hub/shared-metrics';
 
 @Module({
   imports: [
     SecurityMetricsModule,
-    PrometheusModule.register({
-      path: '/metrics',
-      defaultMetrics: {
-        enabled: true,
-      },
-    }),
+
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: 'apps/booking-service/.env',

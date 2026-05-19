@@ -1,5 +1,5 @@
 groups:
-  - name: moviehub-phase-10c-alerts
+  - name: moviehub_alerts
     rules:
       - alert: MovieHubServiceDown
         expr: up{job=~".*-metrics"} == 0
