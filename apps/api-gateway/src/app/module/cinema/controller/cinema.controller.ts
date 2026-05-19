@@ -70,7 +70,7 @@ export class CinemaController {
    */
   @Post('cinema')
   @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
+  @Permission({ resource: 'cinema', action: 'create', scope: 'global' })
   createCinema(@Req() req: any, @Body() createCinemaDto: CreateCinemaRequest) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -101,7 +101,7 @@ export class CinemaController {
    */
   @Delete('cinema/:cinemaId')
   @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
+  @Permission({ resource: 'cinema', action: 'delete', scope: 'global' })
   deleteCinema(@Req() req: any, @Param('cinemaId') cinemaId: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
