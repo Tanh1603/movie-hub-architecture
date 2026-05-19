@@ -36,6 +36,7 @@ export class TokenValidationService {
       audience: audience.length > 0 ? audience : undefined,
       authorizedParties:
         authorizedParties.length > 0 ? authorizedParties : undefined,
+      clockSkewInMs: 60000,
     })) as VerifiedToken;
 
     this.assertIssuer(payload.iss);
