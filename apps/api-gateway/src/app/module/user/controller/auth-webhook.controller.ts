@@ -5,7 +5,7 @@ import { UserService } from '../user.service';
 import { SkipThrottle } from '@nestjs/throttler';
 
 type ClerkWebhookEnvelope = {
-  data?: { id?: string };
+  data?: { id?: string; user_id?: string; [key: string]: any };
   type?: string;
 };
 
@@ -52,6 +52,13 @@ export class AuthWebhookController {
     });
 
     this.logger.log(`Processed Clerk webhook eventId=${svixId} type=${event.type ?? 'unknown'}`);
+
+    if (event.type === 'session.created') {
+      this.logger.log(`User logged in: userId=${event.data?.user_id} sessionId=${event.data?.id}`);
+    } else if (event.type === 'session.ended' || event.type === 'session.removed' || event.type === 'session.revoked') {
+      this.logger.log(`User logged out: userId=${event.data?.user_id} sessionId=${event.data?.id}`);
+    }
+
     return { ok: true };
   }
 }

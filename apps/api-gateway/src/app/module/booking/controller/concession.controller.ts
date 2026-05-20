@@ -1,24 +1,26 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-  Patch,
-} from '@nestjs/common';
-import { ConcessionService } from '../service/concession.service';
-import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
-import { Permission } from '../../../common/decorator/permission.decorator';
-import {
-  ConcessionDto,
+  AppRole,
   ConcessionCategory,
   CreateConcessionDto,
-  UpdateConcessionDto,
+  UpdateConcessionDto
 } from '@movie-hub/shared-types';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { Permission } from '../../../common/decorator/permission.decorator';
+import { Roles } from '../../../common/decorator/roles.decorator';
+import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
+import { RoleGuard } from '../../../common/guard/role.guard';
+import { ConcessionService } from '../service/concession.service';
 
 @Controller({
   version: '1',
@@ -46,15 +48,17 @@ export class ConcessionController {
   }
 
   @Post()
-  @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'concession', action: 'update', scope: 'cinema' })
   async create(@Body() createConcessionDto: CreateConcessionDto) {
     return this.concessionService.create(createConcessionDto);
   }
 
   @Put(':id')
-  @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'concession', action: 'update', scope: 'cinema' })
   async update(
     @Param('id') id: string,
     @Body() updateConcessionDto: UpdateConcessionDto
@@ -63,15 +67,17 @@ export class ConcessionController {
   }
 
   @Delete(':id')
-  @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'concession', action: 'update', scope: 'cinema' })
   async delete(@Param('id') id: string) {
     return this.concessionService.delete(id);
   }
 
   @Patch(':id/inventory')
-  @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'concession', action: 'update', scope: 'cinema' })
   async updateInventory(
     @Param('id') id: string,
     @Body('quantity') quantity: number
@@ -79,5 +85,3 @@ export class ConcessionController {
     return this.concessionService.updateInventory(id, quantity);
   }
 }
-
-

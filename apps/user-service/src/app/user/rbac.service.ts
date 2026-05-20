@@ -101,7 +101,7 @@ export class RbacService {
     };
   }
 
-  async assignUserRole(input: AssignUserRoleRequest): Promise<void> {
+  async assignUserRole(input: AssignUserRoleRequest): Promise<{ success: boolean }> {
     const role = await this.prisma.role.findUnique({
       where: { name: input.role },
       select: { id: true },
@@ -125,15 +125,16 @@ export class RbacService {
     }
 
     await this.userService.invalidatePermissionsCache(input.userId);
+    return { success: true };
   }
 
-  async removeUserRole(input: RemoveUserRoleRequest): Promise<void> {
+  async removeUserRole(input: RemoveUserRoleRequest): Promise<{ success: boolean }> {
     const role = await this.prisma.role.findUnique({
       where: { name: input.role },
       select: { id: true },
     });
     if (!role) {
-      return;
+      return { success: true };
     }
 
     if (input.role === 'ADMIN') {
@@ -160,6 +161,7 @@ export class RbacService {
     this.logger.log(
       `Removed role=${input.role} from userId=${input.userId} (cache invalidated)`
     );
+    return { success: true };
   }
 
   async getEffectivePermissions(userId: string): Promise<string[]> {

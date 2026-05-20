@@ -21,7 +21,10 @@ import {
   ValidatePromotionDto,
   CreatePromotionDto,
   UpdatePromotionDto,
+  AppRole,
 } from '@movie-hub/shared-types';
+import { Roles } from '../../../common/decorator/roles.decorator';
+import { RoleGuard } from '../../../common/guard/role.guard';
 
 @Controller({
   version: '1',
@@ -80,15 +83,17 @@ export class PromotionController {
   }
 
   @Post()
-  @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'promotion', action: 'update', scope: 'cinema' })
   async create(@Body() createPromotionDto: CreatePromotionDto) {
     return this.promotionService.create(createPromotionDto);
   }
 
   @Put(':id')
-  @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'promotion', action: 'update', scope: 'cinema' })
   async update(
     @Param('id') id: string,
     @Body() updatePromotionDto: UpdatePromotionDto
@@ -97,18 +102,18 @@ export class PromotionController {
   }
 
   @Delete(':id')
-  @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'promotion', action: 'update', scope: 'cinema' })
   async delete(@Param('id') id: string) {
     return this.promotionService.delete(id);
   }
 
   @Patch(':id/toggle-active')
-  @UseGuards(ClerkAuthGuard)
-  @Permission({ resource: 'booking', action: 'update', scope: 'cinema' })
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'promotion', action: 'update', scope: 'cinema' })
   async toggleActive(@Param('id') id: string) {
     return this.promotionService.toggleActive(id);
   }
 }
-
-

@@ -197,6 +197,9 @@ export class ClerkAuthGuard implements CanActivate {
         );
         throw new ForbiddenException('Insufficient permissions');
       }
+      this.logger.log(
+        `Permission check passed userId=${userId} required=${JSON.stringify(requiredPermission)} actualPermissions=[${permissions.join(',')}] correlationId=${correlationId}`
+      );
 
       return hasPermission;
     } catch (error) {

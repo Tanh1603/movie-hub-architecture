@@ -43,6 +43,9 @@ const resources = [
   { code: 'rbac', description: 'RBAC administration resources' },
   { code: 'config', description: 'System configuration resources' },
   { code: 'admin', description: 'Global administrative resources' },
+  { code: 'concession', description: 'Concession management resources' },
+  { code: 'promotion', description: 'Promotion management resources' },
+  { code: 'review', description: 'Movie review resources' },
 ];
 
 const permissions = [
@@ -80,6 +83,9 @@ const permissions = [
   { name: 'rbac:update:global', resourceCode: 'rbac', action: 'UPDATE', scope: 'GLOBAL' },
   { name: 'config:read:global', resourceCode: 'config', action: 'READ', scope: 'GLOBAL' },
   { name: 'config:update:global', resourceCode: 'config', action: 'UPDATE', scope: 'GLOBAL' },
+  { name: 'concession:update:cinema', resourceCode: 'concession', action: 'UPDATE', scope: 'CINEMA' },
+  { name: 'promotion:update:cinema', resourceCode: 'promotion', action: 'UPDATE', scope: 'CINEMA' },
+  { name: 'review:delete:global', resourceCode: 'review', action: 'DELETE', scope: 'GLOBAL' },
 ];
 
 const rolePermissionMatrix = {
@@ -111,6 +117,8 @@ const rolePermissionMatrix = {
     'showtime:read:cinema',
     'showtime:update:cinema',
     'dashboard:read:cinema',
+    'concession:update:cinema',
+    'promotion:update:cinema',
   ],
   STAFF: [
     'booking:read:cinema',

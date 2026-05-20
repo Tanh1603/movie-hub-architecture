@@ -10,6 +10,9 @@ export const PermissionResource = {
   DASHBOARD: 'dashboard',
   RBAC: 'rbac',
   CONFIG: 'config',
+  CONCESSION: 'concession',
+  PROMOTION: 'promotion',
+  REVIEW: 'review',
 } as const;
 
 export const PermissionAction = {
