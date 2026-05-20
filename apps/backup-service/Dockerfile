@@ -46,7 +46,8 @@ RUN mkdir -p /data/backups /data/restores && \
 
 COPY --chown=nestjs:nodejs --from=builder /app/dist/apps/backup-service ./
 COPY --chown=nestjs:nodejs --from=builder /app/apps/backup-service/scripts ./scripts
-RUN find ./scripts -type f -name "*.sh" -exec chmod +x {} +
+RUN find ./scripts -type f -name "*.sh" -exec sed -i 's/\r$//' {} + && \
+  find ./scripts -type f -name "*.sh" -exec chmod +x {} +
 
 ENV NODE_ENV=production
 EXPOSE 3006

@@ -175,13 +175,25 @@
       "id": 11,
       "type": "timeseries",
       "title": "Replica Health (by instance)",
-      "datasource": { "type": "prometheus" },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 21 },
-      "fieldConfig": { "defaults": { "unit": "none" }, "overrides": [] },
+      "datasource": {
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 21
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
       "targets": [
         {
           "refId": "A",
-          "expr": "up{job=\"user-service-metrics\",instance!~\"^user-service(:.*)?$\"}",
+          "expr": "up{job=\"user-service-metrics\",instance!~\"^user-service(:.*)?$\"} == 1",
           "legendFormat": "{{instance}}"
         }
       ]
@@ -190,13 +202,25 @@
       "id": 12,
       "type": "timeseries",
       "title": "Request Rate (by instance)",
-      "datasource": { "type": "prometheus" },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 21 },
-      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "datasource": {
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 21
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (instance) (rate(moviehub_http_requests_total{job=\"user-service-metrics\",instance!~\"^user-service(:.*)?$\"}[5m]))",
+          "expr": "sum by (instance) (rate(moviehub_http_requests_total{job=\"user-service-metrics\",instance!~\"^user-service(:.*)?$\"}[5m])) and on(instance) up{job=\"user-service-metrics\"} == 1",
           "legendFormat": "{{instance}}"
         }
       ]

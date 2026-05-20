@@ -26,16 +26,18 @@ export const clerkWsMiddleware = async (socket, next) => {
       const session = await clerkClient.verifyToken(token, {
         clockSkewInMs: 60000,
       });
+
       socket.user = { id: session.sub };
+
       logger.log(`✅ Authenticated user ${session.sub}`);
+
       next();
     } catch (verifyErr) {
       logger.error(
-        `Token verification failed: reason=${verifyErr?.reason || 'unknown'} action=${verifyErr?.action || 'n/a'} token=${maskToken(
-          token,
-        )}`,
+        `Token verification failed: reason=${verifyErr?.reason || 'unknown'} action=${verifyErr?.action || 'n/a'}`,
         verifyErr?.stack,
       );
+
       throw verifyErr;
     }
   } catch (err) {
