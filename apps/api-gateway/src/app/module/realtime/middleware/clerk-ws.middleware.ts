@@ -22,7 +22,9 @@ export const clerkWsMiddleware = async (socket, next) => {
     }
 
     // 3️⃣ Verify token qua Clerk SDK
-    const session = await clerkClient.verifyToken(token);
+    const session = await clerkClient.verifyToken(token, {
+      clockSkewInMs: 60000,
+    });
     socket.user = { id: session.sub };
     logger.log(`✅ Authenticated user ${session.sub}`);
     next();

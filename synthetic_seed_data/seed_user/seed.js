@@ -92,6 +92,8 @@ const rolePermissionMatrix = {
     'payment:update:own',
     'ticket:read:own',
     'refund:create:own',
+    'cinema:read:cinema',
+    'showtime:read:cinema',
   ],
   CINEMA_MANAGER: [
     'user:read:global',
