@@ -25,10 +25,17 @@ export class TokenValidationService {
 
   async validateTokenOrThrow(token: string): Promise<VerifiedToken> {
     const startTime = Date.now();
-    const jwtKey = await this.getCachedJwtKey();
     const secretKey = this.configService.get<string>('CLERK_SECRET_KEY');
+    const jwtKey = await this.getCachedJwtKey();
     const audience = this.getCsvList('CLERK_AUDIENCE');
     const authorizedParties = this.getCsvList('CLERK_AUTHORIZED_PARTIES');
+
+    // Log env var status only on signature errors for debugging
+    if (!secretKey || !jwtKey) {
+      this.logger.warn(
+        `Clerk keys missing: secretKey=${!!secretKey}, jwtKey=${!!jwtKey}`
+      );
+    }
 
     const payload = (await verifyToken(token, {
       secretKey,
@@ -69,16 +76,27 @@ export class TokenValidationService {
     const cacheKey = 'auth:clerk:jwt:key';
     const cached = await this.redis.get<string>(cacheKey);
     if (cached) {
+      this.logger.debug('CLERK_JWT_KEY fetched from Redis cache (masked)');
       return cached;
     }
 
     const jwtKey = this.configService.get<string>('CLERK_JWT_KEY');
     if (!jwtKey) {
+      this.logger.debug('CLERK_JWT_KEY not set in environment');
       return null;
     }
 
-    await this.redis.set(cacheKey, jwtKey, this.jwtKeyCacheTtlSeconds);
-    return jwtKey;
+    // Normalize escaped newlines ("\n") which commonly appear when storing PEMs in .env files
+    let normalized = jwtKey;
+    if (jwtKey.includes('\\n')) {
+      normalized = jwtKey.replace(/\\n/g, '\n');
+      this.logger.debug('Normalized CLERK_JWT_KEY: converted escaped \\n+ sequences to real newlines');
+    }
+
+    const masked = normalized.length > 20 ? `${normalized.slice(0, 10)}...${normalized.slice(-10)}` : normalized;
+    this.logger.debug(`CLERK_JWT_KEY loaded from env (masked=${masked})`);
+    await this.redis.set(cacheKey, normalized, this.jwtKeyCacheTtlSeconds);
+    return normalized;
   }
 
   private   getCsvList(key: string): string[] {
