@@ -57,7 +57,7 @@ async function main() {
       backdropUrl:
         'https://image.tmdb.org/t/p/original/AcKVlWaNVVVFQwro3nLXqPljcYA.jpg',
       runtime: 166,
-      releaseDate: new Date('2024-02-28'),
+      releaseDate: new Date('2026-05-16'),
       ageRating: AgeRating.T13,
       originalLanguage: 'en',
       spokenLanguages: ['vi', 'en'],
@@ -84,7 +84,7 @@ async function main() {
       backdropUrl:
         'https://image.tmdb.org/t/p/original/w13Jg8p7icmPjOJ1rTmlQIP3h5E.jpg',
       runtime: 100,
-      releaseDate: new Date('2024-06-14'),
+      releaseDate: new Date('2026-05-20'),
       ageRating: AgeRating.P,
       originalLanguage: 'en',
       spokenLanguages: ['vi', 'en'],
@@ -111,7 +111,7 @@ async function main() {
       backdropUrl:
         'https://image.tmdb.org/t/p/original/nb3xI8XI3w4pMVZ38VijbsyBqP4.jpg',
       runtime: 180,
-      releaseDate: new Date('2023-07-21'),
+      releaseDate: new Date('2026-06-10'),
       ageRating: AgeRating.T18,
       originalLanguage: 'en',
       spokenLanguages: ['vi', 'en'],
@@ -138,7 +138,7 @@ async function main() {
       backdropUrl:
         'https://image.tmdb.org/t/p/original/sRLC052ieEzkQs9dEtPMfFxYkej.jpg',
       runtime: 115,
-      releaseDate: new Date('2024-03-29'),
+      releaseDate: new Date('2026-05-15'),
       ageRating: AgeRating.T13,
       originalLanguage: 'en',
       spokenLanguages: ['vi', 'en'],

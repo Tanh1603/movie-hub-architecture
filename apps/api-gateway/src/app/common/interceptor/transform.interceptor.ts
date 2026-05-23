@@ -10,6 +10,20 @@ import { map } from 'rxjs/operators';
 @Injectable()
 export class TransformInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler) {
+    const request: Request = context.switchToHttp().getRequest();
+    const requestPath = request.url.split('?')[0];
+
+    if (
+      requestPath === '/metrics' ||
+      requestPath === '/api/metrics' ||
+      requestPath === '/health' ||
+      requestPath === '/api/health' ||
+      requestPath === '/api/health/live' ||
+      requestPath === '/api/health/ready'
+    ) {
+      return next.handle();
+    }
+
     return next.handle().pipe(
       map((data) => {
         const request: Request = context.switchToHttp().getRequest();

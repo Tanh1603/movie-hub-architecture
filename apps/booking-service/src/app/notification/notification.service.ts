@@ -1,18 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
 import { BookingDetailDto } from '@movie-hub/shared-types';
-import { ConfigService } from '@nestjs/config';
-
-export interface EmailOptions {
-  to: string;
-  subject: string;
-  html: string;
-  attachments?: Array<{
-    filename: string;
-    content: string | Buffer;
-    contentType?: string;
-  }>;
-}
+import { EmailOptions, SmtpService } from './smtp.service';
 
 export interface TicketWithQRCode {
   ticketCode: string;
@@ -30,89 +18,14 @@ export interface BookingConfirmationEmailData {
 @Injectable()
 export class NotificationService {
   private readonly logger = new Logger(NotificationService.name);
-  private transporter: nodemailer.Transporter;
 
-  constructor(private configService: ConfigService) {
-    this.initializeMailer();
-  }
-
-  private initializeMailer() {
-    const emailEnabled =
-      this.configService.get('EMAIL_ENABLED', 'false') === 'true';
-
-    if (!emailEnabled) {
-      this.logger.warn(
-        'Email notifications are DISABLED. Set EMAIL_ENABLED=true to enable.'
-      );
-      return;
-    }
-
-    const host = this.configService.get('EMAIL_HOST', 'smtp.gmail.com');
-    const port = parseInt(this.configService.get('EMAIL_PORT', '587'), 10);
-    const secure = this.configService.get('EMAIL_SECURE', 'false') === 'true';
-    const user = this.configService.get('EMAIL_USER');
-    const pass = this.configService.get('EMAIL_PASSWORD');
-
-    if (!user || !pass) {
-      this.logger.warn(
-        'Email credentials not configured. Email notifications will not work.'
-      );
-      return;
-    }
-
-    this.transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure,
-      auth: {
-        user,
-        pass,
-      },
-    });
-
-    // Verify connection
-    this.transporter.verify((error) => {
-      if (error) {
-        this.logger.error('Email transporter verification failed:', error);
-      } else {
-        this.logger.log('Email transporter is ready to send emails');
-      }
-    });
-  }
+  constructor(private readonly smtpService: SmtpService) {}
 
   /**
    * Send generic email
    */
   async sendEmail(options: EmailOptions): Promise<boolean> {
-    if (!this.transporter) {
-      this.logger.warn(
-        'Email transporter not initialized. Skipping email send.'
-      );
-      return false;
-    }
-
-    try {
-      const from = this.configService.get(
-        'EMAIL_FROM',
-        'MovieHub <noreply@moviehub.com>'
-      );
-
-      const info = await this.transporter.sendMail({
-        from,
-        to: options.to,
-        subject: options.subject,
-        html: options.html,
-        attachments: options.attachments,
-      });
-
-      this.logger.log(
-        `Email sent successfully to ${options.to}: ${info.messageId}`
-      );
-      return true;
-    } catch (error) {
-      this.logger.error(`Failed to send email to ${options.to}:`, error);
-      return false;
-    }
+    return this.smtpService.sendEmail(options);
   }
 
   /**

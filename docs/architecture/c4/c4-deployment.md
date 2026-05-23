@@ -2,63 +2,74 @@
 
 ```mermaid
 C4Deployment
-  title Deployment diagram for MovieHub (production)
+title Deployment Diagram - MovieHub Production Environment
 
-  Deployment_Node(client, "End User Device", "Browser/Mobile") {
-    Container(web, "Web App", "Next.js", "Client application")
-  }
+Deployment_Node(client, "Client Device", "Browser / Mobile") {
+    Container(web, "Web Application", "Next.js", "Customer-facing frontend")
+}
 
-  Deployment_Node(cloud, "Cloud Region", "Managed cloud") {
-    Deployment_Node(edge, "Load Balancer", "Ingress") {
-      Container(apigwPods, "API Gateway Pods", "NestJS", "Ingress and routing")
+System_Ext(clerk, "Clerk", "Authentication Provider")
+System_Ext(payment, "Payment Gateway", "External payment service")
+System_Ext(notify, "Notification Provider", "Email/SMS delivery")
+
+Deployment_Node(cloud, "Cloud Region", "Managed Cloud Environment") {
+
+    Deployment_Node(edge, "Ingress Layer", "Load Balancer / Ingress") {
+        Container(apiGateway, "API Gateway (2 replicas)", "NestJS", "Routing, authentication, correlation ID propagation")
     }
 
     Deployment_Node(appCluster, "Application Cluster", "Kubernetes") {
-      Container(userSvcPods, "User Service Pods", "NestJS", "User service replicas")
-      Container(movieSvcPods, "Movie Service Pods", "NestJS", "Movie service replicas")
-      Container(cinemaSvcPods, "Cinema Service Pods", "NestJS", "Cinema service replicas")
-      Container(bookingSvcPods, "Booking Service Pods", "NestJS", "Booking service replicas")
-      Container(workerPods, "Async Worker Pods", "Worker", "Background worker replicas")
+
+        Container(userSvc, "User Service (2 replicas)", "NestJS", "User and profile management")
+
+        Container(movieSvc, "Movie Service (2 replicas)", "NestJS", "Movie catalog and discovery")
+
+        Container(cinemaSvc, "Cinema Service (2 replicas)", "NestJS", "Cinema, showtime, and seat metadata")
+
+        Container(bookingSvc, "Booking Service (2 replicas)", "NestJS", "Booking workflow, seat reservation, payment coordination")
+
+        Container(workerSvc, "Async Worker (2 replicas)", "Worker", "Outbox processing, notifications, retry handling")
     }
 
-    Deployment_Node(dataTier, "Data Tier", "Managed data services") {
-      ContainerDb(pgCluster, "PostgreSQL Cluster", "PostgreSQL", "Service databases")
-      ContainerDb(redisCluster, "Redis", "Redis", "Shared cache")
+    Deployment_Node(dataTier, "Data Tier", "Managed Data Services") {
+
+        ContainerDb(postgres, "PostgreSQL Cluster", "PostgreSQL", "Transactional databases with backup and PITR")
+
+        ContainerDb(redis, "Redis Cluster", "Redis", "Caching, seat coordination, pub/sub")
     }
 
-    Deployment_Node(obsTier, "Observability", "Managed monitoring") {
-      Container(obs, "Observability Stack", "Monitoring", "Central telemetry")
+    Deployment_Node(obsTier, "Observability Tier", "Monitoring Stack") {
+        Container(obs, "Telemetry Platform", "Logs + Metrics + Traces", "Centralized observability and alerting")
     }
-  }
+}
 
-  System_Ext(clerk, "Clerk", "Authentication provider")
-  System_Ext(payment, "Payment Gateway", "Payment provider")
-  System_Ext(notify, "Notification Provider", "Notification provider")
+Rel(web, apiGateway, "HTTPS")
 
-  Rel(web, apigwPods, "Calls", "HTTPS")
-  Rel(apigwPods, clerk, "Calls", "HTTPS")
+Rel(apiGateway, clerk, "Validate JWT", "HTTPS")
 
-  Rel(apigwPods, userSvcPods, "Routes")
-  Rel(apigwPods, movieSvcPods, "Routes")
-  Rel(apigwPods, cinemaSvcPods, "Routes")
-  Rel(apigwPods, bookingSvcPods, "Routes")
+Rel(apiGateway, userSvc, "Routes requests")
+Rel(apiGateway, movieSvc, "Routes requests")
+Rel(apiGateway, cinemaSvc, "Routes requests")
+Rel(apiGateway, bookingSvc, "Routes requests")
 
-  Rel(userSvcPods, pgCluster, "Reads/Writes", "SQL")
-  Rel(movieSvcPods, pgCluster, "Reads/Writes", "SQL")
-  Rel(cinemaSvcPods, pgCluster, "Reads/Writes", "SQL")
-  Rel(bookingSvcPods, pgCluster, "Reads/Writes", "SQL")
+Rel(userSvc, postgres, "Read/Write", "SQL")
+Rel(movieSvc, postgres, "Read/Write", "SQL")
+Rel(cinemaSvc, postgres, "Read/Write", "SQL")
+Rel(bookingSvc, postgres, "Transactional operations", "SQL")
 
-  Rel(movieSvcPods, redisCluster, "Reads")
-  Rel(cinemaSvcPods, redisCluster, "Reads")
-  Rel(bookingSvcPods, redisCluster, "Reads")
-  Rel(workerPods, redisCluster, "Reads")
+Rel(movieSvc, redis, "Cache access")
+Rel(cinemaSvc, redis, "Cache access")
+Rel(bookingSvc, redis, "Seat coordination + cache")
+Rel(workerSvc, redis, "Queue / pub-sub")
 
-  Rel(bookingSvcPods, payment, "Calls", "HTTPS")
-  Rel(payment, bookingSvcPods, "Calls", "HTTPS")
-  Rel(workerPods, notify, "Sends", "HTTPS")
+Rel(bookingSvc, payment, "Payment requests", "HTTPS")
+Rel(payment, bookingSvc, "Payment callbacks", "HTTPS")
 
-  Rel(apigwPods, obs, "Sends telemetry")
-  Rel(bookingSvcPods, obs, "Sends telemetry")
+Rel(workerSvc, notify, "Send notifications", "HTTPS")
+
+Rel(apiGateway, obs, "Send telemetry")
+Rel(bookingSvc, obs, "Send telemetry")
+Rel(workerSvc, obs, "Send telemetry")
 ```
 
 - Concern: production infrastructure mapping.

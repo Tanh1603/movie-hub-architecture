@@ -7,93 +7,237 @@ import {
 } from '@nestjs/common';
 import { Observable, tap } from 'rxjs';
 
-const SENSITIVE_KEYS = [
-  'authorization',
-  'x-api-key',
-  'password',
-  'cardnumber',
-  'cvv',
-  'pin',
-  'refreshtoken',
-  'accesstoken',
-];
-
-export function redactSensitiveData(data: any): any {
-  if (!data) return data;
-  if (typeof data !== 'object') return data;
-  if (Array.isArray(data)) return data.map(redactSensitiveData);
-
-  const redacted = { ...data };
-  for (const key in redacted) {
-    if (Object.prototype.hasOwnProperty.call(redacted, key)) {
-      if (SENSITIVE_KEYS.includes(key.toLowerCase())) {
-        redacted[key] = '[REDACTED]';
-      } else if (typeof redacted[key] === 'object') {
-        redacted[key] = redactSensitiveData(redacted[key]);
-      }
-    }
-  }
-  return redacted;
-}
+import {
+  CORRELATION_ID_HEADER,
+  REQUEST_ID_HEADER,
+  RequestContextMetadata,
+  extractRequestContextFromPayload,
+  extractRequestContextFromRequest,
+  resolveHttpAction,
+  resolveRpcAction,
+  sanitizeForLogging,
+  serializeStructuredLog,
+} from './observability.util';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
-  private logger: Logger;
+  private readonly logger: Logger;
+  private readonly serviceName: string;
+
+  // Skip noisy endpoints
+  private readonly excludedPaths = new Set([
+    '/metrics',
+    '/api/metrics',
+    '/health',
+    '/api/health',
+    '/health/live',
+    '/health/ready',
+    '/api/health/live',
+    '/api/health/ready',
+  ]);
 
   constructor(name: string) {
+    this.serviceName = name;
     this.logger = new Logger(name);
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const contextType = context.getType();
-    let payload;
-    let logPrefix = '';
 
-    switch (contextType) {
-      case 'http': {
-        const request = context.switchToHttp().getRequest();
-        payload = request.body;
-        logPrefix = `HTTP ${request.method} ${request.url}`;
-        break;
+    let payload: unknown;
+    let action = `${contextType}.unknown`;
+
+    let httpStatus: number | undefined;
+
+    let responseHeaders:
+      | {
+          setHeader?: (name: string, value: string) => void;
+          statusCode?: number;
+        }
+      | undefined;
+
+    let requestContext: RequestContextMetadata = {
+      correlationId: undefined as unknown as string,
+      requestId: undefined as unknown as string,
+      userId: undefined,
+    };
+
+    // =========================
+    // HTTP CONTEXT
+    // =========================
+
+    if (contextType === 'http') {
+      const request = context.switchToHttp().getRequest();
+      const response = context.switchToHttp().getResponse();
+
+      // Skip logging for noisy health/metrics routes
+      if (this.excludedPaths.has(request.url)) {
+        return next.handle();
       }
-      case 'rpc': {
-        const pattern = context.switchToRpc().getContext().args[1];
-        payload = context.switchToRpc().getData();
-        logPrefix = `RPC ${JSON.stringify(pattern)}`;
-        break;
-      }
-      default:
-        payload = context.getArgs();
-        logPrefix = contextType.toUpperCase();
+
+      const extractedContext =
+        extractRequestContextFromRequest(request);
+
+      request.requestContext = extractedContext;
+
+      request.headers = request.headers || {};
+
+      request.headers[CORRELATION_ID_HEADER] =
+        extractedContext.correlationId;
+
+      request.headers[REQUEST_ID_HEADER] =
+        extractedContext.requestId;
+
+      response?.setHeader?.(
+        CORRELATION_ID_HEADER,
+        extractedContext.correlationId
+      );
+
+      response?.setHeader?.(
+        REQUEST_ID_HEADER,
+        extractedContext.requestId
+      );
+
+      requestContext = extractedContext;
+
+      payload = {
+        body: request.body,
+        params: request.params,
+        query: request.query,
+      };
+
+      action = resolveHttpAction(request);
+
+      responseHeaders = response;
     }
 
-    const now = Date.now();
+    // =========================
+    // RPC CONTEXT
+    // =========================
+
+    else if (contextType === 'rpc') {
+      const rpcContext = context.switchToRpc().getContext();
+
+      const pattern =
+        rpcContext?.pattern ??
+        rpcContext?.args?.[1] ??
+        context.getArgByIndex(1);
+
+      payload = context.switchToRpc().getData();
+
+      requestContext = extractRequestContextFromPayload(
+        (payload as Record<string, unknown>) || {}
+      );
+
+      action = resolveRpcAction(pattern);
+    }
+
+    // =========================
+    // OTHER CONTEXT
+    // =========================
+
+    else {
+      payload = context.getArgs();
+      action = `${contextType}.handler`;
+    }
+
+    const startedAt = Date.now();
+
+    // =========================
+    // REQUEST LOG
+    // =========================
+
     this.logger.debug(
-      `[${logPrefix}] Incoming request with body: ${JSON.stringify(redactSensitiveData(payload))}`
+      serializeStructuredLog({
+        level: 'debug',
+        service: this.serviceName,
+        correlationId: requestContext.correlationId,
+        requestId: requestContext.requestId,
+        userId: requestContext.userId,
+        action,
+        message: 'Request started',
+
+        metadata: {
+          contextType,
+          payload: sanitizeForLogging(payload),
+        },
+      })
     );
 
     return next.handle().pipe(
       tap({
+        // =========================
+        // SUCCESS LOG
+        // =========================
+
         next: (response) => {
-          const responseTime = Date.now() - now;
-          this.logger.debug(
-            `[${logPrefix}] Response (${responseTime}ms): ${JSON.stringify(
-              redactSensitiveData(response)
-            )}`
+          const durationMs = Date.now() - startedAt;
+
+          httpStatus = responseHeaders?.statusCode;
+
+          this.logger.log(
+            serializeStructuredLog({
+              level: 'info',
+              service: this.serviceName,
+
+              correlationId: requestContext.correlationId,
+              requestId: requestContext.requestId,
+              userId: requestContext.userId,
+
+              action,
+              httpStatus,
+              durationMs,
+
+              message: 'Request completed',
+
+              metadata: {
+                contextType,
+                response: sanitizeForLogging(response),
+              },
+            })
           );
         },
-        error: (error) => {
-          const responseTime = Date.now() - now;
 
-          const errorContent =
-            error instanceof Error
-              ? { ...error, message: error.message, stack: error.stack }
-              : error;
+        // =========================
+        // ERROR LOG
+        // =========================
+
+        error: (error) => {
+          const durationMs = Date.now() - startedAt;
+
+          httpStatus =
+            error?.status ||
+            error?.statusCode ||
+            responseHeaders?.statusCode;
 
           this.logger.error(
-            `[${logPrefix}] Error (${responseTime}ms): ${JSON.stringify(
-              redactSensitiveData(errorContent)
-            )}`
+            serializeStructuredLog({
+              level: 'error',
+              service: this.serviceName,
+
+              correlationId: requestContext.correlationId,
+              requestId: requestContext.requestId,
+              userId: requestContext.userId,
+
+              action,
+              httpStatus,
+              durationMs,
+
+              errorCode:
+                error?.code ||
+                error?.name ||
+                String(httpStatus || 'UNHANDLED_ERROR'),
+
+              message:
+                error?.message || 'Request failed',
+
+              metadata: {
+                contextType,
+                error: sanitizeForLogging(error),
+              },
+            }),
+
+            error?.stack
           );
         },
       })

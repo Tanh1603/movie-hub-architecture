@@ -9,7 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { ROLE_KEY } from '../decorator/roles.decorator';
 import { Request } from 'express';
 import { AppRole, SECURITY_METRICS } from '@movie-hub/shared-types';
-import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { InjectSecurityMetric } from '@movie-hub/shared-metrics';
 import { Counter } from 'prom-client';
 
 @Injectable()
@@ -42,7 +42,7 @@ export class RoleGuard implements CanActivate {
 
   constructor(
     private readonly reflector: Reflector,
-    @InjectMetric(SECURITY_METRICS.RBAC_AUTHORIZATION_DENIED)
+    @InjectSecurityMetric(SECURITY_METRICS.RBAC_AUTHORIZATION_DENIED)
     private readonly rbacDeniedCounter: Counter<string>
   ) {}
 

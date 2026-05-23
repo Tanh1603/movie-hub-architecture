@@ -57,12 +57,17 @@ export class PaymentController {
   @HttpCode(HttpStatus.OK)
   async providerIPN(
     @Param('provider') providerParam: string,
-    @Query() query: Record<string, string>
+    @Query() query: Record<string, string>,
+    @Req() request: Request
   ) {
     const provider = this.parseProviderOrThrow(providerParam);
-    const result = await this.paymentService.handleProviderIPN(provider, query);
+    const result = await this.paymentService.handleProviderIPN(
+      provider,
+      query,
+      request
+    );
     // EXCEPTION: Extract data from ServiceResult for VNPay IPN - VNPay expects raw { RspCode, Message }
-    return result.data;
+    return (result as any).data;
   }
 
   @Post(':provider/ipn')
@@ -74,10 +79,16 @@ export class PaymentController {
   ) {
     const provider = this.parseProviderOrThrow(providerParam);
     const params = Object.fromEntries(
-      Object.entries(body || {}).map(([k, v]) => [k, typeof v === 'string' ? v : JSON.stringify(v)])
+      Object.entries(body || {}).map(([k, v]) => [
+        k,
+        typeof v === 'string' ? v : JSON.stringify(v),
+      ])
     );
-    const result = await this.paymentService.handleProviderIPN(provider, params);
-    return result.data;
+    const result = await this.paymentService.handleProviderIPN(
+      provider,
+      params
+    );
+    return (result as any).data;
   }
 
   /**
@@ -112,17 +123,21 @@ export class PaymentController {
   async findByStatus(
     @Param('status') status: PaymentStatus,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number,
+    @Req() request?: Request
   ) {
-    return this.paymentService.findByStatus(status, page, limit);
+    return this.paymentService.findByStatus(status, page, limit, request);
   }
 
   @Put('admin/:id/cancel')
   @UseGuards(ClerkAuthGuard, RoleGuard)
   @Roles(AppRole.CINEMA_MANAGER)
   @Permission({ resource: 'payment', action: 'update', scope: 'cinema' })
-  async cancelPayment(@Param('id') paymentId: string) {
-    return this.paymentService.cancelPayment(paymentId);
+  async cancelPayment(
+    @Param('id') paymentId: string,
+    @Req() request?: Request
+  ) {
+    return this.paymentService.cancelPayment(paymentId, request);
   }
 
   @Get('admin/statistics')
@@ -132,13 +147,17 @@ export class PaymentController {
   async getStatistics(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
-    @Query('paymentMethod') paymentMethod?: string
+    @Query('paymentMethod') paymentMethod?: string,
+    @Req() request?: Request
   ) {
-    return this.paymentService.getStatistics({
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
-      paymentMethod,
-    });
+    return this.paymentService.getStatistics(
+      {
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+        paymentMethod,
+      },
+      request
+    );
   }
 
   // ==================== USER ENDPOINTS ====================
@@ -165,7 +184,13 @@ export class PaymentController {
       request.ip ||
       '127.0.0.1';
 
-    return this.paymentService.createPayment(bookingId, createPaymentDto, ipAddr);
+    return this.paymentService.createPayment(
+      bookingId,
+      createPaymentDto,
+      ipAddr,
+      userId,
+      request
+    );
   }
 
   /**
@@ -178,11 +203,12 @@ export class PaymentController {
   @Permission({ resource: 'payment', action: 'read', scope: 'own' })
   async getPaymentsByBooking(
     @CurrentUserId() userId: string,
-    @Param('bookingId') bookingId: string
+    @Param('bookingId') bookingId: string,
+    @Req() request: Request
   ) {
     // Ownership check: do not disclose payment records of another user's booking.
     await this.bookingService.findOne(bookingId, userId);
-    return this.paymentService.getPaymentByBooking(bookingId);
+    return this.paymentService.getPaymentByBooking(bookingId, userId, request);
   }
 
   /**
@@ -193,8 +219,12 @@ export class PaymentController {
   @Get(':id')
   @UseGuards(ClerkAuthGuard)
   @Permission({ resource: 'payment', action: 'read', scope: 'own' })
-  async getPayment(@CurrentUserId() userId: string, @Param('id') id: string) {
-    return this.paymentService.getPayment(id, userId);
+  async getPayment(
+    @CurrentUserId() userId: string,
+    @Param('id') id: string,
+    @Req() request: Request
+  ) {
+    return this.paymentService.getPayment(id, userId, request);
   }
 
   private parseProviderOrThrow(providerParam: string): PaymentMethod {
@@ -208,9 +238,3 @@ export class PaymentController {
     );
   }
 }
-
-
-
-
-
-

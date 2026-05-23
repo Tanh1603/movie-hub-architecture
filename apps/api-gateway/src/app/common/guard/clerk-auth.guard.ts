@@ -17,7 +17,7 @@ import { TokenValidationService } from '../auth/token-validation.service';
 import { BruteForceProtectionService } from '../auth/brute-force-protection.service';
 import { Request } from 'express';
 import { createHash } from 'crypto';
-import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { InjectSecurityMetric } from '@movie-hub/shared-metrics';
 import { Counter } from 'prom-client';
 
 @Injectable()
@@ -35,9 +35,9 @@ export class ClerkAuthGuard implements CanActivate {
     @Inject(SERVICE_NAME.USER) private readonly userClient: ClientProxy,
     private readonly tokenValidationService: TokenValidationService,
     private readonly bruteForceProtectionService: BruteForceProtectionService,
-    @InjectMetric(SECURITY_METRICS.AUTH_FAILURES)
+    @InjectSecurityMetric(SECURITY_METRICS.AUTH_FAILURES)
     private readonly authFailuresCounter: Counter<string>,
-    @InjectMetric(SECURITY_METRICS.BRUTE_FORCE_LOCKOUTS)
+    @InjectSecurityMetric(SECURITY_METRICS.BRUTE_FORCE_LOCKOUTS)
     private readonly bruteForceLockoutsCounter: Counter<string>
   ) {}
 

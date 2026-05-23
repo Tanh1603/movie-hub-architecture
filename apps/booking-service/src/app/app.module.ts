@@ -14,29 +14,29 @@ import { TicketModule } from './ticket/ticket.module';
 import { RefundModule } from './refund/refund.module';
 import { BookingRedisModule } from './redis/redis.module';
 import { NotificationModule } from './notification/notification.module';
+import { OutboxModule } from './outbox/outbox.module';
+import { HealthController } from './health.controller';
 import Joi from 'joi';
-import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { SecurityMetricsModule } from './security-metrics';
+import { SharedMetricsModule } from '@movie-hub/shared-metrics';
 
 @Module({
   imports: [
     SecurityMetricsModule,
-    PrometheusModule.register({
-      path: '/metrics',
-      defaultMetrics: {
-        enabled: true,
-      },
-    }),
+
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: 'apps/booking-service/.env',
       validationSchema: Joi.object({
         TCP_HOST: Joi.string().required(),
         TCP_PORT: Joi.number().required(),
+        HTTP_PORT: Joi.number().optional(),
         DATABASE_URL: Joi.string().required(),
         CINEMA_HOST: Joi.string().default('localhost'),
         CINEMA_PORT: Joi.number().default(3003),
-        NODE_ENV: Joi.string().valid('development', 'production').default('development'),
+        NODE_ENV: Joi.string()
+          .valid('development', 'production')
+          .default('development'),
         LOG_LEVEL: Joi.string().default('debug'),
         // Email configuration (optional)
         EMAIL_ENABLED: Joi.string().default('false'),
@@ -73,6 +73,7 @@ import { SecurityMetricsModule } from './security-metrics';
     ScheduleModule.forRoot(),
     BookingRedisModule,
     NotificationModule,
+    OutboxModule,
     BookingModule,
     PaymentModule,
     ConcessionModule,
@@ -80,11 +81,9 @@ import { SecurityMetricsModule } from './security-metrics';
     LoyaltyModule,
     TicketModule,
     RefundModule,
+    SharedMetricsModule,
   ],
-  controllers: [AppController],
-  providers: [
-    AppService, 
-    PrismaService
-  ],
+  controllers: [AppController, HealthController],
+  providers: [AppService, PrismaService],
 })
 export class AppModule {}

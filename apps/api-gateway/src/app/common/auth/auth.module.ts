@@ -6,12 +6,14 @@ import { ClerkAuthGuard } from '../guard/clerk-auth.guard';
 import { OptionalClerkAuthGuard } from '../guard/optional-clerk-auth.guard';
 import { RoleGuard } from '../guard/role.guard';
 import { RedisModule } from '@movie-hub/shared-redis';
+import { SharedMetricsModule } from '@movie-hub/shared-metrics';
 import { TokenValidationService } from './token-validation.service';
 import { BruteForceProtectionService } from './brute-force-protection.service';
 import { securityMetricProviders } from '../security-metrics';
 
 @Module({
   imports: [
+    SharedMetricsModule,
     RedisModule.forRootAsync({
       name: 'auth',
       inject: [ConfigService],

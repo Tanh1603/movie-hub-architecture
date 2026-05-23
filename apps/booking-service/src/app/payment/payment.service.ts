@@ -17,6 +17,7 @@ import {
   UserDetailDto,
   SERVICE_NAME,
   SECURITY_METRICS,
+  BookingDetailDto,
 } from '@movie-hub/shared-types';
 import * as crypto from 'crypto';
 import { BookingEventService } from '../redis/booking-event.service';
@@ -25,8 +26,15 @@ import { PAYMENT_ADAPTERS } from './payment.constants';
 import { WebhookReplayGuardService } from './webhook-replay-guard.service';
 import { PaymentTransitionPolicyService } from './payment-transition-policy.service';
 import { NotificationOutboxService } from '../notification/notification-outbox.service';
-import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { InjectSecurityMetric } from '@movie-hub/shared-metrics';
 import { Counter } from 'prom-client';
+import {
+  serializeStructuredLog,
+  sanitizeForLogging,
+  RequestContextMetadata,
+} from '@movie-hub/shared-types/common/observability.util';
+
+const MAX_PAGE_LIMIT = 50;
 
 @Injectable()
 export class PaymentService implements OnModuleInit {
@@ -44,11 +52,11 @@ export class PaymentService implements OnModuleInit {
     private notificationService: NotificationService,
     private ticketService: TicketService,
     @Inject(PAYMENT_ADAPTERS) paymentAdapters: PaymentAdapter[],
-    @InjectMetric(SECURITY_METRICS.WEBHOOK_SIGNATURE_FAIL)
+    @InjectSecurityMetric(SECURITY_METRICS.WEBHOOK_SIGNATURE_FAIL)
     private readonly webhookSignatureFailCounter: Counter<string>,
-    @InjectMetric(SECURITY_METRICS.WEBHOOK_REPLAY_DETECTED)
+    @InjectSecurityMetric(SECURITY_METRICS.WEBHOOK_REPLAY_DETECTED)
     private readonly webhookReplayDetectedCounter: Counter<string>,
-    @InjectMetric(SECURITY_METRICS.WEBHOOK_STALE_REJECTED)
+    @InjectSecurityMetric(SECURITY_METRICS.WEBHOOK_STALE_REJECTED)
     private readonly webhookStaleRejectedCounter: Counter<string>
   ) {
     this.paymentAdaptersByMethod = new Map(
@@ -68,10 +76,93 @@ export class PaymentService implements OnModuleInit {
     });
   }
 
+  private logInfo(
+    action: string,
+    message: string,
+    metadata?: Record<string, unknown>,
+    context?: Partial<RequestContextMetadata>
+  ) {
+    this.logger.log(
+      serializeStructuredLog({
+        level: 'info',
+        service: PaymentService.name,
+        correlationId: context?.correlationId,
+        requestId: context?.requestId,
+        userId: context?.userId,
+        action,
+        message,
+        metadata,
+      })
+    );
+  }
+
+  private logWarn(
+    action: string,
+    message: string,
+    metadata?: Record<string, unknown>,
+    context?: Partial<RequestContextMetadata>
+  ) {
+    this.logger.warn(
+      serializeStructuredLog({
+        level: 'warn',
+        service: PaymentService.name,
+        correlationId: context?.correlationId,
+        requestId: context?.requestId,
+        userId: context?.userId,
+        action,
+        message,
+        metadata,
+      })
+    );
+  }
+
+  private logError(
+    action: string,
+    error: unknown,
+    metadata?: Record<string, unknown>,
+    context?: Partial<RequestContextMetadata>
+  ) {
+    const errorObject =
+      error instanceof Error ? error : new Error(String(error));
+
+    this.logger.error(
+      serializeStructuredLog({
+        level: 'error',
+        service: PaymentService.name,
+        correlationId: context?.correlationId,
+        requestId: context?.requestId,
+        userId: context?.userId,
+        action,
+        message: errorObject.message,
+        errorCode: errorObject.name,
+        metadata: {
+          ...metadata,
+          error: sanitizeForLogging(error),
+        },
+      }),
+      errorObject.stack
+    );
+  }
+
+  private normalizePagination(page?: number, limit?: number) {
+    const safePage = Math.max(1, Number(page) || 1);
+    const safeLimit = Math.min(
+      MAX_PAGE_LIMIT,
+      Math.max(1, Number(limit) || 10)
+    );
+    return {
+      page: safePage,
+      limit: safeLimit,
+      skip: (safePage - 1) * safeLimit,
+    };
+  }
+
   async createPayment(
     bookingId: string,
     dto: CreatePaymentDto,
-    ipAddr: string
+    ipAddr: string,
+    userId: string,
+    context?: RequestContextMetadata
   ): Promise<ServiceResult<PaymentDetailDto>> {
     const traceId = crypto.randomUUID();
     const booking = await this.getBookingForPaymentOrThrow(bookingId);
@@ -81,7 +172,7 @@ export class PaymentService implements OnModuleInit {
     // Handle zero-amount payment (e.g., 100% voucher coverage)
     // Relax check to < 1000 to handle potential precision issues or edge cases
     if (paymentAmount < 1000) {
-      return this.handleZeroAmountPayment(booking, dto);
+      return this.handleZeroAmountPayment(booking, dto, context);
     }
 
     const idempotencyKey = this.generateIdempotencyKey(
@@ -215,11 +306,20 @@ export class PaymentService implements OnModuleInit {
       customer_email: string;
       customer_phone: string | null;
     },
-    dto: CreatePaymentDto
+    dto: CreatePaymentDto,
+    context?: RequestContextMetadata
   ): Promise<ServiceResult<PaymentDetailDto>> {
     const paymentMethod = dto.paymentMethod ?? PaymentMethod.VNPAY;
-    console.log(
-      `[Payment] Zero-amount payment for booking ${booking.id}, confirming directly`
+    this.logInfo(
+      'payment.zero_amount.started',
+      'Confirming zero-amount booking',
+      {
+        bookingId: booking.id,
+        userId: booking.user_id,
+        showtimeId: booking.showtime_id,
+        paymentMethod: dto.paymentMethod,
+      },
+      context
     );
 
     // Use transaction to create payment and confirm booking atomically
@@ -260,8 +360,14 @@ export class PaymentService implements OnModuleInit {
           where: { code: booking.promotion_code },
           data: { current_usage: { increment: 1 } },
         });
-        console.log(
-          `[Payment] Incrementing usage for promotion: ${booking.promotion_code}`
+        this.logInfo(
+          'payment.zero_amount.promotion_applied',
+          'Incremented promotion usage',
+          {
+            bookingId: booking.id,
+            promotionCode: booking.promotion_code,
+          },
+          context
         );
       }
       
@@ -289,13 +395,47 @@ export class PaymentService implements OnModuleInit {
         bookingId: booking.id,
         seatIds: tickets.map((t) => t.seat_id),
       });
-      console.log('[Payment] Zero-amount booking event published');
+      this.logInfo(
+        'booking.confirmed.event_published',
+        'Published booking confirmation event',
+        {
+          bookingId: booking.id,
+          seatCount: tickets.length,
+        },
+        context
+      );
     } catch (eventError) {
-      console.error('[Payment] Event publish warning:', eventError);
+      this.logWarn(
+        'booking.confirmed.event_publish_warning',
+        'Failed to publish booking confirmation event',
+        {
+          bookingId: booking.id,
+          error: sanitizeForLogging(eventError),
+        },
+        context
+      );
     }
 
-    console.log(
-      `[Payment] Zero-amount payment completed for booking ${booking.id}`
+    // Send booking confirmation email ASYNCHRONOUSLY
+    this.sendBookingConfirmationEmailAsync(booking.id).catch((emailError) => {
+      this.logError(
+        'booking.confirmed.email_send_error',
+        'Failed to send booking confirmation email (async)',
+        {
+          bookingId: booking.id,
+          error: sanitizeForLogging(emailError),
+        },
+        context
+      );
+    });
+
+    this.logInfo(
+      'payment.zero_amount.completed',
+      'Zero-amount payment completed',
+      {
+        bookingId: booking.id,
+      },
+      context
     );
 
     // Return payment with a special marker indicating no redirect is needed
@@ -311,7 +451,8 @@ export class PaymentService implements OnModuleInit {
 
   async handleProviderIPN(
     provider: PaymentMethod,
-    params: Record<string, string>
+    params: Record<string, string>,
+    context?: RequestContextMetadata
   ): Promise<ServiceResult<Record<string, unknown>>> {
     const adapter = this.resolveAdapter(provider);
     try {
@@ -519,6 +660,21 @@ export class PaymentService implements OnModuleInit {
           // Non-critical
         }
 
+        // Send booking confirmation email ASYNCHRONOUSLY
+        this.sendBookingConfirmationEmailAsync(payment.booking_id).catch(
+          (emailError) => {
+            this.logWarn(
+              'booking.confirmed.event_publish_warning',
+              'Failed to publish booking confirmation event',
+              {
+                bookingId: payment.booking_id,
+                error: sanitizeForLogging(emailError),
+              },
+              context
+            );
+          }
+        );
+
         return { data: adapter.buildIPNResponse('processed') };
       } else {
         this.paymentTransitionPolicy.assertTransition(
@@ -587,8 +743,22 @@ export class PaymentService implements OnModuleInit {
   }
 
   async findByBooking(
-    bookingId: string
+    bookingId: string,
+    userId: string
   ): Promise<ServiceResult<PaymentDetailDto[]>> {
+    const booking = await this.prisma.bookings.findUnique({
+      where: { id: bookingId },
+      select: { user_id: true },
+    });
+
+    if (!booking) {
+      throw new Error('Booking not found');
+    }
+
+    if (booking.user_id !== userId) {
+      throw new Error('You do not have access to this booking payments');
+    }
+
     const payments = await this.prisma.payments.findMany({
       where: { booking_id: bookingId },
       orderBy: { created_at: 'desc' },
@@ -737,9 +907,10 @@ export class PaymentService implements OnModuleInit {
   async adminFindAllPayments(
     filters: AdminFindAllPaymentsDto = {}
   ): Promise<ServiceResult<PaymentDetailDto[]>> {
-    const page = filters?.page || 1;
-    const limit = filters?.limit || 10;
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = this.normalizePagination(
+      filters.page,
+      filters.limit
+    );
 
     const where: any = {};
 
@@ -788,10 +959,10 @@ export class PaymentService implements OnModuleInit {
    */
   async findPaymentsByStatus(
     status: PaymentStatus,
-    page = 1,
-    limit = 10
+    pageDto = 1,
+    limitDto = 10
   ): Promise<ServiceResult<PaymentDetailDto[]>> {
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = this.normalizePagination(pageDto, limitDto);
 
     const [payments, total] = await Promise.all([
       this.prisma.payments.findMany({
@@ -830,9 +1001,10 @@ export class PaymentService implements OnModuleInit {
       limit?: number;
     } = {}
   ): Promise<ServiceResult<PaymentDetailDto[]>> {
-    const page = filters?.page || 1;
-    const limit = filters?.limit || 10;
-    const skip = (page - 1) * limit;
+    const { page, limit, skip } = this.normalizePagination(
+      filters.page,
+      filters.limit
+    );
 
     const where: any = {};
 
@@ -1014,7 +1186,13 @@ export class PaymentService implements OnModuleInit {
       });
 
       if (!fullBooking) {
-        console.error('[Email] Booking not found:', bookingId);
+        this.logWarn(
+          'booking.confirmed.email_booking_missing',
+          'Booking not found while preparing confirmation email',
+          {
+            bookingId,
+          }
+        );
         return;
       }
 
@@ -1027,24 +1205,39 @@ export class PaymentService implements OnModuleInit {
             fullBooking.user_id
           )
         );
-        console.log(
-          `[Email] Fetched user details from user service for user ${fullBooking.user_id}`
+        this.logInfo(
+          'booking.confirmed.email_user_loaded',
+          'Fetched user details for confirmation email',
+          {
+            bookingId,
+            userId: fullBooking.user_id,
+          }
         );
       } catch (userError) {
-        console.error(
-          `[Email] Failed to fetch user details from user service:`,
-          userError
+        this.logWarn(
+          'booking.confirmed.email_user_lookup_failed',
+          'Failed to fetch user details from user service',
+          {
+            bookingId,
+            userId: fullBooking.user_id,
+            error: sanitizeForLogging(userError),
+          }
         );
         // Gracefully fall back to booking's stored customer info
-        console.log(
-          '[Email] Falling back to booking stored customer information'
+        this.logInfo(
+          'booking.confirmed.email_fallback_customer_info',
+          'Falling back to booking-stored customer information',
+          {
+            bookingId,
+          }
         );
       }
 
       // Use user details if available, otherwise use booking's stored customer info
       const customerEmail = userDetails?.email || fullBooking.customer_email;
       const customerName = userDetails?.fullName || fullBooking.customer_name;
-      const customerPhone = userDetails?.phone || fullBooking.customer_phone || undefined;
+      const customerPhone =
+        userDetails?.phone || fullBooking.customer_phone || undefined;
 
       // Generate QR codes for all tickets IN PARALLEL
       const ticketsWithQR = await Promise.all(
@@ -1059,9 +1252,14 @@ export class PaymentService implements OnModuleInit {
               qrCode: qrResult.data,
             };
           } catch (qrError) {
-            console.error(
-              `[Email] Failed to generate QR for ticket ${ticket.id}:`,
-              qrError
+            this.logWarn(
+              'booking.confirmed.ticket_qr_failed',
+              'Failed to generate QR code for ticket',
+              {
+                bookingId,
+                ticketId: ticket.id,
+                error: sanitizeForLogging(qrError),
+              }
             );
             // Return ticket without QR code
             return {
@@ -1076,7 +1274,7 @@ export class PaymentService implements OnModuleInit {
       );
 
       // Map to BookingDetailDto format
-      const bookingForEmail = {
+      const bookingForEmail: BookingDetailDto = {
         id: fullBooking.id,
         bookingCode: fullBooking.booking_code,
         showtimeId: fullBooking.showtime_id,
@@ -1112,12 +1310,12 @@ export class PaymentService implements OnModuleInit {
         pointsDiscount: Number(fullBooking.points_discount),
         finalAmount: Number(fullBooking.final_amount),
         totalAmount: Number(fullBooking.final_amount),
-        promotionCode: fullBooking.promotion_code,
+        promotionCode: fullBooking.promotion_code || undefined,
         status: fullBooking.status as BookingStatus,
         paymentStatus: fullBooking.payment_status as PaymentStatus,
-        expiresAt: fullBooking.expires_at,
-        cancelledAt: fullBooking.cancelled_at,
-        cancellationReason: fullBooking.cancellation_reason,
+        expiresAt: fullBooking.expires_at || undefined,
+        cancelledAt: fullBooking.cancelled_at || undefined,
+        cancellationReason: fullBooking.cancellation_reason || undefined,
         createdAt: fullBooking.created_at,
         updatedAt: fullBooking.updated_at,
       };
@@ -1128,8 +1326,14 @@ export class PaymentService implements OnModuleInit {
         tickets: ticketsWithQR,
       });
 
-      console.log(
-        `[Email] Booking confirmation sent successfully to ${customerEmail}`
+      this.logInfo(
+        'booking.confirmed.email_sent',
+        'Booking confirmation email sent successfully',
+        {
+          bookingId,
+          customerEmail,
+          ticketCount: ticketsWithQR.length,
+        }
       );
 
       // Also send SMS if phone number available (fire-and-forget)
@@ -1137,14 +1341,21 @@ export class PaymentService implements OnModuleInit {
         this.notificationService
           .sendBookingConfirmationSMS(bookingForEmail)
           .catch((smsError) => {
-            console.error(
-              '[SMS] Failed to send booking confirmation SMS:',
-              smsError
+            this.logWarn(
+              'booking.confirmed.sms_failed',
+              'Failed to send booking confirmation SMS',
+              {
+                bookingId,
+                customerPhone,
+                error: sanitizeForLogging(smsError),
+              }
             );
           });
       }
     } catch (error) {
-      console.error('[Email] Failed to send booking confirmation:', error);
+      this.logError('booking.confirmed.email_failed', error, {
+        bookingId,
+      });
       // Don't throw - this is already async and shouldn't affect payment
     }
   }

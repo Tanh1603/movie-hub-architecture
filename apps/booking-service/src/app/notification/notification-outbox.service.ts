@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma.service';
 import { PiiCryptoService } from './pii-crypto.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
-import { InjectMetric } from '@willsoto/nestjs-prometheus';
+import { InjectSecurityMetric } from '@movie-hub/shared-metrics';
 import { SECURITY_METRICS } from '@movie-hub/shared-types';
 import { Counter } from 'prom-client';
 
@@ -29,7 +29,7 @@ export class NotificationOutboxService {
     private readonly prisma: PrismaService,
     private readonly piiCryptoService: PiiCryptoService,
     private readonly configService: ConfigService,
-    @InjectMetric(SECURITY_METRICS.NOTIFICATION_OUTBOX_DEAD_LETTER)
+    @InjectSecurityMetric(SECURITY_METRICS.NOTIFICATION_OUTBOX_DEAD_LETTER)
     private readonly deadLetterCounter: Counter<string>
   ) {}
 

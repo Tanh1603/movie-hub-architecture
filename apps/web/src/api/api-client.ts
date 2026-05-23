@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { ApiResponse, ServiceResult, ApiSuccessResponse } from '@movie-hub/shared-types';
 
 // Normalize backend base URL so services can consistently use `/api/v1/...` paths
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:3000/api/v1';
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:4000/api/v1';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
