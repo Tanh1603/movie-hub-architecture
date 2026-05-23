@@ -23,11 +23,8 @@ export class AppThrottlerGuard extends ThrottlerGuard {
       return `staff:${staffId}`;
     }
 
-    const forwardedFor = req?.headers?.['x-forwarded-for'];
-    if (typeof forwardedFor === 'string' && forwardedFor.length > 0) {
-      return `ip:${forwardedFor.split(',')[0].trim()}`;
-    }
 
+    // Fallback to Express's req.ip (which parses X-Forwarded-For securely if trust proxy is enabled)
     return `ip:${req?.ip ?? 'unknown'}`;
   }
 }

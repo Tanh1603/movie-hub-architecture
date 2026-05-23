@@ -31,7 +31,8 @@ import {
 import { Request } from 'express';
 import { SkipThrottle } from '@nestjs/throttler';
 import { SensitiveThrottle } from '../../../common/decorator/sensitive-throttle.decorator';
-
+import { AllowedIps } from '../../../common/decorator/allowed-ips.decorator';
+import { IpWhitelistGuard } from '../../../common/guard/ip-whitelist.guard';
 @Controller({
   version: '1',
   path: 'payments',
@@ -54,6 +55,8 @@ export class PaymentController {
    */
   @Get(':provider/ipn')
   @SkipThrottle()
+  @UseGuards(IpWhitelistGuard)
+  @AllowedIps('PAYMENT_WEBHOOK_IPS') // Lấy IP từ biến môi trường
   @HttpCode(HttpStatus.OK)
   async providerIPN(
     @Param('provider') providerParam: string,
@@ -72,6 +75,8 @@ export class PaymentController {
 
   @Post(':provider/ipn')
   @SkipThrottle()
+  @UseGuards(IpWhitelistGuard)
+  @AllowedIps('PAYMENT_WEBHOOK_IPS') // Lấy IP từ biến môi trường
   @HttpCode(HttpStatus.OK)
   async providerIPNPost(
     @Param('provider') providerParam: string,
@@ -179,10 +184,7 @@ export class PaymentController {
     // Ownership check: customer can only initiate payment for their own booking.
     await this.bookingService.findOne(bookingId, userId);
 
-    const ipAddr =
-      (request.headers['x-forwarded-for'] as string)?.split(',')[0] ||
-      request.ip ||
-      '127.0.0.1';
+    const ipAddr = request.ip || '127.0.0.1';
 
     return this.paymentService.createPayment(
       bookingId,

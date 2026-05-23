@@ -11,6 +11,7 @@ import {
   PaymentInitiationContext,
   PaymentInitiationResult,
   PaymentReturnParseResult,
+  ProviderAuthoritativeStatus,
 } from './payment-adapter.interface';
 
 @Injectable()
@@ -153,6 +154,74 @@ export class VNPayPaymentAdapter implements PaymentAdapter {
       return { status: 'error', code: '97' };
     }
     return { status: 'success', code: parsed.responseCode || '00' };
+  }
+
+  async queryPaymentStatus(providerReference: string, paymentContext?: any): Promise<{
+    status: ProviderAuthoritativeStatus;
+    providerTransactionId?: string;
+  }> {
+    try {
+      const tmnCode = this.getRequiredConfig('VNPAY_TMN_CODE');
+      const hashSecret = this.getRequiredConfig('VNPAY_HASH_SECRET');
+      const vnpApiUrl = this.configService.get<string>('VNPAY_API_URL') || 'https://sandbox.vnpayment.vn/merchant_webapi/api/transaction';
+
+      const requestId = crypto.randomUUID();
+      const version = '2.1.0';
+      const command = 'querydr';
+      const createDate = moment.utc().utcOffset('+07:00').format('YYYYMMDDHHmmss');
+      const ipAddr = '127.0.0.1';
+
+      let transactionDate = createDate;
+      if (paymentContext && paymentContext.created_at) {
+        transactionDate = moment.utc(paymentContext.created_at).utcOffset('+07:00').format('YYYYMMDDHHmmss');
+      }
+
+      const orderInfo = `Truy van GD: ${providerReference}`;
+
+      const signData = `${requestId}|${version}|${command}|${tmnCode}|${providerReference}|${transactionDate}|${createDate}|${ipAddr}|${orderInfo}`;
+
+      const secureHash = crypto
+        .createHmac('sha512', hashSecret)
+        .update(Buffer.from(signData, 'utf-8'))
+        .digest('hex');
+
+      const requestBody = {
+        vnp_RequestId: requestId,
+        vnp_Version: version,
+        vnp_Command: command,
+        vnp_TmnCode: tmnCode,
+        vnp_TxnRef: providerReference,
+        vnp_OrderInfo: orderInfo,
+        vnp_TransactionDate: transactionDate,
+        vnp_CreateDate: createDate,
+        vnp_IpAddr: ipAddr,
+        vnp_SecureHash: secureHash,
+      };
+
+      const response = await fetch(vnpApiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        return { status: 'UNKNOWN' };
+      }
+
+      const result = await response.json();
+
+      if (result.vnp_ResponseCode === '00') {
+        if (result.vnp_TransactionStatus === '00') {
+          return { status: 'COMPLETED', providerTransactionId: result.vnp_TransactionNo };
+        } else {
+          return { status: 'FAILED', providerTransactionId: result.vnp_TransactionNo };
+        }
+      }
+      
+      return { status: 'UNKNOWN' };
+    } catch (e) {
+      return { status: 'UNKNOWN' };
+    }
   }
 
   private getRequiredConfig(key: string): string {

@@ -98,7 +98,7 @@ export class PaymentReconciliationService {
       let authoritative: 'COMPLETED' | 'FAILED' | 'PENDING' | 'UNKNOWN' = 'UNKNOWN';
       let providerTransactionId: string | undefined;
       if (typeof providerRef === 'string' && adapter.queryPaymentStatus) {
-        const queried = await adapter.queryPaymentStatus(providerRef);
+        const queried = await adapter.queryPaymentStatus(providerRef, payment);
         authoritative = queried.status;
         providerTransactionId = queried.providerTransactionId;
       }

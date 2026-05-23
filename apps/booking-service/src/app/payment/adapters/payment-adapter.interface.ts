@@ -58,7 +58,7 @@ export interface PaymentAdapter {
   parseReturn(params: Record<string, string>): PaymentReturnParseResult;
   buildIPNResponse(outcome: PaymentIpnOutcome): Record<string, unknown>;
   buildReturnResponse(parsed: PaymentReturnParseResult): { status: string; code: string };
-  queryPaymentStatus?(providerReference: string): Promise<{
+  queryPaymentStatus?(providerReference: string, paymentContext?: any): Promise<{
     status: ProviderAuthoritativeStatus;
     providerTransactionId?: string;
   }>;

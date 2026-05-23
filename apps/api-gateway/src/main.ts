@@ -7,7 +7,9 @@ import { LoggingInterceptor } from '@movie-hub/shared-types/common/logging.inter
 import { Logger, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 
 import { readFileSync } from 'fs';
 
@@ -18,9 +20,26 @@ import { GlobalExceptionFilter } from './app/exception/global-exception.filter';
 import { RedisIoAdapter } from './app/module/realtime/adapter/redis-io.adapter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     rawBody: true,
   });
+
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:', 'validator.swagger.io'],
+        },
+      },
+      crossOriginEmbedderPolicy: false,
+    })
+  );
+
+  app.set('trust proxy', 1);
+
   app.enableShutdownHooks();
   const serviceName = 'api-gateway';
   let shutdownStarted = false;
@@ -96,12 +115,8 @@ async function bootstrap() {
   });
 
   app.use(cookieParser());
-  
-  // Enforce TLS policy (HSTS)
-  app.use((req, res, next) => {
-    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-    next();
-  });
+
+
 
   app.enableVersioning({
     type: VersioningType.URI,
@@ -122,7 +137,6 @@ async function bootstrap() {
     new TransformInterceptor(),
     new LoggingInterceptor('Api-Gateway')
   );
-
   // Create Redis Adapter
   const redisIoAdapter = new RedisIoAdapter(app);
   await redisIoAdapter.connectToRedis();
