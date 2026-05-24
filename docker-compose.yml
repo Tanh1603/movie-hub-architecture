@@ -435,7 +435,10 @@ services:
     restart: unless-stopped
     ports:
       - '3100:3100'
-    command: -config.file=/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/loki.yml
+    volumes:
+      - ./infra/loki/loki.yml:/etc/loki/loki.yml:ro
+      - loki_data:/loki
     networks:
       - moviehub-network
 
@@ -451,6 +454,19 @@ services:
       - moviehub-network
     depends_on:
       - loki
+
+  log-exporter:
+    build:
+      context: ./infra/loki/exporter
+      dockerfile: Dockerfile
+    container_name: moviehub-log-exporter
+    restart: unless-stopped
+    depends_on:
+      - loki
+    volumes:
+      - ./infra/loki/exports:/exports
+    networks:
+      - moviehub-network
 
   grafana:
     image: grafana/grafana:latest
@@ -536,3 +552,5 @@ volumes:
     name: moviehub_restore_data
   backup_metadata:
     name: moviehub_backup_metadata
+  loki_data:
+    name: moviehub_loki_data

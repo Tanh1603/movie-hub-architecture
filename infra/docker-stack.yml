@@ -487,7 +487,21 @@ services:
     image: grafana/loki:latest
     ports:
       - '3100:3100'
-    command: -config.file=/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/loki.yml
+    volumes:
+      - ./loki/loki.yml:/etc/loki/loki.yml:ro
+      - loki_data:/loki
+    networks:
+      - moviehub-network
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  log-exporter:
+    image: moviehub-log-exporter:latest
+    volumes:
+      - ./loki/exports:/exports
     networks:
       - moviehub-network
     deploy:
@@ -615,3 +629,5 @@ volumes:
   # RETENTION: Permanent (deleted only via manual reset)
   backup_metadata:
     name: moviehub_backup_metadata
+  loki_data:
+    name: moviehub_loki_data
