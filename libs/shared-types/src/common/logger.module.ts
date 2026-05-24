@@ -39,6 +39,18 @@ import { RpcContextInterceptor } from './rpc-context.interceptor';
               requestId: cls.get('requestId'),
               userId: cls.get('userId'),
             }),
+            serializers: {
+              req: (req: any) => ({
+                id: req.id,
+                method: req.method,
+                url: req.url,
+                remoteAddress: req.remoteAddress,
+                remotePort: req.remotePort,
+              }),
+              res: (res: any) => ({
+                statusCode: res.statusCode,
+              }),
+            },
             transport: isProduction
               ? undefined
               : {

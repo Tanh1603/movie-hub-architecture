@@ -27,21 +27,30 @@ export class AuthWebhookController {
   ) {
     const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
     if (!webhookSecret) {
+      this.logger.error('CLERK_WEBHOOK_SECRET is required');
       throw new Error('CLERK_WEBHOOK_SECRET is required');
     }
     if (!req.rawBody) {
+      this.logger.error('Raw body is missing');
       throw new Error('Raw body is required for webhook signature verification');
     }
     if (!svixId || !svixTimestamp || !svixSignature) {
+      this.logger.error('Missing Svix signature headers');
       throw new Error('Missing Svix signature headers');
     }
 
-    const payload = req.rawBody.toString('utf8');
-    const event = new Webhook(webhookSecret).verify(payload, {
-      'svix-id': svixId,
-      'svix-timestamp': svixTimestamp,
-      'svix-signature': svixSignature,
-    }) as ClerkWebhookEnvelope;
+    const payload = req.rawBody?.toString() || JSON.stringify(req.body);
+    let event: ClerkWebhookEnvelope;
+    try {
+      event = new Webhook(webhookSecret).verify(payload, {
+        'svix-id': svixId,
+        'svix-timestamp': svixTimestamp,
+        'svix-signature': svixSignature,
+      }) as ClerkWebhookEnvelope;
+    } catch (err: any) {
+      this.logger.error(`Webhook verification failed: ${err.message}`, err.stack);
+      throw new Error(`Webhook Error: ${err.message}`);
+    }
 
     await this.userService.processClerkWebhook({
       eventId: svixId,
@@ -53,7 +62,22 @@ export class AuthWebhookController {
 
     this.logger.log(`Processed Clerk webhook eventId=${svixId} type=${event.type ?? 'unknown'}`);
 
-    if (event.type === 'session.created') {
+    if (event.type === 'user.created') {
+      this.logger.log({
+        action: 'user.registered',
+        metadata: { userId: event.data?.id, email: event.data?.email_addresses?.[0]?.email_address }
+      }, 'User registered');
+    } else if (event.type === 'user.updated') {
+      this.logger.log({
+        action: 'user.updated',
+        metadata: { userId: event.data?.id }
+      }, 'User profile updated');
+    } else if (event.type === 'user.deleted') {
+      this.logger.log({
+        action: 'user.deleted',
+        metadata: { userId: event.data?.id }
+      }, 'User account deleted');
+    } else if (event.type === 'session.created') {
       this.logger.log({
         action: 'user.login',
         metadata: { userId: event.data?.user_id, sessionId: event.data?.id }
