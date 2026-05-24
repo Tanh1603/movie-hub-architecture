@@ -141,7 +141,7 @@ export class MovieService {
         result.data.length > 0
       ) {
         try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+           
           const userIds = [
             ...new Set(result.data.map((r: any) => r.userId)),
           ] as string[];

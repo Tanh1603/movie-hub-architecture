@@ -54,9 +54,15 @@ export class AuthWebhookController {
     this.logger.log(`Processed Clerk webhook eventId=${svixId} type=${event.type ?? 'unknown'}`);
 
     if (event.type === 'session.created') {
-      this.logger.log(`User logged in: userId=${event.data?.user_id} sessionId=${event.data?.id}`);
+      this.logger.log({
+        action: 'user.login',
+        metadata: { userId: event.data?.user_id, sessionId: event.data?.id }
+      }, 'User logged in');
     } else if (event.type === 'session.ended' || event.type === 'session.removed' || event.type === 'session.revoked') {
-      this.logger.log(`User logged out: userId=${event.data?.user_id} sessionId=${event.data?.id}`);
+      this.logger.log({
+        action: 'user.logout',
+        metadata: { userId: event.data?.user_id, sessionId: event.data?.id, eventType: event.type }
+      }, 'User logged out');
     }
 
     return { ok: true };

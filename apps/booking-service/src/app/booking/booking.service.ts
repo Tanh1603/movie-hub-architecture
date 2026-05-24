@@ -39,7 +39,7 @@ import {
   sanitizeForLogging,
   serializeStructuredLog,
   RequestContextMetadata,
-} from '@movie-hub/shared-types/common/observability.util';
+} from '@movie-hub/shared-types/common';
 import {
   Prisma,
   Concessions,

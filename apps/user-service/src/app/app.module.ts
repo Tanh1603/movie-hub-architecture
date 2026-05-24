@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CoreObservabilityModule } from '@movie-hub/shared-types/common/logger.module';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import Joi from 'joi';
@@ -17,6 +18,7 @@ import { PrismaService } from './prisma.service';
     StaffModule,
     UserModule,
     SharedMetricsModule,
+    CoreObservabilityModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: 'apps/user-service/.env',

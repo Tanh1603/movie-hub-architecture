@@ -5,7 +5,7 @@ import {
   REQUEST_ID_HEADER,
   createRequestContext,
   RequestContextMetadata,
-} from '@movie-hub/shared-types/common/observability.util';
+} from '@movie-hub/shared-types/common';
 
 @Injectable()
 export class RequestContextMiddleware implements NestMiddleware {

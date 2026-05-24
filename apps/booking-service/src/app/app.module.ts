@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CoreObservabilityModule } from '@movie-hub/shared-types/common/logger.module';
 import { ConfigModule } from '@nestjs/config';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -14,7 +15,7 @@ import { TicketModule } from './ticket/ticket.module';
 import { RefundModule } from './refund/refund.module';
 import { BookingRedisModule } from './redis/redis.module';
 import { NotificationModule } from './notification/notification.module';
-import { OutboxModule } from './outbox/outbox.module';
+
 import { HealthController } from './health.controller';
 import Joi from 'joi';
 import { SecurityMetricsModule } from './security-metrics';
@@ -73,7 +74,7 @@ import { SharedMetricsModule } from '@movie-hub/shared-metrics';
     ScheduleModule.forRoot(),
     BookingRedisModule,
     NotificationModule,
-    OutboxModule,
+
     BookingModule,
     PaymentModule,
     ConcessionModule,
@@ -82,6 +83,7 @@ import { SharedMetricsModule } from '@movie-hub/shared-metrics';
     TicketModule,
     RefundModule,
     SharedMetricsModule,
+    CoreObservabilityModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService, PrismaService],

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CoreObservabilityModule } from '@movie-hub/shared-types/common/logger.module';
 import { ConfigModule } from '@nestjs/config';
 import Joi from 'joi';
 import { GenreModule } from './module/genre/genre.module';
@@ -15,6 +16,7 @@ import { SharedMetricsModule } from '@movie-hub/shared-metrics';
     ReviewModule,
     PrismaModule,
     SharedMetricsModule,
+    CoreObservabilityModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: 'apps/movie-service/.env',

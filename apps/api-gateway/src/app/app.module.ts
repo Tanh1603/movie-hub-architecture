@@ -1,4 +1,5 @@
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { CoreObservabilityModule } from '@movie-hub/shared-types/common/logger.module';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './module/user/user.module';
 import { CinemaModule } from './module/cinema/cinema.module';
@@ -68,6 +69,7 @@ import { AppThrottlerGuard } from './common/guard/app-throttler.guard';
       },
     ]),
     SharedMetricsModule,
+    CoreObservabilityModule,
   ],
   controllers: [HealthController],
   providers: [

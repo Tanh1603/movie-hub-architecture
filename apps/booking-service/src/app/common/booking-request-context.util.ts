@@ -1,4 +1,4 @@
-import { RequestContextMetadata } from '@movie-hub/shared-types/common/observability.util';
+import { RequestContextMetadata } from '@movie-hub/shared-types/common';
 
 export interface BookingRequestContext extends RequestContextMetadata {
   userId?: string;

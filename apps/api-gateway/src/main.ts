@@ -1,10 +1,11 @@
-import { LoggingInterceptor } from '@movie-hub/shared-types/common/logging.interceptor';
+
 /**
  * This is not a production server yet!
  * This is only a minimal backend to get started.
  */
 
-import { Logger, VersioningType } from '@nestjs/common';
+import { VersioningType } from '@nestjs/common';
+import { Logger } from 'nestjs-pino';
 import { NestFactory } from '@nestjs/core';
 import { OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -22,7 +23,10 @@ import { RedisIoAdapter } from './app/module/realtime/adapter/redis-io.adapter';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     rawBody: true,
+    bufferLogs: true,
   });
+ const logger = app.get(Logger);
+  app.useLogger(logger);
 
   app.use(
     helmet({
@@ -50,7 +54,7 @@ async function bootstrap() {
     }
 
     shutdownStarted = true;
-    Logger.log(
+    logger.log(
       JSON.stringify({
         event: 'shutdown-start',
         service: serviceName,
@@ -61,7 +65,7 @@ async function bootstrap() {
     );
 
     const timeout = setTimeout(() => {
-      Logger.error(
+      logger.error(
         JSON.stringify({
           event: 'shutdown-timeout',
           service: serviceName,
@@ -79,7 +83,7 @@ async function bootstrap() {
     try {
       await app.close();
       clearTimeout(timeout);
-      Logger.log(
+      logger.log(
         JSON.stringify({
           event: 'shutdown-complete',
           service: serviceName,
@@ -91,7 +95,7 @@ async function bootstrap() {
       process.exit(0);
     } catch (error) {
       clearTimeout(timeout);
-      Logger.error(
+      logger.error(
         JSON.stringify({
           event: 'shutdown-failed',
           service: serviceName,
@@ -134,8 +138,7 @@ async function bootstrap() {
 
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalInterceptors(
-    new TransformInterceptor(),
-    new LoggingInterceptor('Api-Gateway')
+    new TransformInterceptor()
   );
   // Create Redis Adapter
   const redisIoAdapter = new RedisIoAdapter(app);
@@ -145,7 +148,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  Logger.log(
+  logger.log(
     `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`
   );
 }

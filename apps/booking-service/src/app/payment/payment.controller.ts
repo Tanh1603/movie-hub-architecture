@@ -10,7 +10,7 @@ import {
   PaymentMessage,
   PaymentMethod,
 } from '@movie-hub/shared-types';
-import { RequestContextMetadata } from '@movie-hub/shared-types/common/observability.util';
+import { RequestContextMetadata } from '@movie-hub/shared-types/common';
 
 @Controller()
 export class PaymentController {

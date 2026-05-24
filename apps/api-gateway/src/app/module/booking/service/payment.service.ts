@@ -9,7 +9,7 @@ import {
   PaymentStatus,
   PaymentMethod,
 } from '@movie-hub/shared-types';
-import { attachRequestContextToPayload } from '@movie-hub/shared-types/common/observability.util';
+import { attachRequestContextToPayload } from '@movie-hub/shared-types/common';
 
 @Injectable()
 export class PaymentService {
