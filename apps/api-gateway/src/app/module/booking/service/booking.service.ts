@@ -16,7 +16,7 @@ import {
   CancelBookingWithRefundDto,
   ServiceResult,
 } from '@movie-hub/shared-types';
-import { attachRequestContextToPayload } from '@movie-hub/shared-types/common/observability.util';
+import { attachRequestContextToPayload } from '@movie-hub/shared-types/common';
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';

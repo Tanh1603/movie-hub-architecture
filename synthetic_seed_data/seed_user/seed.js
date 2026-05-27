@@ -234,7 +234,7 @@ async function main() {
   }
 
   // Load cinema-service env variables for cross-service database access
-  let cinemaDatabaseUrl = 'postgresql://postgres:postgres@localhost:5436/movie_hub_cinema';
+  let cinemaDatabaseUrl = 'postgresql://postgres:postgres@localhost:5437/movie_hub_cinema';
   try {
     const cinemaEnvPath = path.resolve(__dirname, '../../apps/cinema-service/.env');
     if (fs.existsSync(cinemaEnvPath)) {

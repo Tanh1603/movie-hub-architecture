@@ -1,11 +1,13 @@
-import { Logger } from '@nestjs/common';
+import { Logger } from 'nestjs-pino';
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app/app.module';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const logger = app.get(Logger);
+  app.useLogger(logger);
   app.enableShutdownHooks();
 
   const serviceName = 'user-service';
@@ -17,27 +19,24 @@ async function bootstrap() {
     }
 
     shutdownStarted = true;
-    Logger.log(
+    logger.log(
       JSON.stringify({
         event: 'shutdown-start',
         service: serviceName,
         signal,
         timestamp: new Date().toISOString(),
-      }),
-      serviceName
+      })
     );
 
     const timeout = setTimeout(() => {
-      Logger.error(
+      logger.error(
         JSON.stringify({
           event: 'shutdown-timeout',
           service: serviceName,
           signal,
           timestamp: new Date().toISOString(),
           timeoutMs: 30000,
-        }),
-        undefined,
-        serviceName
+        })
       );
       process.exit(1);
     }, 30000);
@@ -46,27 +45,25 @@ async function bootstrap() {
     try {
       await app.close();
       clearTimeout(timeout);
-      Logger.log(
+      logger.log(
         JSON.stringify({
           event: 'shutdown-complete',
           service: serviceName,
           signal,
           timestamp: new Date().toISOString(),
-        }),
-        serviceName
+        })
       );
       process.exit(0);
     } catch (error) {
       clearTimeout(timeout);
-      Logger.error(
+      logger.error(
         JSON.stringify({
           event: 'shutdown-failed',
           service: serviceName,
           signal,
           timestamp: new Date().toISOString(),
-        }),
-        error instanceof Error ? error.stack : String(error),
-        serviceName
+          error: error instanceof Error ? error.stack : String(error)
+        })
       );
       process.exit(1);
     }
@@ -90,7 +87,7 @@ async function bootstrap() {
   await app.startAllMicroservices();
   await app.listen(httpPort);
 
-  Logger.log(`🚀 User service run successfully`);
+  app.get(Logger).log(`🚀 User service run successfully`);
 }
 
 bootstrap();

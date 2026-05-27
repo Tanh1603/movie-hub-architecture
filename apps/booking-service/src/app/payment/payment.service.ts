@@ -32,7 +32,7 @@ import {
   serializeStructuredLog,
   sanitizeForLogging,
   RequestContextMetadata,
-} from '@movie-hub/shared-types/common/observability.util';
+} from '@movie-hub/shared-types/common';
 
 const MAX_PAGE_LIMIT = 50;
 
@@ -82,18 +82,7 @@ export class PaymentService implements OnModuleInit {
     metadata?: Record<string, unknown>,
     context?: Partial<RequestContextMetadata>
   ) {
-    this.logger.log(
-      serializeStructuredLog({
-        level: 'info',
-        service: PaymentService.name,
-        correlationId: context?.correlationId,
-        requestId: context?.requestId,
-        userId: context?.userId,
-        action,
-        message,
-        metadata,
-      })
-    );
+    this.logger.log({ action, metadata }, message);
   }
 
   private logWarn(
@@ -102,18 +91,7 @@ export class PaymentService implements OnModuleInit {
     metadata?: Record<string, unknown>,
     context?: Partial<RequestContextMetadata>
   ) {
-    this.logger.warn(
-      serializeStructuredLog({
-        level: 'warn',
-        service: PaymentService.name,
-        correlationId: context?.correlationId,
-        requestId: context?.requestId,
-        userId: context?.userId,
-        action,
-        message,
-        metadata,
-      })
-    );
+    this.logger.warn({ action, metadata }, message);
   }
 
   private logError(
@@ -125,23 +103,7 @@ export class PaymentService implements OnModuleInit {
     const errorObject =
       error instanceof Error ? error : new Error(String(error));
 
-    this.logger.error(
-      serializeStructuredLog({
-        level: 'error',
-        service: PaymentService.name,
-        correlationId: context?.correlationId,
-        requestId: context?.requestId,
-        userId: context?.userId,
-        action,
-        message: errorObject.message,
-        errorCode: errorObject.name,
-        metadata: {
-          ...metadata,
-          error: sanitizeForLogging(error),
-        },
-      }),
-      errorObject.stack
-    );
+    this.logger.error({ action, metadata, errorCode: errorObject.name, error: String(error) }, errorObject.message);
   }
 
   private normalizePagination(page?: number, limit?: number) {
@@ -410,24 +372,13 @@ export class PaymentService implements OnModuleInit {
         'Failed to publish booking confirmation event',
         {
           bookingId: booking.id,
-          error: sanitizeForLogging(eventError),
+          error: String(eventError),
         },
         context
       );
     }
 
-    // Send booking confirmation email ASYNCHRONOUSLY
-    this.sendBookingConfirmationEmailAsync(booking.id).catch((emailError) => {
-      this.logError(
-        'booking.confirmed.email_send_error',
-        'Failed to send booking confirmation email (async)',
-        {
-          bookingId: booking.id,
-          error: sanitizeForLogging(emailError),
-        },
-        context
-      );
-    });
+    // Email will be sent asynchronously via the NotificationOutbox poller
 
     this.logInfo(
       'payment.zero_amount.completed',
@@ -660,20 +611,7 @@ export class PaymentService implements OnModuleInit {
           // Non-critical
         }
 
-        // Send booking confirmation email ASYNCHRONOUSLY
-        this.sendBookingConfirmationEmailAsync(payment.booking_id).catch(
-          (emailError) => {
-            this.logWarn(
-              'booking.confirmed.event_publish_warning',
-              'Failed to publish booking confirmation event',
-              {
-                bookingId: payment.booking_id,
-                error: sanitizeForLogging(emailError),
-              },
-              context
-            );
-          }
-        );
+        // Email will be sent asynchronously via the NotificationOutbox poller
 
         return { data: adapter.buildIPNResponse('processed') };
       } else {

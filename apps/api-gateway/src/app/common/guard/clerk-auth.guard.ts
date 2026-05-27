@@ -171,6 +171,15 @@ export class ClerkAuthGuard implements CanActivate {
     }
 
     if (!requiredPermission) {
+      this.logger.log({
+        action: 'user.access',
+        metadata: {
+          userId: request.userId,
+          endpoint: request.url,
+          method: request.method,
+          role: request.headers['x-user-role']
+        }
+      }, 'User accessed system');
       return true;
     }
 
@@ -197,9 +206,17 @@ export class ClerkAuthGuard implements CanActivate {
         );
         throw new ForbiddenException('Insufficient permissions');
       }
-      this.logger.log(
-        `Permission check passed userId=${userId} required=${JSON.stringify(requiredPermission)} actualPermissions=[${permissions.join(',')}] correlationId=${correlationId}`
-      );
+      this.logger.log({
+        action: 'user.access',
+        metadata: {
+          userId: request.userId,
+          endpoint: request.url,
+          method: request.method,
+          role: request.headers['x-user-role'],
+          requiredPermission,
+          actualPermissions: permissions
+        }
+      }, 'User accessed system with permission');
 
       return hasPermission;
     } catch (error) {

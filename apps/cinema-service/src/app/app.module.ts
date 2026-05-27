@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CoreObservabilityModule } from '@movie-hub/shared-types/common/logger.module';
 import { ConfigModule } from '@nestjs/config';
 import { CinemaModule } from './cinema/cinema.module';
 import { ShowtimeModule } from './showtime/showtime.module';
@@ -29,6 +30,7 @@ import { PrismaService } from './prisma.service';
     HallModule,
     TicketPricingModule,
     SharedMetricsModule,
+    CoreObservabilityModule,
   ],
   controllers: [HealthController],
   providers: [PrismaService],

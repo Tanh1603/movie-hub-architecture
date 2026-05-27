@@ -1,5 +1,5 @@
 import { RequestContextMiddleware } from './request-context.middleware';
-import { CORRELATION_ID_HEADER, REQUEST_ID_HEADER } from '@movie-hub/shared-types/common/observability.util';
+import { CORRELATION_ID_HEADER, REQUEST_ID_HEADER } from '@movie-hub/shared-types/common';
 
 describe('RequestContextMiddleware', () => {
   it('creates request context and propagates headers', () => {
