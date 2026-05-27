@@ -1,4 +1,4 @@
-# [ST-03] Create Showtime
+﻿# [ST-03] Create Showtime
 
 ## 1. Description
 
@@ -67,5 +67,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (5) | General | A hall cannot have two showtimes that overlap in time (including a buffer for cleaning). |
-| (4) | SRS 5.2 | Showtime status defaults to `SCHEDULED` or `SELLING`. |
+| (5) | BR90 | A hall cannot have two showtimes that overlap in time (including a buffer for cleaning). |
+| (4) | BR91 | Showtime status defaults to `SCHEDULED` or `SELLING`. |
+
+

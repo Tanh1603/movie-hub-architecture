@@ -1,4 +1,4 @@
-# [MR-01] Create Movie Release
+﻿# [MR-01] Create Movie Release
 
 ## 1. Description
 
@@ -67,5 +67,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | N/A | Format must be one of: `TWO_D`, `THREE_D`, `IMAX`, `FOUR_DX` (Movie Service Enums). |
-| (1) | N/A | End date must be after the release date. |
+| (1) | BR70 | The `format` field must be one of the allowed enums (TWO_D, THREE_D, IMAX, FOUR_DX); invalid formats must be rejected with HTTP 400. |
+| (1) | BR71 | The `endDate` must be strictly after `releaseDate`; requests that violate this must be rejected with HTTP 400. |
+
+

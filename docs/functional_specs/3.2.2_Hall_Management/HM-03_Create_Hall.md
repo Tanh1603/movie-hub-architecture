@@ -1,4 +1,4 @@
-# [HM-03] Create Hall
+﻿# [HM-03] Create Hall
 
 ## 1. Description
 
@@ -66,4 +66,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | General | Hall names (e.g., "Hall 1") must be unique within a single Cinema. |
+| (4) | BR55 | Hall names (e.g., "Hall 1") must be unique within a single Cinema. |
+
+

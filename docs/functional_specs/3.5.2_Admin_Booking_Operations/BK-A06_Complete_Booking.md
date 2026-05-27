@@ -1,4 +1,4 @@
-# [BK-A06] Complete Booking
+﻿# [BK-A06] Complete Booking
 
 ## 1. Description
 
@@ -64,4 +64,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | N/A | COMPLETED status indicates the service has been successfully rendered (user attended). |
+| (4) | BR133 | COMPLETED status indicates the service has been successfully rendered (user attended). |
+
+

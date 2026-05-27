@@ -1,4 +1,4 @@
-# [BK-A05] Confirm Booking
+﻿# [BK-A05] Confirm Booking
 
 ## 1. Description
 
@@ -67,5 +67,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | N/A | Confirming a booking manually bypasses the payment gateway IPN check. |
-| (5) | N/A | Same ticket generation logic as automated flow (Section 3.7). |
+| (4) | BR131 | Confirming a booking manually bypasses the payment gateway IPN check. |
+| (5) | BR132 | Same ticket generation logic as automated flow (Section 3.7). |
+
+

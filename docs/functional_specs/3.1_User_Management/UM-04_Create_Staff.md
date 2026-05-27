@@ -1,4 +1,4 @@
-# [UM-04] Create Staff
+﻿# [UM-04] Create Staff
 
 ## 1. Description
 
@@ -69,5 +69,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | SRS 2.2 | Position must be one of: `TICKET_CLERK`, `CONCESSION_STAFF`, `USHER`, `PROJECTIONIST`, `CLEANER`, `SECURITY`, etc. |
-| (6) | SRS 5.1 | Staff record links to User account (via Clerk ID possibly) or stands alone as internal record. |
+| (4) | BR06 | Position must be one of: `TICKET_CLERK`, `CONCESSION_STAFF`, `USHER`, `PROJECTIONIST`, `CLEANER`, `SECURITY`, etc. |
+| (6) | BR07 | Staff record links to User account (via Clerk ID possibly) or stands alone as internal record. |
+
+

@@ -1,4 +1,4 @@
-# [TK-A01] Admin List All Tickets
+﻿# [TK-A01] Admin List All Tickets
 
 ## 1. Description
 
@@ -55,5 +55,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (2) | N/A | Restricted to Admin users. |
-| (3) | N/A | Includes ticket status, seat info, and associated booking ID. |
+| (2) | BR172 | Restricted to Admin users. |
+| (3) | BR173 | Includes ticket status, seat info, and associated booking ID. |
+
+

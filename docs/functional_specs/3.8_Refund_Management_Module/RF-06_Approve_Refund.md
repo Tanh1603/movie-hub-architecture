@@ -1,4 +1,4 @@
-# [RF-06] Approve Refund
+﻿# [RF-06] Approve Refund
 
 ## 1. Description
 
@@ -55,5 +55,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | N/A | Approval assumes the money has been successfully sent back to the user's account. |
-| (5) | N/A | Payment status synchronization is critical for financial reconciliation. |
+| (4) | BR187 | Approval assumes the money has been successfully sent back to the user's account. |
+| (5) | BR188 | Payment status synchronization is critical for financial reconciliation. |
+
+

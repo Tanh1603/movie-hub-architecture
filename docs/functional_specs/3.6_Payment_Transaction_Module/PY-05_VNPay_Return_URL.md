@@ -1,4 +1,4 @@
-# [PY-05] VNPay Return URL
+﻿# [PY-05] VNPay Return URL
 
 ## 1. Description
 
@@ -72,5 +72,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (5) | N/A | Immediate feedback only. Data consistency is guaranteed by PY-04 (IPN). |
-| (6) | N/A | Success page should display booking summary and link to tickets. |
+| (5) | BR155 | Immediate feedback only. Data consistency is guaranteed by PY-04 (IPN). |
+| (6) | BR156 | Success page should display booking summary and link to tickets. |
+
+

@@ -1,4 +1,4 @@
-# [PY-A04] Get Payment Statistics
+﻿# [PY-A04] Get Payment Statistics
 
 ## 1. Description
 
@@ -55,4 +55,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Statistics help monitor gateway stability and user preferences. |
+| (3) | BR161 | Statistics help monitor gateway stability and user preferences. |
+
+

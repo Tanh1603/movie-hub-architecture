@@ -1,4 +1,4 @@
-# [ST-10] Get All Movies with Showtimes
+﻿# [ST-10] Get All Movies with Showtimes
 
 ## 1. Description
 
@@ -62,5 +62,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | SRS 5.2 | Filters out movies that have no available showtimes left for the day. |
-| (6) | N/A | Typically sorted by movie popularity or release date. |
+| (3) | BR102 | Filters out movies that have no available showtimes left for the day. |
+| (6) | BR103 | Typically sorted by movie popularity or release date. |
+
+

@@ -1,4 +1,4 @@
-# [HM-06] Update Seat Status
+﻿# [HM-06] Update Seat Status
 
 ## 1. Description
 
@@ -55,4 +55,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | SRS 5.2 | If a seat is marked BROKEN, it must be excluded from future booking availability calculations. |
+| (4) | BR58 | If a seat is marked BROKEN, it must be excluded from future booking availability calculations. |
+
+

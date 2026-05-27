@@ -1,4 +1,4 @@
-# [CM-10] Get Available Districts
+﻿# [CM-10] Get Available Districts
 
 ## 1. Description
 
@@ -55,4 +55,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | N/A | Dependent on the selected city. |
+| (4) | BR52 | Dependent on the selected city. |
+
+

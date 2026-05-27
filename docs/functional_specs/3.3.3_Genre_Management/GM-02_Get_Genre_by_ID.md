@@ -1,4 +1,4 @@
-# [GM-02] Get Genre by ID
+﻿# [GM-02] Get Genre by ID
 
 ## 1. Description
 
@@ -64,4 +64,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | N/A | Standard read operation for a single genre. |
+| (1) | BR75 | Retrieving a genre by ID returns the genre object including `id` and `name`; requests for non-existent IDs must return HTTP 404. |
+
+

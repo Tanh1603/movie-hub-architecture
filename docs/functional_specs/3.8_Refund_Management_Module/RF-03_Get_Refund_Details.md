@@ -1,4 +1,4 @@
-# [RF-03] Get Refund Details
+﻿# [RF-03] Get Refund Details
 
 ## 1. Description
 
@@ -64,4 +64,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | N/A | Standard administrative read operation. |
+| (1) | BR183 | Standard administrative read operation. |
+
+

@@ -1,4 +1,4 @@
-# [PY-04] VNPay IPN Webhook
+﻿# [PY-04] VNPay IPN Webhook
 
 ## 1. Description
 
@@ -83,6 +83,8 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | BR-PAY-01 | VNPay IPN webhook is unauthenticated (public endpoint) but verified by hash. |
-| (3) | BR-PAY-02 | VNPay IPN must return exact format: `{ RspCode: string, Message: string }`. |
-| (6) | N/A | Booking status transition: PENDING -> CONFIRMED. |
+| (1) | BR152 | VNPay IPN webhook is unauthenticated (public endpoint) but verified by hash. |
+| (3) | BR153 | VNPay IPN must return exact format: `{ RspCode: string, Message: string }`. |
+| (6) | BR154 | Booking status transition: PENDING -> CONFIRMED. |
+
+

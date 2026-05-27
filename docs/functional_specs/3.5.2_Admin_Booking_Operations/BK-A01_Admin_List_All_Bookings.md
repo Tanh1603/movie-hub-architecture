@@ -1,4 +1,4 @@
-# [BK-A01] Admin List All Bookings
+﻿# [BK-A01] Admin List All Bookings
 
 ## 1. Description
 
@@ -58,5 +58,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (2) | N/A | Restricted to Admin actor (SRS Section 2.1). |
-| (6) | N/A | DTO includes sensitive user info and full transaction history not visible to members. |
+| (2) | BR125 | Restricted to Admin actor (SRS Section 2.1). |
+| (6) | BR126 | DTO includes sensitive user info and full transaction history not visible to members. |
+
+

@@ -1,4 +1,4 @@
-# [ST-05] Update Showtime
+﻿# [ST-05] Update Showtime
 
 ## 1. Description
 
@@ -76,5 +76,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | General | Changing Hall or Start Time is strictly prohibited if users have already booked tickets for that showtime. |
-| (5) | SRS 5.2 | Valid statuses: `SCHEDULED`, `SELLING`, `SOLD_OUT`, `CANCELLED`, `COMPLETED`. |
+| (3) | BR94 | Changing Hall or Start Time is strictly prohibited if users have already booked tickets for that showtime. |
+| (5) | BR95 | Valid statuses: `SCHEDULED`, `SELLING`, `SOLD_OUT`, `CANCELLED`, `COMPLETED`. |
+
+

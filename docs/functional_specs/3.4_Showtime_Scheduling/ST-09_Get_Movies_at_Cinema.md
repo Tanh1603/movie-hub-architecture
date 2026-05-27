@@ -1,4 +1,4 @@
-# [ST-09] Get Movies at Cinema
+﻿# [ST-09] Get Movies at Cinema
 
 ## 1. Description
 
@@ -59,4 +59,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | SRS 5.2 | Only movies with at least one showtime in `SELLING` status are included. |
+| (3) | BR101 | Only movies with at least one showtime in `SELLING` status are included. |
+
+

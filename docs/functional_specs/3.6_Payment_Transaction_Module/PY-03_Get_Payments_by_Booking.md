@@ -1,4 +1,4 @@
-# [PY-03] Get Payments by Booking
+﻿# [PY-03] Get Payments by Booking
 
 ## 1. Description
 
@@ -54,5 +54,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Useful for tracking failed attempts and final successful payment. |
-| (3) | N/A | Only accessible to the booking owner. |
+| (3) | BR150 | Useful for tracking failed attempts and final successful payment. |
+| (3) | BR151 | Only accessible to the booking owner. |
+
+

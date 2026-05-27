@@ -1,4 +1,4 @@
-# [LY-02] Get Transaction History
+﻿# [LY-02] Get Transaction History
 
 ## 1. Description
 
@@ -54,5 +54,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | SRS 5.2 | Types: EARN, REDEEM, EXPIRE. |
+| (3) | BR32 | Types: EARN, REDEEM, EXPIRE. |
 @enduml
+
+

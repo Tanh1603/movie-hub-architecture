@@ -1,4 +1,4 @@
-# [MV-05] Update Movie
+﻿# [MV-05] Update Movie
 
 ## 1. Description
 
@@ -55,5 +55,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | N/A | Can update title, overview, release date, runtime, poster, trailer, backdrop, age rating. |
-| (4) | SRS 5.1 | Updates to genres should also be handled (if included in payload). |
+| (4) | BR67 | Can update title, overview, release date, runtime, poster, trailer, backdrop, age rating. |
+| (4) | BR68 | Updates to genres should also be handled (if included in payload). |
+
+

@@ -1,4 +1,4 @@
-# [RV-02] Get Movie Reviews
+﻿# [RV-02] Get Movie Reviews
 
 ## 1. Description
 
@@ -54,4 +54,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Reviews should include user names (or obfuscated IDs) and rating values. |
+| (3) | BR81 | Reviews should include user names (or obfuscated IDs) and rating values. |
+
+

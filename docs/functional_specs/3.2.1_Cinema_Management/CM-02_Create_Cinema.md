@@ -1,4 +1,4 @@
-# [CM-02] Create Cinema
+﻿# [CM-02] Create Cinema
 
 ## 1. Description
 
@@ -57,4 +57,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | SRS 5.1 | Required fields: Name, Address, City, District. Optional: Description, Image URLs. |
+| (1) | BR43 | Required fields: Name, Address, City, District. Optional: Description, Image URLs. |
+
+

@@ -1,4 +1,4 @@
-# [BK-A03] Find Bookings by Date Range
+﻿# [BK-A03] Find Bookings by Date Range
 
 ## 1. Description
 
@@ -54,4 +54,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Dates must be in ISO 8601 format or compatible. |
+| (3) | BR128 | Dates must be in ISO 8601 format or compatible. |
+
+

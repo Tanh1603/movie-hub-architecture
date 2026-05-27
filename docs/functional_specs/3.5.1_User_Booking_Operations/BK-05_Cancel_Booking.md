@@ -1,4 +1,4 @@
-# [BK-05] Cancel Booking
+﻿# [BK-05] Cancel Booking
 
 ## 1. Description
 
@@ -70,5 +70,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR-BOOK-03 | Bookings can only be cancelled when status is PENDING or CONFIRMED. |
-| (5) | N/A | Seats are made available for other users immediately after cancellation. |
+| (3) | BR111 | Bookings can only be cancelled when status is PENDING or CONFIRMED. |
+| (5) | BR112 | Seats are made available for other users immediately after cancellation. |
+
+

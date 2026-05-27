@@ -1,4 +1,4 @@
-# [CM-08] Filter Cinemas
+﻿# [CM-08] Filter Cinemas
 
 ## 1. Description
 
@@ -54,4 +54,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | SRS 3.2.1 | Supports City and District filtering primarily. |
+| (1) | BR50 | Supports City and District filtering primarily. |
+
+

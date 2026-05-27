@@ -1,4 +1,4 @@
-# [RT-02] Release Seat
+﻿# [RT-02] Release Seat
 
 ## 1. Description
 
@@ -67,4 +67,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Users can only release seats they have personally held. |
+| (3) | BR142 | Users can only release seats they have personally held. |
+
+

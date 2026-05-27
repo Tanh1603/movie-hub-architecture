@@ -1,4 +1,4 @@
-# [PY-01] Create Payment
+﻿# [PY-01] Create Payment
 
 ## 1. Description
 
@@ -62,5 +62,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR-BOOK-01 | Payment must be initiated within 15 minutes of booking creation. |
-| (5) | N/A | URL must include a secure hash (HMAC-SHA512) for integrity. |
+| (3) | BR147 | Payment must be initiated within 15 minutes of booking creation. |
+| (5) | BR148 | URL must include a secure hash (HMAC-SHA512) for integrity. |
+
+

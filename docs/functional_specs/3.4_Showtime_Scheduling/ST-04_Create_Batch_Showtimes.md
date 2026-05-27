@@ -1,4 +1,4 @@
-# [ST-04] Create Batch Showtimes
+﻿# [ST-04] Create Batch Showtimes
 
 ## 1. Description
 
@@ -70,5 +70,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (5) | General | Batch processing must handle partial successes (Atomic per record). |
-| (5) | General | Conflict rules from ST-03 apply to each item. |
+| (5) | BR92 | Batch processing must handle partial successes (Atomic per record). |
+| (5) | BR93 | Conflict rules from ST-03 apply to each item. |
+
+

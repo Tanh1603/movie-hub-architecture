@@ -1,4 +1,4 @@
-# [TK-A04] Bulk Validate Tickets
+﻿# [TK-A04] Bulk Validate Tickets
 
 ## 1. Description
 
@@ -58,4 +58,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | N/A | Typically used for mass entry processing or system-wide checks. |
+| (4) | BR177 | Typically used for mass entry processing or system-wide checks. |
+
+

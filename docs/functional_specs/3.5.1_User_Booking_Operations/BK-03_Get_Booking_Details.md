@@ -1,4 +1,4 @@
-# [BK-03] Get Booking Details
+﻿# [BK-03] Get Booking Details
 
 ## 1. Description
 
@@ -64,5 +64,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Includes QR code data for tickets if status is CONFIRMED. |
-| (3) | SRS 5.1 | Hydrates data for Bookings, Tickets, Payments, and BookingConcessions. |
+| (3) | BR108 | Includes QR code data for tickets if status is CONFIRMED. |
+| (3) | BR109 | Hydrates data for Bookings, Tickets, Payments, and BookingConcessions. |
+
+

@@ -1,4 +1,4 @@
-# [CS-06] Update Inventory
+﻿# [CS-06] Update Inventory
 
 ## 1. Description
 
@@ -53,5 +53,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Inventory levels should decrement automatically when a booking is confirmed (if implemented in BK flow). |
-| (3) | N/A | Stock quantity cannot be negative. |
+| (3) | BR198 | When integrated with the booking flow, inventory must be decremented atomically upon booking confirmation to avoid oversell; failures must trigger compensating actions. |
+| (3) | BR199 | Stock quantity must never be negative; update requests with negative values must be rejected with HTTP 400. |
+
+

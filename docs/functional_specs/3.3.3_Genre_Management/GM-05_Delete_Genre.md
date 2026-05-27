@@ -1,4 +1,4 @@
-# [GM-05] Delete Genre
+﻿# [GM-05] Delete Genre
 
 ## 1. Description
 
@@ -65,4 +65,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | General | A genre cannot be deleted if there are movies currently associated with it. |
+| (3) | BR78 | A genre cannot be deleted if there are movies currently associated with it. |
+
+

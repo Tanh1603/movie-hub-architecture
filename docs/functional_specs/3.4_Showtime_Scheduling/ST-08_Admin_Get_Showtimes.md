@@ -1,4 +1,4 @@
-# [ST-08] Admin Get Showtimes
+﻿# [ST-08] Admin Get Showtimes
 
 ## 1. Description
 
@@ -55,5 +55,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Unlike public views, this includes `CANCELLED` and `COMPLETED` showtimes for auditing. |
-| (3) | N/A | Includes booking counts or seat occupancy percentages. |
+| (3) | BR99 | Unlike public views, this includes `CANCELLED` and `COMPLETED` showtimes for auditing. |
+| (3) | BR100 | Includes booking counts or seat occupancy percentages. |
+
+

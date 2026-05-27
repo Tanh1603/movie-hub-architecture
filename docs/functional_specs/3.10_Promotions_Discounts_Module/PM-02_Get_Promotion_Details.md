@@ -1,4 +1,4 @@
-# [PM-02] Get Promotion Details
+﻿# [PM-02] Get Promotion Details
 
 ## 1. Description
 
@@ -64,4 +64,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | N/A | Standard read operation for a single promotion item. |
+| (1) | BR16 | Retrieving promotion details returns the full promotion record (including terms and conditions) when the ID exists; requests for missing IDs must return HTTP 404. |
+
+

@@ -1,4 +1,4 @@
-# [RV-05] Delete Review
+﻿# [RV-05] Delete Review
 
 ## 1. Description
 
@@ -65,4 +65,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (5) | General | Deleted reviews should also trigger a recalculation of the movie's aggregate rating. |
+| (5) | BR86 | Deleted reviews should also trigger a recalculation of the movie's aggregate rating. |
+
+

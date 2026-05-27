@@ -1,4 +1,4 @@
-# [PY-A01] Admin List All Payments
+﻿# [PY-A01] Admin List All Payments
 
 ## 1. Description
 
@@ -55,5 +55,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (2) | N/A | Access is restricted to Admin role. |
-| (3) | N/A | Includes details like Transaction Reference, Gateway Response, and Amount. |
+| (2) | BR157 | Access is restricted to Admin role. |
+| (3) | BR158 | Includes details like Transaction Reference, Gateway Response, and Amount. |
+
+

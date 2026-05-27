@@ -1,4 +1,4 @@
-# [LY-01] Get Loyalty Balance
+﻿# [LY-01] Get Loyalty Balance
 
 ## 1. Description
 
@@ -54,6 +54,8 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | BR-LOYALTY-04 | New loyalty accounts start at BRONZE tier. |
-| (4) | SRS 5.2 | Membership tiers: BRONZE, SILVER, GOLD, PLATINUM. |
+| (4) | BR30 | New loyalty accounts start at BRONZE tier. |
+| (4) | BR31 | Membership tiers: BRONZE, SILVER, GOLD, PLATINUM. |
 @enduml
+
+
