@@ -144,7 +144,7 @@ services:
     depends_on:
       - api-gateway
     deploy:
-      replicas: 2
+      replicas: 1
       update_config:
         parallelism: 1
         order: start-first
@@ -153,7 +153,7 @@ services:
         delay: 5s
         max_attempts: 3
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:80/api/health/live || exit 1"]
+      test: ['CMD', 'wget', '--spider', '-q', 'http://127.0.0.1/healthz']
       interval: 10s
       timeout: 5s
       retries: 3
@@ -162,17 +162,6 @@ services:
     image: movie-hub-architecture-api-gateway:latest
     env_file:
       - ../apps/api-gateway/.env
-    environment:
-      - NODE_ENV=production
-      - USER_PORT=3001
-      - MOVIE_HOST=movie-service
-      - MOVIE_PORT=3002
-      - CINEMA_HOST=cinema-service
-      - CINEMA_PORT=3003
-      - BOOKING_HOST=booking-service
-      - BOOKING_PORT=3004
-      - REDIS_HOST=redis
-      - REDIS_URL=redis://redis:6379
     depends_on:
       - user-service
       - movie-service
@@ -209,20 +198,13 @@ services:
     image: movie-hub-architecture-user-service:latest
     env_file:
       - ../apps/user-service/.env
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:postgres@postgres-user:5432/movie_hub_user?schema=public
-      - TCP_HOST=0.0.0.0
-      - REDIS_URL=redis://redis:6379
-      - PORT=3001
-      - TCP_PORT=3001
     command: >
       sh -c "
       npx --yes prisma@6.16.2 db push --accept-data-loss --skip-generate
       && node main.js
       "
     ports:
-      - '4001:3001'
+      - '3006:3006'
     depends_on:
       - postgres-user
     networks:
@@ -245,7 +227,7 @@ services:
       test:
         [
           'CMD-SHELL',
-          'wget -qO- --timeout=2 http://localhost:3001/health/live || exit 1',
+          'wget -qO- --timeout=2 http://localhost:3006/health/live || exit 1',
         ]
       interval: 30s
       timeout: 5s
@@ -256,20 +238,13 @@ services:
     image: movie-hub-architecture-movie-service:latest
     env_file:
       - ../apps/movie-service/.env
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:postgres@postgres-movie:5432/movie_hub_movie?schema=public
-      - TCP_HOST=0.0.0.0
-      - REDIS_URL=redis://redis:6379
-      - PORT=3002
-      - TCP_PORT=3002
     command: >
       sh -c "
       npx --yes prisma@6.16.2 db push --accept-data-loss --skip-generate
       && node main.js
       "
     ports:
-      - '4002:3002'
+      - '3007:3007'
     depends_on:
       - postgres-movie
     networks:
@@ -292,7 +267,7 @@ services:
       test:
         [
           'CMD-SHELL',
-          'wget -qO- --timeout=2 http://localhost:3002/health/live || exit 1',
+          'wget -qO- --timeout=2 http://localhost:3007/health/live || exit 1',
         ]
       interval: 30s
       timeout: 5s
@@ -303,22 +278,13 @@ services:
     image: movie-hub-architecture-cinema-service:latest
     env_file:
       - ../apps/cinema-service/.env
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:postgres@postgres-cinema:5432/movie_hub_cinema?schema=public
-      - TCP_HOST=0.0.0.0
-      - REDIS_URL=redis://redis:6379
-      - PORT=3003
-      - TCP_PORT=3003
-      - MOVIE_HOST=movie-service
-      - MOVIE_PORT=3002
     command: >
       sh -c "
       npx --yes prisma@6.16.2 db push --accept-data-loss --skip-generate
       && node main.js
       "
     ports:
-      - '4003:3003'
+      - '3008:3008'
     depends_on:
       - postgres-cinema
     networks:
@@ -341,7 +307,7 @@ services:
       test:
         [
           'CMD-SHELL',
-          'wget -qO- --timeout=2 http://localhost:3003/health/live || exit 1',
+          'wget -qO- --timeout=2 http://localhost:3008/health/live || exit 1',
         ]
       interval: 30s
       timeout: 5s
@@ -352,24 +318,13 @@ services:
     image: movie-hub-architecture-booking-service:latest
     env_file:
       - ../apps/booking-service/.env
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:postgres@postgres-booking:5432/movie_hub_booking?schema=public
-      - TCP_HOST=0.0.0.0
-      - REDIS_URL=redis://redis:6379
-      - PORT=3004
-      - TCP_PORT=3004
-      - CINEMA_HOST=cinema-service
-      - CINEMA_PORT=3003
-      - USER_HOST=user-service
-      - USER_PORT=3001
     command: >
       sh -c "
       npx --yes prisma@6.16.2 db push --accept-data-loss --skip-generate
       && node main.js
       "
     ports:
-      - '4004:3004'
+      - '3005:3005'
     depends_on:
       - postgres-booking
     networks:
@@ -392,7 +347,7 @@ services:
       test:
         [
           'CMD-SHELL',
-          'wget -qO- --timeout=2 http://localhost:3004/health/live || exit 1',
+          'wget -qO- --timeout=2 http://localhost:3005/health/live || exit 1',
         ]
       interval: 30s
       timeout: 5s
@@ -521,7 +476,6 @@ services:
       - loki
     deploy:
       mode: global
-
 
   prometheus:
     image: prom/prometheus:latest
