@@ -21,6 +21,7 @@ import {
   ShowtimeSeatResponse,
   UserMessage,
   UserDetailDto,
+  ResponseMessage,
 } from '@movie-hub/shared-types';
 import {
   Prisma,
@@ -111,7 +112,7 @@ export class RefundService {
 
     return {
       data: this.mapToDetailDto(refund),
-      message: 'Refund request created successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -254,7 +255,7 @@ export class RefundService {
 
     return {
       data: this.mapToDetailDto(updated),
-      message: 'Refund marked as processing',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -407,7 +408,7 @@ export class RefundService {
 
     return {
       data: this.mapToDetailDto(updated),
-      message: 'Refund approved and completed successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -447,7 +448,7 @@ export class RefundService {
 
     return {
       data: this.mapToDetailDto(updated),
-      message: 'Refund rejected',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -622,7 +623,7 @@ export class RefundService {
         voucher: result.voucher,
         message: `Refund processed successfully. Your voucher code is: ${result.voucher.code}`,
       },
-      message: `Voucher code: ${result.voucher.code}`,
+      message: ResponseMessage.MSG_7,
     };
   }
 

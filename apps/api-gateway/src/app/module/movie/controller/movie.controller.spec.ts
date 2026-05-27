@@ -3,6 +3,7 @@ import { MovieController } from './movie.controller';
 import { MovieService } from '../service/movie.service';
 import {
   CreateMovieRequest,
+  ResponseMessage,
   UpdateMovieRequest,
 } from '@movie-hub/shared-types';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
@@ -136,7 +137,7 @@ describe('MovieController', () => {
       };
       const mockResult = {
         data: { id: '456', ...createRequest },
-        message: 'Movie created successfully',
+        message: ResponseMessage.MSG_7,
       };
 
       movieService.createMovie.mockResolvedValue(mockResult);
@@ -188,7 +189,7 @@ describe('MovieController', () => {
       };
       const mockResult = {
         data: { id: movieId, ...updateRequest },
-        message: 'Movie updated successfully',
+        message: ResponseMessage.MSG_7,
       };
 
       movieService.updateMovie.mockResolvedValue(mockResult);
@@ -224,7 +225,7 @@ describe('MovieController', () => {
     it('should delete a movie and return null', async () => {
       const req = { staffContext: undefined } as any;
       const movieId = '123';
-      const mockResult = { message: 'Movie deleted successfully' };
+      const mockResult = { message: ResponseMessage.MSG_7 };
 
       movieService.deleteMovie.mockResolvedValue(mockResult);
 

@@ -5,6 +5,7 @@ import {
   GenreRequest,
   GenreResponse,
   MovieServiceMessage,
+  ResponseMessage,
 } from '@movie-hub/shared-types';
 
 describe('GenreController', () => {
@@ -47,7 +48,7 @@ describe('GenreController', () => {
           id: 'genre-id-1',
           name: 'Action',
         } as GenreResponse,
-        message: 'Create genre successfully!',
+        message: ResponseMessage.MSG_7,
       };
 
       mockGenreService.createGenre.mockResolvedValue(expectedResult);
@@ -69,7 +70,7 @@ describe('GenreController', () => {
           id: 'genre-id-2',
           name: 'Sci-Fi & Fantasy',
         } as GenreResponse,
-        message: 'Create genre successfully!',
+        message: ResponseMessage.MSG_7,
       };
 
       mockGenreService.createGenre.mockResolvedValue(expectedResult);
@@ -90,7 +91,7 @@ describe('GenreController', () => {
           id: 'genre-id-3',
           name: 'Historical Drama and Documentary',
         } as GenreResponse,
-        message: 'Create genre successfully!',
+        message: ResponseMessage.MSG_7,
       };
 
       mockGenreService.createGenre.mockResolvedValue(expectedResult);
@@ -260,7 +261,7 @@ describe('GenreController', () => {
           id: genreId,
           name: 'Updated Action',
         } as GenreResponse,
-        message: 'Update genre successfully!',
+        message: ResponseMessage.MSG_7,
       };
 
       mockGenreService.updateGenre.mockResolvedValue(expectedResult);
@@ -291,7 +292,7 @@ describe('GenreController', () => {
           id: genreId,
           name: 'Action & Adventure',
         } as GenreResponse,
-        message: 'Update genre successfully!',
+        message: ResponseMessage.MSG_7,
       };
 
       mockGenreService.updateGenre.mockResolvedValue(expectedResult);
@@ -321,7 +322,7 @@ describe('GenreController', () => {
           id: genreId,
           name: 'Comedy',
         } as GenreResponse,
-        message: 'Update genre successfully!',
+        message: ResponseMessage.MSG_7,
       };
 
       mockGenreService.updateGenre.mockResolvedValue(expectedResult);
@@ -386,7 +387,7 @@ describe('GenreController', () => {
     it('should call genreService.deleteGenre with correct ID', async () => {
       const genreId = 'genre-id-1';
       const expectedResult = {
-        message: 'Delete genre successfully!',
+        message: ResponseMessage.MSG_7,
       };
 
       mockGenreService.deleteGenre.mockResolvedValue(expectedResult);
@@ -401,7 +402,7 @@ describe('GenreController', () => {
     it('should handle deletion of different genre IDs', async () => {
       const genreId = 'different-genre-id';
       const expectedResult = {
-        message: 'Delete genre successfully!',
+        message: ResponseMessage.MSG_7,
       };
 
       mockGenreService.deleteGenre.mockResolvedValue(expectedResult);
@@ -570,7 +571,7 @@ describe('GenreController', () => {
       const createRequest: GenreRequest = { name: 'Valid Genre' };
       const expectedResult = {
         data: { id: 'genre-id', name: 'Valid Genre' } as GenreResponse,
-        message: 'Create genre successfully!',
+        message: ResponseMessage.MSG_7,
       };
 
       mockGenreService.createGenre.mockResolvedValue(expectedResult);
@@ -588,7 +589,7 @@ describe('GenreController', () => {
       };
       const expectedResult = {
         data: { id: payload.id, name: 'Valid Update' } as GenreResponse,
-        message: 'Update genre successfully!',
+        message: ResponseMessage.MSG_7,
       };
 
       mockGenreService.updateGenre.mockResolvedValue(expectedResult);

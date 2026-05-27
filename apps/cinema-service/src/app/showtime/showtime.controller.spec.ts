@@ -13,6 +13,7 @@ import {
   SeatStatusEnum,
   TicketTypeEnum,
   ReservationStatusEnum,
+  ResponseMessage,
   ServiceResult,
 } from '@movie-hub/shared-types';
 
@@ -113,14 +114,14 @@ describe('ShowtimeController', () => {
       const expectedResponse = [mockShowtimeSummaryResponse];
       mockShowtimeService.getMovieShowtimesAtCinema.mockResolvedValue({
         data: expectedResponse,
-        message: 'Fetch showtimes successfully',
+        message: ResponseMessage.MSG_7,
       });
 
       const result = await controller.getMovieShowtimesAtCinema(mockPayload);
 
       expect(result).toEqual({
         data: expectedResponse,
-        message: 'Fetch showtimes successfully',
+        message: ResponseMessage.MSG_7,
       });
       expect(
         mockShowtimeService.getMovieShowtimesAtCinema
@@ -137,14 +138,14 @@ describe('ShowtimeController', () => {
     it('should handle empty showtimes from service', async () => {
       mockShowtimeService.getMovieShowtimesAtCinema.mockResolvedValue({
         data: [],
-        message: 'Fetch showtimes successfully',
+        message: ResponseMessage.MSG_7,
       });
 
       const result = await controller.getMovieShowtimesAtCinema(mockPayload);
 
       expect(result).toEqual({
         data: [],
-        message: 'Fetch showtimes successfully',
+        message: ResponseMessage.MSG_7,
       });
       expect(
         mockShowtimeService.getMovieShowtimesAtCinema
@@ -173,14 +174,14 @@ describe('ShowtimeController', () => {
       ];
       mockShowtimeService.getMovieShowtimesAtCinema.mockResolvedValue({
         data: multipleShowtimes,
-        message: 'Fetch showtimes successfully',
+        message: ResponseMessage.MSG_7,
       });
 
       const result = await controller.getMovieShowtimesAtCinema(mockPayload);
 
       expect(result).toEqual({
         data: multipleShowtimes,
-        message: 'Fetch showtimes successfully',
+        message: ResponseMessage.MSG_7,
       });
       expect(result.data).toHaveLength(3);
     });
@@ -211,7 +212,7 @@ describe('ShowtimeController', () => {
       };
       mockShowtimeService.getMovieShowtimesAtCinema.mockResolvedValue({
         data: [],
-        message: 'Fetch showtimes successfully',
+        message: ResponseMessage.MSG_7,
       });
 
       const result = await controller.getMovieShowtimesAtCinema(
@@ -220,7 +221,7 @@ describe('ShowtimeController', () => {
 
       expect(result).toEqual({
         data: [],
-        message: 'Fetch showtimes successfully',
+        message: ResponseMessage.MSG_7,
       });
       expect(
         mockShowtimeService.getMovieShowtimesAtCinema
@@ -253,14 +254,14 @@ describe('ShowtimeController', () => {
       for (const payload of payloadsToTest) {
         mockShowtimeService.getMovieShowtimesAtCinema.mockResolvedValue({
           data: [mockShowtimeSummaryResponse],
-          message: 'Fetch showtimes successfully',
+          message: ResponseMessage.MSG_7,
         });
 
         const result = await controller.getMovieShowtimesAtCinema(payload);
 
         expect(result).toEqual({
           data: [mockShowtimeSummaryResponse],
-          message: 'Fetch showtimes successfully',
+          message: ResponseMessage.MSG_7,
         });
         expect(
           mockShowtimeService.getMovieShowtimesAtCinema
@@ -291,13 +292,13 @@ describe('ShowtimeController', () => {
       // Resolve the service promise after a delay
       setTimeout(() => resolveService({
         data: [mockShowtimeSummaryResponse],
-        message: 'Fetch showtimes successfully',
+        message: ResponseMessage.MSG_7,
       }), 100);
 
       const result = await controllerPromise;
       expect(result).toEqual({
         data: [mockShowtimeSummaryResponse],
-        message: 'Fetch showtimes successfully',
+        message: ResponseMessage.MSG_7,
       });
     });
   });
@@ -580,7 +581,7 @@ describe('ShowtimeController', () => {
 
       mockShowtimeService.getMovieShowtimesAtCinema.mockResolvedValue({
         data: [mockShowtimeSummaryResponse],
-        message: 'Fetch showtimes successfully',
+        message: ResponseMessage.MSG_7,
       });
 
       const promises = [
@@ -652,7 +653,7 @@ describe('ShowtimeController', () => {
 
       mockShowtimeService.getMovieShowtimesAtCinema.mockResolvedValue({
         data: [],
-        message: 'Fetch showtimes successfully',
+        message: ResponseMessage.MSG_7,
       });
       mockShowtimeService.getShowtimeSeats.mockResolvedValue(
         mockShowtimeSeatResponse

@@ -18,6 +18,7 @@ import {
   SERVICE_NAME,
   SECURITY_METRICS,
   BookingDetailDto,
+  ResponseMessage,
 } from '@movie-hub/shared-types';
 import * as crypto from 'crypto';
 import { BookingEventService } from '../redis/booking-event.service';
@@ -396,7 +397,7 @@ export class PaymentService implements OnModuleInit {
 
     return {
       data: paymentDto,
-      message: 'Payment completed - order fully covered by voucher',
+      message: ResponseMessage.MSG_7,
     };
   }
 

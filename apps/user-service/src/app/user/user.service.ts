@@ -4,6 +4,7 @@ import { Cache } from 'cache-manager';
 import { PrismaService } from '../prisma.service';
 import { Prisma, StaffStatus } from '../../../generated/prisma';
 import { CLERK_CLIENT } from '../clerk.module';
+import { ResponseMessage } from '@movie-hub/shared-types';
 
 @Injectable()
 export class UserService {
@@ -137,7 +138,7 @@ export class UserService {
           description: dto.description || '',
         },
       }),
-      message: 'Update setting variable successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 

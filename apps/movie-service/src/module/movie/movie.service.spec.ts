@@ -1,7 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MovieService } from './movie.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { MovieQuery, ResourceNotFoundException } from '@movie-hub/shared-types';
+import {
+  MovieQuery,
+  ResourceNotFoundException,
+  ResponseMessage,
+} from '@movie-hub/shared-types';
 import { MovieMapper } from './movie.mapper';
 
 // Mock the MovieMapper
@@ -406,7 +410,7 @@ describe('MovieService', () => {
       const result = await service.createMovie(createRequest);
 
       expect(result.data).toEqual(mockResponse);
-      expect(result.message).toBe('Create movie successfully!');
+      expect(result.message).toBe(ResponseMessage.MSG_7);
       expect(MockedMovieMapper.toMovie).toHaveBeenCalledWith(createRequest);
       expect(MockedMovieMapper.toResponse).toHaveBeenCalledWith(
         mockCreatedMovie
@@ -477,7 +481,7 @@ describe('MovieService', () => {
 
       const result = await service.createMovie(createRequest);
 
-      expect(result.message).toBe('Create movie successfully!');
+      expect(result.message).toBe(ResponseMessage.MSG_7);
       expect(MockedMovieMapper.toMovie).toHaveBeenCalledWith(createRequest);
     });
   });
@@ -550,7 +554,7 @@ describe('MovieService', () => {
       const result = await service.updateMovie(movieId, updateRequest);
 
       expect(result.data).toEqual(mockResponse);
-      expect(result.message).toBe('Update movie successfully!');
+      expect(result.message).toBe(ResponseMessage.MSG_7);
       expect(mockPrismaService.movie.findUnique).toHaveBeenCalledWith({
         where: { id: movieId },
       });
@@ -646,7 +650,7 @@ describe('MovieService', () => {
 
       const result = await service.deleteMovie(movieId);
 
-      expect(result.message).toBe('Delete movie successfully!');
+      expect(result.message).toBe(ResponseMessage.MSG_7);
       expect(mockPrismaService.movie.delete).toHaveBeenCalledWith({
         where: { id: movieId },
       });
