@@ -4,6 +4,7 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
+import { ResponseMessage } from '@movie-hub/shared-types/common';
 import { Request } from 'express';
 import { map } from 'rxjs/operators';
 
@@ -36,13 +37,22 @@ export class TransformInterceptor implements NestInterceptor {
           // If it's already a ServiceResult style object { data, meta?, message? }
           if ('data' in data) {
             responseData = { ...data };
+            if (
+              'message' in responseData &&
+              !this.isResponseMessage(responseData.message)
+            ) {
+              delete responseData.message;
+            }
           } else {
             // It's a plain object (e.g. from a service that doesn't use ServiceResult)
             // Wrap it in data
             responseData = { data };
             
             // Move message and meta to top level if they exist in the object
-            if ('message' in (data as any)) {
+            if (
+              'message' in (data as any) &&
+              this.isResponseMessage((data as any).message)
+            ) {
               responseData.message = (data as any).message;
               delete responseData.data.message;
             }
@@ -69,5 +79,9 @@ export class TransformInterceptor implements NestInterceptor {
         };
       })
     );
+  }
+
+  private isResponseMessage(message: unknown): message is ResponseMessage {
+    return Object.values(ResponseMessage).includes(message as ResponseMessage);
   }
 }

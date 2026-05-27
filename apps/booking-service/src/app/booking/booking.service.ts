@@ -34,6 +34,7 @@ import {
   ServiceResult,
   AdminFindAllBookingsDto,
   SERVICE_NAME,
+  ResponseMessage,
 } from '@movie-hub/shared-types';
 import {
   sanitizeForLogging,
@@ -410,7 +411,7 @@ export class BookingService {
 
     return {
       data: this.mapToDetailDto(updated, showtimeData),
-      message: 'Booking cancelled successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -1297,7 +1298,7 @@ export class BookingService {
 
     return {
       data: this.mapToDetailDto(updated, showtimeData),
-      message: `Booking status updated to ${status}`,
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -1985,7 +1986,7 @@ export class BookingService {
         booking: bookingResult.data,
         refund: refundCalcResult.data,
       },
-      message: 'Booking cancelled with refund calculation',
+      message: ResponseMessage.MSG_7,
     };
   }
 

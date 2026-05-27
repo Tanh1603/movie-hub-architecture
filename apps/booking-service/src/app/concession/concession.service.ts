@@ -9,6 +9,7 @@ import {
   ConcessionCategory,
   CreateConcessionDto,
   UpdateConcessionDto,
+  ResponseMessage,
   ServiceResult,
 } from '@movie-hub/shared-types';
 import { ConcessionCategory as PrismaConcessionCategory } from '../../../generated/prisma';
@@ -105,7 +106,7 @@ export class ConcessionService {
 
     return {
       data: this.mapToDto(concession),
-      message: 'Concession created successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -167,7 +168,7 @@ export class ConcessionService {
 
     return {
       data: this.mapToDto(concession),
-      message: 'Concession updated successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -207,6 +208,7 @@ export class ConcessionService {
 
     return {
       data: { message: 'Concession deleted successfully' },
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -235,7 +237,7 @@ export class ConcessionService {
 
     return {
       data: this.mapToDto(updated),
-      message: 'Inventory updated successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 

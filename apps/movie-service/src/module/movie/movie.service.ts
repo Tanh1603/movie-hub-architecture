@@ -10,6 +10,7 @@ import {
   MovieReleaseResponse,
   MovieSummary,
   ResourceNotFoundException,
+  ResponseMessage,
   ReviewQuery,
   ReviewResponse,
   UpdateMovieReleaseRequest,
@@ -174,7 +175,7 @@ export class MovieService {
         averageRating: stats._avg.rating ?? 0,
         reviewCount: stats._count.rating ?? 0,
       }),
-      message: 'Create movie successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -226,7 +227,7 @@ export class MovieService {
         averageRating: stats._avg.rating ?? 0,
         reviewCount: stats._count.rating ?? 0,
       }),
-      message: 'Update movie successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -235,7 +236,7 @@ export class MovieService {
       where: { id },
     });
     return {
-      message: 'Delete movie successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -284,7 +285,7 @@ export class MovieService {
       data: {
         ...createdMovieRelease,
       },
-      message: 'Create movie release successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -323,7 +324,7 @@ export class MovieService {
       data: {
         ...updateMovieRelease,
       },
-      message: 'Update movie release successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -332,7 +333,7 @@ export class MovieService {
       where: { id },
     });
     return {
-      message: 'Delete movie release successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -415,7 +416,7 @@ export class MovieService {
 
     return {
       data: data as unknown as ReviewResponse[],
-      message: 'Get reviews successfully',
+      message: ResponseMessage.MSG_7,
       meta: {
         page,
         limit,
@@ -441,7 +442,7 @@ export class MovieService {
 
     return {
       data: review as unknown as ReviewResponse,
-      message: `Create review for movieId ${reviewDto.movieId} by userId ${reviewDto.userId} successfully!`,
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -458,7 +459,7 @@ export class MovieService {
 
     return {
       data: review as unknown as ReviewResponse,
-      message: `Update review for reviewId ${id} successfully!`,
+      message: ResponseMessage.MSG_7,
     };
   }
 }

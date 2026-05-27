@@ -1,6 +1,7 @@
 import {
   ReviewQuery,
   ReviewResponse,
+  ResponseMessage,
   ServiceResult,
 } from '@movie-hub/shared-types';
 import { Injectable } from '@nestjs/common';
@@ -56,7 +57,7 @@ export class ReviewService {
           ? { id: review.movie.id, title: review.movie.title }
           : undefined,
       })),
-      message: 'Get reviews successfully',
+      message: ResponseMessage.MSG_7,
       meta: {
         page,
         limit,
@@ -73,7 +74,7 @@ export class ReviewService {
       where: { id },
     });
     return {
-      message: 'Delete review successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 }

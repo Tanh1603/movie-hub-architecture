@@ -6,6 +6,7 @@ import {
   HallStatusEnum,
   HallSummaryResponse,
   ResourceNotFoundException,
+  ResponseMessage,
   UpdateHallRequest,
   UpdateSeatStatusRequest,
 } from '@movie-hub/shared-types';
@@ -30,7 +31,7 @@ export class HallService {
     }
     return {
       data: HallMapper.toDetailResponse(hall),
-      message: 'Get hall successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -44,7 +45,7 @@ export class HallService {
     });
     return {
       data: halls.map(HallMapper.toSummaryResponse),
-      message: 'Get halls of cinema successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -100,7 +101,7 @@ export class HallService {
 
       return {
         data: HallMapper.toDetailResponse(hall),
-        message: 'Create hall successfully!',
+        message: ResponseMessage.MSG_7,
       };
     } catch (e) {
       if (e instanceof RpcException) {
@@ -133,7 +134,7 @@ export class HallService {
 
     return {
       data: HallMapper.toDetailResponse(updatedHall),
-      message: 'Update hall successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -162,7 +163,7 @@ export class HallService {
 
       return {
         data: undefined,
-        message: 'Delete hall successfully!',
+        message: ResponseMessage.MSG_7,
       };
     } catch (e) {
       if (e instanceof PrismaClientKnownRequestError) {
@@ -214,7 +215,7 @@ export class HallService {
     });
 
     return {
-      message: 'Seat updated successfully',
+      message: ResponseMessage.MSG_7,
       data: undefined,
     };
   }

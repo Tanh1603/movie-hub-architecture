@@ -7,6 +7,7 @@ import {
   BatchCreateShowtimesInput,
   CreateShowtimeRequest,
   MovieServiceMessage,
+  ResponseMessage,
   ShowtimeDetailResponse,
   UpdateShowtimeRequest,
 } from '@movie-hub/shared-types';
@@ -120,7 +121,7 @@ export class ShowtimeCommandService {
       });
       return {
         data: ShowtimeMapper.toShowtimDetailResponse(showtime),
-        message: 'Showtime created successfully',
+        message: ResponseMessage.MSG_7,
       };
     } catch (exception) {
       if (exception instanceof RpcException) {
@@ -316,7 +317,7 @@ export class ShowtimeCommandService {
           created: ShowtimeMapper.toShowtimeDetailList(created),
           skipped,
         },
-        message: 'Batch create showtimes completed',
+        message: ResponseMessage.MSG_7,
       };
     } catch (e) {
       if (e instanceof RpcException) {
@@ -401,7 +402,7 @@ export class ShowtimeCommandService {
 
     return {
       data: ShowtimeMapper.toShowtimDetailResponse(updatedShowtime),
-      message: 'Showtime updated successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -446,7 +447,7 @@ export class ShowtimeCommandService {
 
       return {
         data: undefined,
-        message: 'Showtime cancelled successfully',
+        message: ResponseMessage.MSG_7,
       };
     }
 
@@ -457,7 +458,7 @@ export class ShowtimeCommandService {
 
     return {
       data: undefined,
-      message: 'Showtime deleted successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 

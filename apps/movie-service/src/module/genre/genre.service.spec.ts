@@ -1,7 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { GenreService } from './genre.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { GenreRequest, GenreResponse } from '@movie-hub/shared-types';
+import {
+  GenreRequest,
+  GenreResponse,
+  ResponseMessage,
+} from '@movie-hub/shared-types';
 
 describe('GenreService', () => {
   let service: GenreService;
@@ -50,7 +54,7 @@ describe('GenreService', () => {
       const result = await service.createGenre(createGenreDto);
 
       expect(result.data).toEqual(mockCreatedGenre);
-      expect(result.message).toBe('Create genre successfully!');
+      expect(result.message).toBe(ResponseMessage.MSG_7);
       expect(mockPrismaService.genre.create).toHaveBeenCalledWith({
         data: createGenreDto,
       });
@@ -72,7 +76,7 @@ describe('GenreService', () => {
       const result = await service.createGenre(createGenreDto);
 
       expect(result.data).toEqual(mockCreatedGenre);
-      expect(result.message).toBe('Create genre successfully!');
+      expect(result.message).toBe(ResponseMessage.MSG_7);
       expect(mockPrismaService.genre.create).toHaveBeenCalledWith({
         data: createGenreDto,
       });
@@ -93,7 +97,7 @@ describe('GenreService', () => {
       const result = await service.createGenre(createGenreDto);
 
       expect(result.data).toEqual(mockCreatedGenre);
-      expect(result.message).toBe('Create genre successfully!');
+      expect(result.message).toBe(ResponseMessage.MSG_7);
       expect(mockPrismaService.genre.create).toHaveBeenCalledWith({
         data: createGenreDto,
       });
@@ -257,7 +261,7 @@ describe('GenreService', () => {
       const result = await service.updateGenre(genreId, updateGenreDto);
 
       expect(result.data).toEqual(mockUpdatedGenre);
-      expect(result.message).toBe('Update genre successfully!');
+      expect(result.message).toBe(ResponseMessage.MSG_7);
       expect(mockPrismaService.genre.update).toHaveBeenCalledWith({
         data: updateGenreDto,
         where: { id: genreId },
@@ -281,7 +285,7 @@ describe('GenreService', () => {
       const result = await service.updateGenre(genreId, updateGenreDto);
 
       expect(result.data).toEqual(mockUpdatedGenre);
-      expect(result.message).toBe('Update genre successfully!');
+      expect(result.message).toBe(ResponseMessage.MSG_7);
       expect(mockPrismaService.genre.update).toHaveBeenCalledWith({
         data: updateGenreDto,
         where: { id: genreId },
@@ -304,7 +308,7 @@ describe('GenreService', () => {
       const result = await service.updateGenre(genreId, updateGenreDto);
 
       expect(result.data).toEqual(mockUpdatedGenre);
-      expect(result.message).toBe('Update genre successfully!');
+      expect(result.message).toBe(ResponseMessage.MSG_7);
       expect(mockPrismaService.genre.update).toHaveBeenCalledWith({
         data: updateGenreDto,
         where: { id: genreId },
@@ -356,7 +360,7 @@ describe('GenreService', () => {
 
       const result = await service.deleteGenre(genreId);
 
-      expect(result.message).toBe('Delete genre successfully!');
+      expect(result.message).toBe(ResponseMessage.MSG_7);
       expect(mockPrismaService.genre.delete).toHaveBeenCalledWith({
         where: { id: genreId },
       });
@@ -370,7 +374,7 @@ describe('GenreService', () => {
 
       const result = await service.deleteGenre(genreId);
 
-      expect(result.message).toBe('Delete genre successfully!');
+      expect(result.message).toBe(ResponseMessage.MSG_7);
       expect(mockPrismaService.genre.delete).toHaveBeenCalledWith({
         where: { id: genreId },
       });

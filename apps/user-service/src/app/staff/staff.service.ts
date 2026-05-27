@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import {
   CreateStaffRequest,
+  ResponseMessage,
   ServiceResult,
   StaffQuery,
   StaffResponse,
@@ -93,7 +94,7 @@ export class StaffService {
 
     return {
       data: staff as unknown as StaffResponse,
-      message: 'Create staff successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -322,7 +323,7 @@ export class StaffService {
 
       return {
         data: undefined,
-        message: 'Delete staff successfully!',
+        message: ResponseMessage.MSG_7,
       };
     } catch (e) {
       if (e instanceof RpcException) {

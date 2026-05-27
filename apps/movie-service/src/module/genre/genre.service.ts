@@ -1,4 +1,8 @@
-import { GenreRequest, GenreResponse } from '@movie-hub/shared-types';
+import {
+  GenreRequest,
+  GenreResponse,
+  ResponseMessage,
+} from '@movie-hub/shared-types';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ServiceResult } from '@movie-hub/shared-types/common';
@@ -14,7 +18,7 @@ export class GenreService {
       data: await this.db.genre.create({
         data: { ...createGenreDto },
       }),
-      message: 'Create genre successfully!'
+      message: ResponseMessage.MSG_7
     };
   }
 
@@ -42,14 +46,14 @@ export class GenreService {
         data: { ...updateGenreDto },
         where: { id },
       }),
-      message: 'Update genre successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
   async deleteGenre(id: string) {
     await this.db.genre.delete({ where: { id } });
     return {
-      message: 'Delete genre successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 }

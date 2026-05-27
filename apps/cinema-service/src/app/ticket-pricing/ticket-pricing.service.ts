@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { TicketPricingResponse } from '@movie-hub/shared-types';
+import {
+  ResponseMessage,
+  TicketPricingResponse,
+} from '@movie-hub/shared-types';
 import { TicketPricingMapper } from './ticket-pricing.mapper';
 import { ServiceResult } from '@movie-hub/shared-types/common';
 
@@ -16,7 +19,7 @@ export class TicketPricingService {
     });
     return {
       data: TicketPricingMapper.toTicketPricingResponses(pricings),
-      message: 'Ticket pricings retrieved successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -30,7 +33,7 @@ export class TicketPricingService {
     });
     return {
       data: TicketPricingMapper.toTicketPricingResponse(updatedPricing),
-      message: 'Ticket pricing updated successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 }
