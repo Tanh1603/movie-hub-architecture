@@ -1,4 +1,4 @@
-# [CM-04] Delete Cinema
+﻿# [CM-04] Delete Cinema
 
 ## 1. Description
 
@@ -67,4 +67,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | General | Typically, cinemas with past historical data (bookings) should be Soft Deleted (status = CLOSED/DELETED) rather than physically removed to preserve reporting integrity. |
+| (3) | BR45 | Typically, cinemas with past historical data (bookings) should be Soft Deleted (status = CLOSED/DELETED) rather than physically removed to preserve reporting integrity. |
+
+

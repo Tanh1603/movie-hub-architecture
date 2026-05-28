@@ -46,7 +46,7 @@ FROM node:20-alpine AS production
 
 # Install openssl for Prisma
 
-RUN apk add --no-cache openssl
+RUN apk add --no-cache openssl wget
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
@@ -70,8 +70,8 @@ COPY --chown=nestjs:nodejs --from=builder /app/apps/cinema-service/prisma ./pris
 USER nestjs
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD node --version || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3008/health/live || exit 1
 
 # Expose TCP port (configured via environment)
 EXPOSE 3003

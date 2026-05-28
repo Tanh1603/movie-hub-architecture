@@ -1,4 +1,4 @@
-# [PY-02] Get Payment Details
+﻿# [PY-02] Get Payment Details
 
 ## 1. Description
 
@@ -64,4 +64,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Only the member who initiated the payment can view its details. |
+| (3) | BR149 | Only the member who initiated the payment can view its details. |
+
+

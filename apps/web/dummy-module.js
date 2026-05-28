@@ -16,18 +16,18 @@ module.exports = {
   RpcException: MockRpcException,
 
   // @nestjs/common / @nestjs/swagger decorators
-  ApiProperty: () => () => {},
-  ApiOperation: () => () => {},
-  ApiResponse: () => () => {},
-  ApiTags: () => () => {},
-  ApiBody: () => () => {},
-  ApiQuery: () => () => {},
-  ApiParam: () => () => {},
-  ApiHeader: () => () => {},
-  ApiBearerAuth: () => () => {},
+  ApiProperty: () => () => undefined,
+  ApiOperation: () => () => undefined,
+  ApiResponse: () => () => undefined,
+  ApiTags: () => () => undefined,
+  ApiBody: () => () => undefined,
+  ApiQuery: () => () => undefined,
+  ApiParam: () => () => undefined,
+  ApiHeader: () => () => undefined,
+  ApiBearerAuth: () => () => undefined,
 
   // Other potential shared decorators
-  Injectable: () => () => {},
-  Optional: () => () => {},
-  Inject: () => () => {},
+  Injectable: () => () => undefined,
+  Optional: () => () => undefined,
+  Inject: () => () => undefined,
 };

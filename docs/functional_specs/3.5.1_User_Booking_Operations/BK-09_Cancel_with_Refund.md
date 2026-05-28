@@ -1,4 +1,4 @@
-# [BK-09] Cancel with Refund
+﻿# [BK-09] Cancel with Refund
 
 ## 1. Description
 
@@ -68,5 +68,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR-BOOK-05 | Cancellation must be made at least 2 hours before showtime. |
-| (3) | BR-BOOK-06 | Refund amount = 70% of ticket price. |
+| (3) | BR120 | Cancellation must be made at least 2 hours before showtime. |
+| (3) | BR121 | Refund amount = 70% of ticket price. |
+
+

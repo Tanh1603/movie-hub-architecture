@@ -1,6 +1,6 @@
 'use client';
 
-import { useGetMovies } from '@/hooks/movie-hooks';
+import { useGetMovies } from '@/features/client/movies/hooks';
 import { BlurCircle } from '@/components/blur-circle';
 import { ErrorFallback } from '@/components/error-fallback';
 import { ArrowRight, Loader2 } from 'lucide-react';

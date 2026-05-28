@@ -1,4 +1,4 @@
-# [GM-03] Create Genre
+﻿# [GM-03] Create Genre
 
 ## 1. Description
 
@@ -67,4 +67,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | General | Genre names must be unique in the system. |
+| (4) | BR76 | Genre names must be unique in the system. |
+
+

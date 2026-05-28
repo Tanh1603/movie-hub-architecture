@@ -1,4 +1,4 @@
-# [MV-03] Get Movie Releases
+﻿# [MV-03] Get Movie Releases
 
 ## 1. Description
 
@@ -54,4 +54,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Movie releases define the "Showing" or "Upcoming" status of a movie. |
+| (3) | BR65 | Each movie release record must include a `releaseDate` and `format`; the system derives status as `Showing` when `releaseDate <= NOW()` and `Upcoming` otherwise. |
+
+

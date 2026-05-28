@@ -1,4 +1,4 @@
-# [CM-07] Search Cinemas by Query
+﻿# [CM-07] Search Cinemas by Query
 
 ## 1. Description
 
@@ -56,4 +56,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | General | Search should be case-insensitive. |
+| (3) | BR49 | Search should be case-insensitive. |
+
+

@@ -62,8 +62,8 @@ COPY --chown=nestjs:nodejs --from=builder /app/apps/api-gateway/doc ./apps/api-g
 USER nestjs
 
 # Health check (checks if the API is responding)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health/live || exit 1
 
 # Expose HTTP port
 EXPOSE 3000

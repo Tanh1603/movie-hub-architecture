@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma.service';
 import {
   TicketDetailDto,
   TicketStatus,
+  ResponseMessage,
   ServiceResult,
 } from '@movie-hub/shared-types';
 import * as QRCode from 'qrcode';
@@ -101,7 +102,7 @@ export class TicketService {
 
     return {
       data: this.mapToDto(ticket),
-      message: 'Ticket marked as used',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -147,7 +148,7 @@ export class TicketService {
 
     return {
       data: qrCodeDataURL,
-      message: 'QR code generated successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -358,7 +359,7 @@ export class TicketService {
 
     return {
       data: this.mapToDto(updated),
-      message: 'Ticket cancelled successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 }

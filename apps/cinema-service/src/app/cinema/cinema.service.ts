@@ -9,6 +9,7 @@ import {
   MovieWithCinemaAndShowtimeResponse,
   MovieWithShowtimeResponse,
   ResourceNotFoundException,
+  ResponseMessage,
   ShowtimesFilterDTO,
   UpdateCinemaRequest,
 } from '@movie-hub/shared-types';
@@ -38,7 +39,7 @@ export class CinemaService {
 
     return {
       data: CinemaMapper.toResponse(cinema),
-      message: 'Create cinema successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -65,7 +66,7 @@ export class CinemaService {
 
     return {
       data: CinemaMapper.toResponse(updatedCinema),
-      message: 'Update cinema successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -97,7 +98,7 @@ export class CinemaService {
 
       return {
         data: undefined,
-        message: 'Delete cinema successfully!',
+        message: ResponseMessage.MSG_7,
       };
     } catch (e) {
       if (e instanceof PrismaClientKnownRequestError) {
@@ -139,7 +140,7 @@ export class CinemaService {
 
     return {
       data: cinemas.map((cinema) => CinemaMapper.toResponse(cinema)),
-      message: 'Get all cinemas successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -245,7 +246,7 @@ export class CinemaService {
         hasNext: page < totalPages,
       },
       data: response,
-      message: 'Get movies successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -278,7 +279,7 @@ export class CinemaService {
     });
 
     if (!showtimes.length)
-      return { data: [], message: 'Get movies successfully!' };
+      return { data: [], message: ResponseMessage.MSG_7 };
 
     // 2. Gom nhóm theo movie
     const mapByMovie = new Map<string, typeof showtimes>();
@@ -335,7 +336,7 @@ export class CinemaService {
 
     return {
       data: result,
-      message: 'Get movies successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 }

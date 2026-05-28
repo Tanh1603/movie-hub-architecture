@@ -1,4 +1,4 @@
-# [PM-04] Validate Promotion Code
+﻿# [PM-04] Validate Promotion Code
 
 ## 1. Description
 
@@ -72,9 +72,11 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR-PROMO-01 | Promotion must be within valid date range. |
-| (5) | BR-PROMO-02 | Promotion usage limit is enforced per promotion. |
-| (4) | BR-PROMO-03 | Minimum purchase amount is validated before applying promotion. |
-| (7) | BR-PROMO-04 | For PERCENTAGE type promotions, max_discount cap is applied. |
-| (6) | BR-PROMO-05 | Discount cannot exceed the subtotal amount. |
+| (3) | BR19 | Promotion must be within valid date range. |
+| (5) | BR20 | Promotion usage limit is enforced per promotion. |
+| (4) | BR21 | Minimum purchase amount is validated before applying promotion. |
+| (7) | BR22 | For PERCENTAGE type promotions, max_discount cap is applied. |
+| (6) | BR23 | Discount cannot exceed the subtotal amount. |
 @enduml
+
+

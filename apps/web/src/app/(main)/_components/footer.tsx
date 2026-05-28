@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@movie-hub/shacdn-ui/button';
-import { useGetAllCinemas } from '@/hooks/cinema-hooks';
+import { useGetAllCinemas } from '@/features/client/cinemas/hooks';
 import {
   Popover,
   PopoverContent,

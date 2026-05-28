@@ -1,4 +1,4 @@
-# [TK-02] Find Ticket by Code
+﻿# [TK-02] Find Ticket by Code
 
 ## 1. Description
 
@@ -64,5 +64,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Codes are unique across the entire system. |
-| (3) | N/A | Staff can see any ticket, while Members can only see their own tickets. |
+| (3) | BR164 | Codes are unique across the entire system. |
+| (3) | BR165 | Staff can see any ticket, while Members can only see their own tickets. |
+
+

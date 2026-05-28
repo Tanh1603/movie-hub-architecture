@@ -23,18 +23,15 @@ import {
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { CalendarDays, Popcorn, Ticket } from 'lucide-react';
 import { formatPrice } from '../../../utils/format-price';
-import { bookingsApi } from '@/libs/api/services';
-import { useGetBookingById } from '@/hooks/booking-hooks';
-import { BookingStatus } from '@/libs/types/booking.type';
+import { bookingsApi } from '@/api/services';
+import { useGetBookingById } from '@/features/client/booking/hooks';
+import { BookingStatus } from '@/types/booking.type';
 import { toast } from 'sonner';
 import { useState, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { QRCodeCanvas } from 'qrcode.react';
 import { Loader } from '@/components/loader';
 import { ErrorFallback } from '@/components/error-fallback';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-
 export function BookingCard({ bookingId }: { bookingId: string }) {
   const {
     data: booking,
@@ -52,6 +49,9 @@ export function BookingCard({ bookingId }: { bookingId: string }) {
     if (!cardRef.current) return;
 
     try {
+      const html2canvas = (await import('html2canvas')).default;
+      const jsPDF = (await import('jspdf')).default;
+
       const canvas = await html2canvas(cardRef.current, {
         scale: 2, // Improve resolution
         useCORS: true,

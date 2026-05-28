@@ -1,12 +1,12 @@
 'use client';
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { Input } from '@movie-hub/shacdn-ui/input';
-import { CinemaLocationResponse } from '@/libs/types/cinema.type';
+import { CinemaLocationResponse } from '@/types/cinema.type';
 import { SearchIcon, XIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
-import { useSearchCinemas } from '@/hooks/cinema-hooks';
+import { useSearchCinemas } from '@/features/client/cinemas/hooks';
 import { Loader } from '@/components/loader';
 
 export const Search = () => {

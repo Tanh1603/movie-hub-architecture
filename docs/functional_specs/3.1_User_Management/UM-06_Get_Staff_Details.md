@@ -1,4 +1,4 @@
-# [UM-06] Get Staff Details
+﻿# [UM-06] Get Staff Details
 
 ## 1. Description
 
@@ -67,4 +67,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | N/A | Standard CRUD operation. No complex business logic defined in SRS beyond access control. |
+| (1) | BR10 | Standard CRUD operation. No complex business logic defined in SRS beyond access control. |
+
+

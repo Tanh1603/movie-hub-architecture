@@ -33,15 +33,16 @@ describe('CinemaService', () => {
 
   describe('getCinemas', () => {
     it('should proxy request to get all cinemas', async () => {
+      const status = 'ACTIVE' as any;
       const mockResponse = { data: [{ id: '1', name: 'Cinema 1' }] };
 
       clientProxy.send.mockReturnValue(of(mockResponse));
 
-      const result = await service.getCinemas();
+      const result = await service.getCinemas(status);
 
       expect(clientProxy.send).toHaveBeenCalledWith(
         CinemaMessage.GET_CINEMAS,
-        {}
+        status
       );
       expect(result).toEqual(mockResponse);
     });
@@ -51,7 +52,9 @@ describe('CinemaService', () => {
 
       clientProxy.send.mockReturnValue(throwError(() => mockError));
 
-      await expect(service.getCinemas()).rejects.toThrow(mockError);
+      await expect(service.getCinemas('ACTIVE' as any)).rejects.toThrow(
+        mockError
+      );
     });
   });
 

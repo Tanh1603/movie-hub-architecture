@@ -1,4 +1,4 @@
-# [UM-03] Get User Profile (Sync)
+﻿# [UM-03] Get User Profile (Sync)
 
 ## 1. Description
 
@@ -75,5 +75,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Webhooks must be verified using the Svix secret to prevent spoofing. |
-| (7) | BR-LOYALTY-04 | New accounts may need initialization of Loyalty Account (Bronze Tier). |
+| (3) | BR04 | All incoming Clerk webhook requests must be verified using the configured Svix secret; requests with invalid signatures must be rejected with HTTP 400 and not processed. |
+| (7) | BR05 | When creating a new user record, the system must initialize a Loyalty Account (default Bronze tier, 0 points) and persist the association. |
+
+

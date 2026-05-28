@@ -1,4 +1,4 @@
-# [CS-03] Create Concession
+﻿# [CS-03] Create Concession
 
 ## 1. Description
 
@@ -56,5 +56,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | SRS 5.1 | Required: Name, Price, Category. Optional: Description, Image URL. |
-| (1) | SRS 5.2 | Category must be a valid `ConcessionCategory` enum member. |
+| (1) | BR193 | Required: Name, Price, Category. Optional: Description, Image URL. |
+| (1) | BR194 | Category must be a valid `ConcessionCategory` enum member. |
+
+

@@ -1,4 +1,4 @@
-import { SeatTypeEnum } from '@/libs/types/showtime.type';
+import { SeatTypeEnum } from '@/types/showtime.type';
 import { Accessibility, Star } from 'lucide-react';
 
 const seatLegendItems = [

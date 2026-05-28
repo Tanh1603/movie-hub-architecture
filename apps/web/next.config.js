@@ -35,8 +35,13 @@ const nextConfig = {
       'class-transformer': dummyPath,
       'class-validator': dummyPath,
       '@nestjs/microservices': dummyPath,
+      '@nestjs/microservices/microservices-module': dummyPath,
       '@nestjs/swagger': dummyPath,
+      '@nestjs/core': dummyPath,
+      '@nestjs/common': dummyPath,
       'nestjs-zod': dummyPath,
+      'nestjs-cls': dummyPath,
+      'nestjs-pino': dummyPath,
       '@grpc/proto-loader': dummyPath,
     };
 
@@ -53,6 +58,10 @@ const nextConfig = {
         '@grpc/proto-loader': false,
         '@opencensus/propagation-stackdriver': false,
         '@nestjs/swagger': false,
+        '@nestjs/core': false,
+        '@nestjs/common': false,
+        'nestjs-cls': false,
+        'nestjs-pino': false,
       };
     }
 

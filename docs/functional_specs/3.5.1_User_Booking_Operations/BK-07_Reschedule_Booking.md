@@ -1,4 +1,4 @@
-# [BK-07] Reschedule Booking
+﻿# [BK-07] Reschedule Booking
 
 ## 1. Description
 
@@ -74,6 +74,8 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR-BOOK-04 | Maximum reschedules per booking: 1. |
-| (4) | BR-BOOK-05 | Rescheduling must be made at least 2 hours before showtime. |
-| (7) | N/A | Total price may need adjustment if new showtime has different pricing. |
+| (3) | BR115 | Maximum reschedules per booking: 1. |
+| (4) | BR116 | Rescheduling must be made at least 2 hours before showtime. |
+| (7) | BR117 | Total price may need adjustment if new showtime has different pricing. |
+
+

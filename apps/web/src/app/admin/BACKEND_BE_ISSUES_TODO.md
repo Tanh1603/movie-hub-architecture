@@ -409,11 +409,11 @@ export const staffApi = {
 
 ---
 
-## Issue: Batch Create Showtimes � HTTP 500 Unexpected Error (CRITICAL)
+## Issue: Batch Create Showtimes - HTTP 500 Unexpected Error (CRITICAL)
 
 **Status**: ?? BLOCKING for Admin FE batch showtimes feature
 
-**Problem (t�m t?t):**
+**Problem (tóm tắt):**
 - Admin tries to batch-create showtimes via POST /api/v1/showtimes/batch
 - FE sends correct payload with valid format (dates as YYYY-MM-DD, timeSlots as HH:mm)
 - BE returns HTTP 500 with generic message Unexpected error
@@ -475,7 +475,7 @@ Estimated fix time: 15-20 minutes
 
 ### Issue 1: Missing Zod Validation at API Gateway
 
-**File**: pps/api-gateway/src/app/module/cinema/controller/showtime.controller.ts
+**File**: pps/api-gateway/src/app/module/cinema/controller/showtime.controller.ts
 
 **Current Code** (problematic):
 `	ypescript
@@ -504,7 +504,7 @@ async createBatch(@Body() payload: CreateShowtimeBatchDTO) {
 
 ### Issue 2: Error Masking Without Logging
 
-**File 1**: pps/cinema-service/src/app/showtime/showtime-command.service.ts (line ~85)
+**File 1**: pps/cinema-service/src/app/showtime/showtime-command.service.ts (line ~85)
 
 **Current Code**:
 `	ypescript
@@ -610,7 +610,7 @@ If using z.string() instead of z.coerce.date(), change it immediately.
 
 ### Step 2: Add Validation Pipe to API Gateway
 
-**File**: pps/api-gateway/src/app/module/cinema/controller/showtime.controller.ts
+**File**: pps/api-gateway/src/app/module/cinema/controller/showtime.controller.ts
 
 `	ypescript
 import { ZodValidationPipe } from '@app/shared-pipes';
@@ -625,10 +625,10 @@ async createBatch(@Body() payload: CreateShowtimeBatchDTO) {
 
 ### Step 3: Add Error Logging to Cinema Service
 
-**File**: pps/cinema-service/src/app/showtime/showtime-command.service.ts
+**File**: pps/cinema-service/src/app/showtime/showtime-command.service.ts
 
 Add console.error() calls in:
-1. atchCreateShowtimes() method  log each failed showtime
+1. atchCreateShowtimes() method  log each failed showtime
 2. createShowtime() catch block  log creation errors
 3. etchMovieAndRelease() catch block  log fetch errors
 

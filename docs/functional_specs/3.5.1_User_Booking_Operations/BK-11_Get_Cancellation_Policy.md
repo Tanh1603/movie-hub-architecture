@@ -1,4 +1,4 @@
-# [BK-11] Get Cancellation Policy
+﻿# [BK-11] Get Cancellation Policy
 
 ## 1. Description
 
@@ -50,5 +50,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR-BOOK-05 | Must mention the 2-hour deadline. |
-| (3) | BR-BOOK-06 | Must mention the 70% refund rate. |
+| (3) | BR123 | Must mention the 2-hour deadline. |
+| (3) | BR124 | Must mention the 70% refund rate. |
+
+

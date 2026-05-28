@@ -1,4 +1,4 @@
-# [LY-03] Earn Points
+﻿# [LY-03] Earn Points
 
 ## 1. Description
 
@@ -49,6 +49,8 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR-LOYALTY-02 | Point earning rate: 1 point per 1,000 VND spent. |
-| (4) | N/A | Total spend used for calculation is typically the subtotal after discounts. |
+| (3) | BR33 | Point earning rate: 1 point per 1,000 VND of booking subtotal (after discounts); fractional points are floored. |
+| (4) | BR34 | The points calculation must use the booking subtotal after applying discounts and taxes where specified; points are credited only after payment confirmation. |
 @enduml
+
+

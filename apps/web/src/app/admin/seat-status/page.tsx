@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
@@ -32,8 +31,8 @@ import {
   useHallsByCinema,
   useUpdateSeatStatus,
   hallsApi,
-} from '@/libs/api';
-import type { SeatStatus, SeatType } from '@/libs/api/types';
+} from '@/features/admin/shared/api-hooks';
+import type { SeatStatus, SeatType } from '@/types';
 import {
   SeatStatusEnum,
   SeatTypeEnum,
@@ -660,3 +659,4 @@ export default function SeatStatusPage() {
     </div>
   );
 }
+

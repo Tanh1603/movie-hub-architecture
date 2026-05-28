@@ -14,12 +14,17 @@ import { PromotionService } from '../service/promotion.service';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 import { OptionalClerkAuthGuard } from '../../../common/guard/optional-clerk-auth.guard';
 import { CurrentUserId } from '../../../common/decorator/current-user-id.decorator';
+import { Permission } from '../../../common/decorator/permission.decorator';
+import { SensitiveThrottle } from '../../../common/decorator/sensitive-throttle.decorator';
 import {
   PromotionType,
   ValidatePromotionDto,
   CreatePromotionDto,
   UpdatePromotionDto,
+  AppRole,
 } from '@movie-hub/shared-types';
+import { Roles } from '../../../common/decorator/roles.decorator';
+import { RoleGuard } from '../../../common/guard/role.guard';
 
 @Controller({
   version: '1',
@@ -34,12 +39,22 @@ export class PromotionController {
     @Query('type') type?: PromotionType
   ) {
     // Default to active=true for public API if not specified
-    const activeFilter = active === 'false' ? false : active === 'undefined' ? undefined : true;
-    
-    return this.promotionService.findAll(
-      activeFilter,
-      type
-    );
+    const activeFilter =
+      active === 'false'
+        ? false
+        : active === 'undefined' || active === 'null'
+        ? undefined
+        : true;
+
+    const typeFilter =
+      type === undefined ||
+      (type as string) === 'null' ||
+      (type as string) === 'undefined' ||
+      (type as string) === ''
+        ? undefined
+        : type;
+
+    return this.promotionService.findAll(activeFilter, typeFilter);
   }
 
   @Get(':id')
@@ -53,6 +68,7 @@ export class PromotionController {
   }
 
   @Post('validate/:code')
+  @SensitiveThrottle()
   @UseGuards(OptionalClerkAuthGuard)
   async validate(
     @Param('code') code: string,
@@ -67,13 +83,17 @@ export class PromotionController {
   }
 
   @Post()
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'promotion', action: 'update', scope: 'cinema' })
   async create(@Body() createPromotionDto: CreatePromotionDto) {
     return this.promotionService.create(createPromotionDto);
   }
 
   @Put(':id')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'promotion', action: 'update', scope: 'cinema' })
   async update(
     @Param('id') id: string,
     @Body() updatePromotionDto: UpdatePromotionDto
@@ -82,13 +102,17 @@ export class PromotionController {
   }
 
   @Delete(':id')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'promotion', action: 'update', scope: 'cinema' })
   async delete(@Param('id') id: string) {
     return this.promotionService.delete(id);
   }
 
   @Patch(':id/toggle-active')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'promotion', action: 'update', scope: 'cinema' })
   async toggleActive(@Param('id') id: string) {
     return this.promotionService.toggleActive(id);
   }

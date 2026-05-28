@@ -1,4 +1,4 @@
-# [TP-01] Get Pricing for Hall
+﻿# [TP-01] Get Pricing for Hall
 
 ## 1. Description
 
@@ -57,4 +57,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | SRS 5.2 | Pricing is defined by the combination of `SeatType` and `DayType`. |
+| (4) | BR59 | Pricing is defined by the combination of `SeatType` and `DayType`. |
+
+

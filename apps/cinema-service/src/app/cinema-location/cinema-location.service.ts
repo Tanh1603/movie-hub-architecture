@@ -11,6 +11,7 @@ import {
   GetCinemaDetailDto,
   CinemaListResponse,
   CinemaLocationResponse,
+  ResponseMessage,
 } from '@movie-hub/shared-types';
 import { DistanceCalculator } from '../../utils/distance-calculator.util';
 import { DecimalUtil } from '../../utils/decimal.util';
@@ -98,7 +99,7 @@ export class CinemaLocationService {
         limit,
         hasMore: false,
       },
-      message: 'Get nearby cinemas successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -216,7 +217,7 @@ export class CinemaLocationService {
         limit,
         hasMore: skip + limit < mapped.length,
       },
-      message: 'Get cinemas with filters successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -243,7 +244,7 @@ export class CinemaLocationService {
         userLatitude,
         userLongitude
       ),
-      message: 'Get cinema detail successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -274,7 +275,7 @@ export class CinemaLocationService {
         userLatitude,
         userLongitude
       ),
-      message: 'Search cinemas successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -291,7 +292,7 @@ export class CinemaLocationService {
 
     return {
       data: cinemas.map((c) => c.city),
-      message: 'Get available cities successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -314,7 +315,7 @@ export class CinemaLocationService {
       data: cinemas
         .map((c) => c.district)
         .filter((d): d is string => d !== null),
-      message: 'Get available districts successfully!',
+      message: ResponseMessage.MSG_7,
     };
   }
 }

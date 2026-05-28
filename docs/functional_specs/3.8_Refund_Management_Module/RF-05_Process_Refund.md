@@ -1,4 +1,4 @@
-# [RF-05] Process Refund
+﻿# [RF-05] Process Refund
 
 ## 1. Description
 
@@ -64,4 +64,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | SRS 5.2 | Valid values for `RefundStatus`: `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`. |
+| (4) | BR186 | Valid values for `RefundStatus`: `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`. |
+
+

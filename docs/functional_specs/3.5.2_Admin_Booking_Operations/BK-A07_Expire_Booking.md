@@ -1,4 +1,4 @@
-# [BK-A07] Expire Booking
+﻿# [BK-A07] Expire Booking
 
 ## 1. Description
 
@@ -70,5 +70,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR-BOOK-01 | Bookings usually expire automatically after 15 minutes, but Admin can trigger this manually for cleanup. |
-| (5) | N/A | Seats must be released immediately to make them available for others. |
+| (3) | BR134 | Bookings usually expire automatically after 15 minutes, but Admin can trigger this manually for cleanup. |
+| (5) | BR135 | Seats must be released immediately to make them available for others. |
+
+

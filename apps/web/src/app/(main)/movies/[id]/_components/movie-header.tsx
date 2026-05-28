@@ -1,7 +1,8 @@
 'use client';
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { Skeleton } from '@movie-hub/shacdn-ui/skeleton';
-import { GenreResponse, MovieDetailResponse } from '@movie-hub/shared-types';
+import { GenreResponse } from '@movie-hub/shared-types';
+
 import {
   CalendarDays,
   Clock,
@@ -14,14 +15,13 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { BlurCircle } from '../../../../../components/blur-circle';
-import { useGetMovieDetail } from '@/hooks/movie-hooks';
+import { BlurCircle } from '@/components/blur-circle';
+import { useGetMovieDetail } from '@/features/client/movies/hooks';
 import { ErrorFallback } from '@/components/error-fallback';
 import { useTrailerModal } from '@/stores/trailer-modal-store';
 
 export const MovieHeader = ({ movieId }: { movieId: string }) => {
-  const { data, isLoading, isError, error } = useGetMovieDetail(movieId);
-  const movieData: MovieDetailResponse | undefined = data?.data;
+  const { data: movieData, isLoading, isError, error } = useGetMovieDetail(movieId);
 
   const formattedDate = movieData?.releaseDate
     ? new Date(movieData?.releaseDate).toLocaleDateString('vi-VN', {
@@ -40,7 +40,7 @@ export const MovieHeader = ({ movieId }: { movieId: string }) => {
       ) : isError || !movieData ? (
         <ErrorFallback message={error?.message} />
       ) : (
-        <div className="flex flex-col flex-wrap md:flex-row items-center gap-8 aspect-video rounded-2xl">
+        <div className="relative overflow-hidden w-full rounded-2xl border border-zinc-800/50 bg-zinc-950 min-h-[480px] flex items-center">
           {/* Backdrop */}
           {movieData?.backdropUrl && movieData?.backdropUrl.trim() !== '' ? (
             <Image
@@ -48,15 +48,16 @@ export const MovieHeader = ({ movieId }: { movieId: string }) => {
               alt={movieData.title}
               fill
               priority
-              className="object-cover brightness-20 rounded-2xl"
+              className="object-cover opacity-20 brightness-75 transition-all duration-700 hover:scale-105"
             />
           ) : (
-            <div className="absolute inset-0 bg-gray-900 rounded-2xl" />
+            <div className="absolute inset-0 bg-zinc-900" />
           )}
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/80 via-transparent to-transparent hidden md:block" />
 
           {/* Content */}
-          <div className=" z-10 flex flex-col md:flex-row items-center gap-8 px-6 md:px-12 py-8">
+          <div className="z-10 w-full flex flex-col md:flex-row items-center gap-8 px-6 md:px-12 py-8">
             <Image
               width={288}
               height={416}
@@ -167,9 +168,9 @@ export const MovieHeader = ({ movieId }: { movieId: string }) => {
 
 MovieHeader.Skeleton = function MovieHeaderSkeleton() {
   return (
-    <div className="flex flex-col w-full flex-wrap md:flex-row items-center gap-8 mx-auto aspect-video rounded-2xl relative overflow-hidden bg-gray-900">
+    <div className="relative overflow-hidden w-full rounded-2xl border border-zinc-800/50 bg-zinc-950 min-h-[480px] flex items-center">
       {/* Overlay tối */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/70 to-transparent" />
 
       {/* Nội dung */}
       <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 px-6 md:px-12 py-8 w-full">

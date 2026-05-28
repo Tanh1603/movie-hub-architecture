@@ -1,4 +1,4 @@
-# [RT-04] Clear Old Showtime Session
+﻿# [RT-04] Clear Old Showtime Session
 
 ## 1. Description
 
@@ -59,4 +59,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (2) | BR-SEAT-03 | When a user selects a new showtime, all previously held seats from other showtimes are automatically released. |
+| (2) | BR144 | When a user selects a new showtime, all previously held seats from other showtimes are automatically released. |
+
+

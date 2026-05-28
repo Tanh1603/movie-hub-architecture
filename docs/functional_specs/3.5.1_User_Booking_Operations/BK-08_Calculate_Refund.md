@@ -1,4 +1,4 @@
-# [BK-08] Calculate Refund
+﻿# [BK-08] Calculate Refund
 
 ## 1. Description
 
@@ -54,5 +54,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | BR-BOOK-06 | Refund percentage on ticket cancellation: 70%. |
-| (3) | BR-BOOK-05 | Refund eligibility requires cancellation at least 2 hours before showtime. |
+| (4) | BR118 | Refund percentage on ticket cancellation: 70%. |
+| (3) | BR119 | Refund eligibility requires cancellation at least 2 hours before showtime. |
+
+

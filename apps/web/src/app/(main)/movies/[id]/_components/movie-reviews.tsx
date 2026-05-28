@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { moviesApi } from '@/libs/api/services';
+import { moviesApi } from '@/api/services';
 import { ReviewForm } from './review-form';
 import { StarRating } from '@/components/ui/star-rating';
 import { formatDate } from 'date-fns';
@@ -20,8 +20,7 @@ export function MovieReviews({ movieId }: MovieReviewsProps) {
     queryKey: ['movie-reviews', movieId],
     queryFn: async () => {
       const response = await moviesApi.getReviews(movieId);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (response as any).data || response;
+      return response.data;
     },
   });
 

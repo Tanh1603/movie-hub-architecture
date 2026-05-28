@@ -1,4 +1,4 @@
-# [RF-07] Reject Refund
+﻿# [RF-07] Reject Refund
 
 ## 1. Description
 
@@ -53,4 +53,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (2) | N/A | A reason must be provided for all rejected refunds to maintain audit quality. |
+| (2) | BR189 | A reason must be provided for all rejected refunds to maintain audit quality. |
+
+

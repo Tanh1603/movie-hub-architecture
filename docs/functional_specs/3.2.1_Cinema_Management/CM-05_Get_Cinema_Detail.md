@@ -1,4 +1,4 @@
-# [CM-05] Get Cinema Detail
+﻿# [CM-05] Get Cinema Detail
 
 ## 1. Description
 
@@ -62,4 +62,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | N/A | Standard Read Operation. |
+| (1) | BR46 | Standard Read Operation. |
+
+

@@ -121,6 +121,18 @@ body,
   }
 }
 
+@layer utilities {
+  .bg-brand-gradient {
+    @apply bg-gradient-to-r from-[#7c3aed] to-[#db2777]; /* purple-600 to pink-600 */
+  }
+  .text-brand-gradient {
+    @apply bg-brand-gradient bg-clip-text text-transparent;
+  }
+  .hover-brand-gradient {
+    @apply hover:from-[#6d28d9] hover:to-[#be185d] transition-all duration-300; /* purple-700 to pink-700 */
+  }
+}
+
 @layer base {
   * {
     @apply border-border;

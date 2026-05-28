@@ -15,17 +15,21 @@ import {
 import { TransformInterceptor } from '../../../common/interceptor/transform.interceptor';
 import { GenreService } from '../service/genre.service';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
+import { Permission } from '../../../common/decorator/permission.decorator';
+import { SensitiveThrottle } from '../../../common/decorator/sensitive-throttle.decorator';
 
 @Controller({
   version: '1',
   path: 'genres',
 })
 @UseInterceptors(new TransformInterceptor())
+@SensitiveThrottle()
 export class GenreController {
   constructor(private readonly genreService: GenreService) {}
 
   @Post()
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'movie', action: 'create', scope: 'global' })
   async create(@Req() req: any, @Body() request: GenreRequest) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -46,6 +50,7 @@ export class GenreController {
 
   @Put(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'movie', action: 'update', scope: 'global' })
   async update(
     @Req() req: any,
     @Param('id') id: string,
@@ -60,6 +65,7 @@ export class GenreController {
 
   @Delete(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'movie', action: 'delete', scope: 'global' })
   async remove(@Req() req: any, @Param('id') id: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -68,3 +74,6 @@ export class GenreController {
     return this.genreService.remove(id);
   }
 }
+
+
+

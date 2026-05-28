@@ -1,4 +1,4 @@
-# [MV-06] Delete Movie
+﻿# [MV-06] Delete Movie
 
 ## 1. Description
 
@@ -65,4 +65,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | General | A movie cannot be deleted if it is currently scheduled for screening (to prevent orphaned showtimes). |
+| (3) | BR69 | A movie cannot be deleted if it is currently scheduled for screening (to prevent orphaned showtimes). |
+
+

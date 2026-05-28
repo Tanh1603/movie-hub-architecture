@@ -14,6 +14,7 @@ import {
   Plus,
   ArrowUpRight,
   ArrowDownRight,
+  Shield,
 } from 'lucide-react';
 import {
   Card,
@@ -32,7 +33,7 @@ import {
   SelectValue,
 } from '@movie-hub/shacdn-ui/select';
 import Link from 'next/link';
-import { cinemasApi } from '@/libs/api/services';
+import { cinemasApi } from '@/api/services';
 import {
   BarChart,
   Bar,
@@ -59,7 +60,9 @@ import {
   type RecentBookingDto,
   type RecentReviewDto,
   type RevenueReportDto,
-} from '@/libs/api/dashboard-api';
+} from '@/api/services';
+import { useRBAC } from '@/features/admin/shared/hooks/use-rbac';
+import { AdminPermission } from '@/features/admin/shared/rbac';
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -71,51 +74,64 @@ export default function DashboardPage() {
   const [topMovies, setTopMovies] = useState<TopMovieDto[]>([]);
   const [topCinemas, setTopCinemas] = useState<TopCinemaDto[]>([]);
 
-  // RBAC State - use Clerk metadata directly
-  const { user } = useUser();
-  const userRole = user?.publicMetadata?.role as string | undefined;
-  const userCinemaId = user?.publicMetadata?.cinemaId as string | undefined;
-  const isAdmin = userRole === 'SUPER_ADMIN' || !userCinemaId;
+  // RBAC State from our custom hook
+  const {
+    isLoaded: isRbacLoaded,
+    isAdmin,
+    isCinemaManager,
+    cinemaId: userCinemaId,
+    hasPermission,
+  } = useRBAC();
+
+  const canViewDashboard = hasPermission(AdminPermission.VIEW_DASHBOARD);
+
   const [cinemas, setCinemas] = useState<{ id: string; name: string }[]>([]);
   const [selectedCinemaId, setSelectedCinemaId] = useState<string | undefined>(
     undefined
   );
 
-  // Initialize selectedCinemaId for managers and fetch cinemas for admins
+  // 1. Initialize Context: Fetch cinema list for Admins or set default for Managers
   useEffect(() => {
-    const initRBAC = async () => {
-      if (!user) return;
+    const initDashboardContext = async () => {
+      if (!isRbacLoaded) return;
 
       if (isAdmin) {
-        // Admin can see all cinemas - fetch list for dropdown
         try {
           const c = await cinemasApi.getAll();
-          setCinemas(c || []);
+          setCinemas(Array.isArray(c) ? c : []);
         } catch (e) {
-          console.error('Failed to fetch cinemas', e);
+          console.error('[Dashboard] Failed to fetch cinemas list:', e);
         }
       } else if (userCinemaId) {
-        // Manager - lock to their assigned cinema
+        // For managers/staff, strictly lock to their cinema
         setSelectedCinemaId(userCinemaId);
       }
     };
-    initRBAC();
-  }, [user, isAdmin, userCinemaId]);
+    initDashboardContext();
+  }, [isAdmin, userCinemaId, isRbacLoaded]);
 
+  // 2. Fetch Dashboard Data: Triggered when context (selectedCinemaId) or RBAC is ready
   useEffect(() => {
     const fetchDashboardData = async () => {
-      // For managers, wait until selectedCinemaId is set to ensure scoped data
+      // Wait for RBAC permissions to be ready
+      if (!isRbacLoaded) return;
+
+      // Security check: user must have permission to even attempt fetching
+      if (!canViewDashboard) {
+        setLoading(false);
+        return;
+      }
+
+      // Context check: Non-admins must wait for their assigned cinemaId
       if (!isAdmin && !selectedCinemaId) {
-        return; // Wait for cinemaId to be set by initRBAC
+        return;
       }
 
       try {
         setLoading(true);
         setError(null);
 
-        // Fetch all dashboard data in parallel
-        // For managers, selectedCinemaId is their assigned cinema
-        // For admins, selectedCinemaId can be undefined (all) or a specific cinema
+        // Fetch data in parallel with per-request catch for partial failures
         const [
           statsData,
           revenueRes,
@@ -124,13 +140,39 @@ export default function DashboardPage() {
           bookingsData,
           reviewsData,
         ] = await Promise.all([
-          getDashboardStats(selectedCinemaId),
-          getRevenueReport({ groupBy: 'day', cinemaId: selectedCinemaId }),
-          getTopMovies(5, selectedCinemaId),
-          getTopCinemas(5, selectedCinemaId),
-          getRecentBookings(10, selectedCinemaId),
-          getRecentReviews(10, selectedCinemaId),
+          getDashboardStats(selectedCinemaId).catch((err) => {
+            console.error('[Dashboard] Stats error:', err);
+            return null;
+          }),
+          getRevenueReport({
+            groupBy: 'day',
+            cinemaId: selectedCinemaId,
+          }).catch((err) => {
+            console.error('[Dashboard] Revenue error:', err);
+            return null;
+          }),
+          getTopMovies(5, selectedCinemaId).catch((err) => {
+            console.error('[Dashboard] Movies error:', err);
+            return [];
+          }),
+          getTopCinemas(5, selectedCinemaId).catch((err) => {
+            console.error('[Dashboard] Cinemas error:', err);
+            return [];
+          }),
+          getRecentBookings(10, selectedCinemaId).catch((err) => {
+            console.error('[Dashboard] Bookings error:', err);
+            return [];
+          }),
+          getRecentReviews(10, selectedCinemaId).catch((err) => {
+            console.error('[Dashboard] Reviews error:', err);
+            return [];
+          }),
         ]);
+
+        // If core data is missing, we consider it a page-level failure
+        if (!statsData && !revenueRes) {
+          throw new Error('Core dashboard services are currently unavailable');
+        }
 
         setStats(statsData);
         setRevenueData(revenueRes);
@@ -139,102 +181,104 @@ export default function DashboardPage() {
         setRecentBookings(Array.isArray(bookingsData) ? bookingsData : []);
         setRecentReviews(Array.isArray(reviewsData) ? reviewsData : []);
       } catch (err) {
-        console.error('Failed to fetch dashboard data:', err);
-        setError('Không thể tải dữ liệu bảng điều khiển. Vui lòng thử lại.');
+        console.error('[Dashboard] Fatal load error:', err);
+        setError(
+          'Không thể tải dữ liệu bảng điều khiển. Vui lòng kiểm tra lại kết nối hoặc quyền truy cập.'
+        );
       } finally {
         setLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, [selectedCinemaId, isAdmin]);
+  }, [selectedCinemaId, isAdmin, isRbacLoaded, canViewDashboard]);
 
-  // Prepare chart data
-  const revenueChartData = (revenueData?.revenueByPeriod || []).map(
-    (period) => ({
-      date: new Date(period.period).toLocaleDateString('vi-VN', {
-        month: 'short',
-        day: 'numeric',
-      }),
-      revenue: period.revenue / 1000000, // Convert to millions
-      bookings: period.bookingCount,
-    })
-  );
-
-  const movieChartData = topMovies.map((movie) => ({
-    name:
-      movie.title.length > 15
-        ? movie.title.substring(0, 15) + '...'
-        : movie.title,
-    value: movie.totalBookings,
-  }));
-
-  const COLORS = ['#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
 
   const statCards = [
     {
-      title: 'Tổng số phim',
-      value: stats?.totalMovies ?? 0,
-      icon: Film,
-      change: '+12.5%',
-      changeType: 'positive' as const,
-      color: 'from-purple-500 to-purple-600',
-      href: '/admin/movies',
-    },
-    {
-      title: 'Tổng số rạp',
-      value: stats?.totalCinemas ?? 0,
-      icon: Building2,
-      change: '+8.2%',
-      changeType: 'positive' as const,
-      color: 'from-blue-500 to-blue-600',
-      href: '/admin/cinemas',
-    },
-    {
-      title: 'Suất chiếu hôm nay',
-      value: stats?.todayShowtimes ?? 0,
-      icon: Calendar,
-      change: 'Hoạt động hôm nay',
-      changeType: 'neutral' as const,
-      color: 'from-emerald-500 to-emerald-600',
-      href: '/admin/showtimes',
-    },
-    {
-      title: 'Doanh thu tuần',
-      value: `₫${((stats?.weekRevenue ?? 0) / 1000000).toFixed(1)}M`,
+      title: 'Doanh thu tuần này',
+      value: stats ? formatCurrency(stats.weekRevenue) : '0 ₫',
       icon: DollarSign,
-      change: '+18.7%',
+      color: 'from-emerald-500 to-teal-600',
+      change: '+12.5% từ tuần trước',
       changeType: 'positive' as const,
-      color: 'from-pink-500 to-pink-600',
       href: '/admin/reports',
     },
     {
-      title: 'Tổng đặt chỗ',
-      value: stats?.totalBookings ?? 0,
+      title: 'Tổng số vé bán ra',
+      value: stats ? stats.totalBookings.toLocaleString('vi-VN') : '0',
       icon: Ticket,
-      change: '+24.3%',
+      color: 'from-blue-500 to-indigo-600',
+      change: '+8.2% từ tuần trước',
       changeType: 'positive' as const,
-      color: 'from-amber-500 to-amber-600',
-      href: '/admin/reservations',
+      href: '/admin/bookings',
+    },
+    {
+      title: 'Suất chiếu hôm nay',
+      value: stats ? stats.todayShowtimes.toLocaleString('vi-VN') : '0',
+      icon: Calendar,
+      color: 'from-purple-500 to-pink-600',
+      change: 'Đang hoạt động',
+      changeType: 'neutral' as const,
+      href: '/admin/showtimes',
     },
     {
       title: 'Đánh giá trung bình',
-      value: (stats?.averageRating ?? 0).toFixed(1),
+      value: stats ? `${stats.averageRating.toFixed(1)} / 5` : '0 / 5',
       icon: Star,
-      change: 'Tuyệt vời',
-      changeType: 'positive' as const,
-      color: 'from-yellow-500 to-yellow-600',
+      color: 'from-amber-500 to-orange-600',
+      change: 'Từ khách hàng',
+      changeType: 'neutral' as const,
       href: '/admin/reviews',
     },
   ];
 
-  if (loading) {
+  const revenueChartData = (revenueData?.revenueByPeriod || []).map((p) => ({
+    date: new Date(p.period).toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+    }),
+    revenue: p.revenue / 1000000,
+    bookings: p.bookingCount,
+  }));
+
+  const COLORS = ['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b'];
+
+  const movieChartData = topMovies.map((movie) => ({
+    name: movie.title,
+    value: movie.totalBookings,
+  }));
+
+  if (!isRbacLoaded || loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-200px)]">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-purple-200 border-t-purple-600"></div>
           <p className="mt-4 text-gray-600 font-medium">
             Đang tải bảng điều khiển...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isRbacLoaded && !canViewDashboard) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] gap-4">
+        <div className="p-4 bg-red-50 rounded-full">
+          <Shield className="h-12 w-12 text-red-600" />
+        </div>
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900">Từ chối truy cập</h2>
+          <p className="text-gray-500 mt-2">
+            Bạn không có quyền xem bảng điều khiển thống kê.
           </p>
         </div>
       </div>

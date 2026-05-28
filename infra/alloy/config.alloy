@@ -1,0 +1,63 @@
+// 1. Auto-discover tất cả Docker containers chạy trên host
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// 2. Lấy danh sách container cần lấy log
+discovery.relabel "logs_targets" {
+  targets = discovery.docker.containers.targets
+
+  // Giữ lại log của API Gateway & Microservices
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = ".*(api-gateway|user-service|movie-service|cinema-service|booking-service).*"
+    action        = "keep"
+  }
+
+  // Tự động gán nhãn `service` bằng tên container
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    target_label  = "service"
+  }
+}
+
+// 3. Đọc log real-time từ Docker Engine
+loki.source.docker "moviehub_logs" {
+  host    = "unix:///var/run/docker.sock"
+  targets = discovery.relabel.logs_targets.output
+  labels  = {
+    env = "production",
+  }
+  forward_to = [loki.process.parse_json.receiver]
+}
+
+// 4. Parse log dạng JSON từ Pino và forward lên Loki
+loki.process "parse_json" {
+  forward_to = [loki.write.local.receiver]
+
+  stage.json {
+    expressions = {
+      raw_level     = "level",
+      correlationId = "correlationId",
+    }
+  }
+
+  stage.template {
+    source = "level"
+    template = "{{ if eq .raw_level \"10\" }}trace{{ else if eq .raw_level \"20\" }}debug{{ else if eq .raw_level \"30\" }}info{{ else if eq .raw_level \"40\" }}warn{{ else if eq .raw_level \"50\" }}error{{ else if eq .raw_level \"60\" }}fatal{{ else }}{{ .raw_level }}{{ end }}"
+  }
+
+  stage.labels {
+    values = {
+      level         = null,
+      correlationId = null,
+    }
+  }
+}
+
+// 5. Gửi lên Loki server
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

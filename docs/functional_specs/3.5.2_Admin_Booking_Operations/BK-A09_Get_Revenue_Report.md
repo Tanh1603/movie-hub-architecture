@@ -1,4 +1,4 @@
-# [BK-A09] Get Revenue Report
+﻿# [BK-A09] Get Revenue Report
 
 ## 1. Description
 
@@ -57,5 +57,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Only `COMPLETED` (and possibly `CONFIRMED`) bookings are counted towards revenue. `CANCELLED` or `EXPIRED` are excluded. |
-| (3) | BR-PAY-03 | Reports should clearly distinguish between gross revenue and net revenue (minus 10% VAT). |
+| (3) | BR137 | Only `COMPLETED` (and possibly `CONFIRMED`) bookings are counted towards revenue. `CANCELLED` or `EXPIRED` are excluded. |
+| (3) | BR138 | Reports should clearly distinguish between gross revenue and net revenue (minus 10% VAT). |
+
+

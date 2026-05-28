@@ -1,4 +1,4 @@
-# [LY-04] Redeem Points
+﻿# [LY-04] Redeem Points
 
 ## 1. Description
 
@@ -71,7 +71,9 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (5) | BR-LOYALTY-01 | Point redemption rate: 1 point = 1,000 VND. |
-| (4) | BR-LOYALTY-03 | Users cannot redeem more points than their current balance. |
-| (7) | N/A | Total discount cannot exceed the booking subtotal. |
+| (5) | BR35 | Redemption rate: 1 point = 1,000 VND; conversion must be used to compute monetary discount. |
+| (4) | BR36 | A user may not redeem more points than their current balance; attempts to do so must return HTTP 400. |
+| (7) | BR37 | The total discount resulting from point redemption must not exceed the booking subtotal; if it would, cap the discount to the subtotal and adjust points deducted accordingly. |
 @enduml
+
+

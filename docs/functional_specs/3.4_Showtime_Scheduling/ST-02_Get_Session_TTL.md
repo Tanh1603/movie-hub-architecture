@@ -1,4 +1,4 @@
-# [ST-02] Get Session TTL
+﻿# [ST-02] Get Session TTL
 
 ## 1. Description
 
@@ -64,4 +64,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR-SEAT-02 | Seat hold duration (TTL): 10 minutes (600 seconds). |
+| (3) | BR89 | Seat hold duration (TTL): 10 minutes (600 seconds). |
+
+

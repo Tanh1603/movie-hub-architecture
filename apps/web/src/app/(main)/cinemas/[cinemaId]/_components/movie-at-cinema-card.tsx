@@ -1,6 +1,6 @@
 'use client';
 
-import { MovieWithShowtimeResponse } from '@/libs/types/movie.type';
+import { MovieWithShowtimeResponse } from '@/types/movie.type';
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { Card, CardContent } from '@movie-hub/shacdn-ui/card';
 import { Globe2, Theater, Timer } from 'lucide-react';

@@ -1,4 +1,4 @@
-# [CF-02] Update Setting
+﻿# [CF-02] Update Setting
 
 ## 1. Description
 
@@ -54,6 +54,8 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (5) | N/A | Changes to critical settings (like VAT) may have immediate system-wide financial impact. |
-| (5) | N/A | Values are typically stored as strings and cast by the consuming service. |
+| (5) | BR40 | Changes to critical settings (e.g., VAT) must be performed by an Admin, recorded in an audit log, and may take effect immediately impacting financial calculations. |
+| (5) | BR41 | Setting values are stored as strings; updates must validate the value format and reject invalid values with HTTP 400. |
 @enduml
+
+

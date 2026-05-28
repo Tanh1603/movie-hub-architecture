@@ -1,6 +1,6 @@
 'use client';
 import { BlurCircle } from '@/components/blur-circle';
-import { ShowtimeSeatResponse } from '@/libs/types/showtime.type';
+import { ShowtimeSeatResponse } from '@/types/showtime.type';
 import { useBookingStore } from '@/stores/booking-store';
 import { CinemaScreen } from './_components/cinema-screen';
 import { SeatGrid } from './_components/seat-grid';

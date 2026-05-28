@@ -10,12 +10,14 @@ import {
 } from '@movie-hub/shacdn-ui/card';
 import { formatPrice } from '@/app/utils/format-price';
 import { ExpiredModal } from '@/components/modal/expire-modal';
-import { useGetSessionTTL } from '@/hooks/showtime-hooks';
-import { ShowtimeSeatResponse } from '@/libs/types/showtime.type';
+import { useGetSessionTTL } from '@/features/client/showtimes/hooks';
+import { ShowtimeSeatResponse } from '@/types/showtime.type';
 import { useBookingStore } from '@/stores/booking-store';
 import { CalendarDays } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
+import { adjustDateForDisplay } from '@/app/utils/timezone-fix';
 
 export default function TicketPreview({
   data,
@@ -32,8 +34,8 @@ export default function TicketPreview({
   const { data: ttlResponse } = useGetSessionTTL(data?.showtime.id || '');
 
   useEffect(() => {
-    if (ttlResponse?.data) {
-      updateHoldTimeSeconds(ttlResponse.data);
+    if (ttlResponse?.ttl && ttlResponse.ttl > 0) {
+      updateHoldTimeSeconds(ttlResponse.ttl);
     }
   }, [ttlResponse, updateHoldTimeSeconds]);
 
@@ -95,11 +97,7 @@ export default function TicketPreview({
                 {data?.showtime.start_time
                   ? (() => {
                       // Manual UTC to Vietnam time conversion to bypass all timezone issues
-                      const utcDate = new Date(data.showtime.start_time);
-                      // Create a new date that represents Vietnam time (UTC+7)
-                      const vnDate = new Date(
-                        utcDate.getTime() + 7 * 60 * 60 * 1000
-                      );
+                      const vnDate = adjustDateForDisplay(data.showtime.start_time);
 
                       // Format manually to ensure no timezone conversion
                       const hours = vnDate

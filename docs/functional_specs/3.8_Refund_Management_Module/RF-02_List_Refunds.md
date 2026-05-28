@@ -1,4 +1,4 @@
-# [RF-02] List Refunds
+﻿# [RF-02] List Refunds
 
 ## 1. Description
 
@@ -55,5 +55,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (2) | N/A | Restricted to Admin users. |
-| (3) | N/A | DTO should include booking ID, user name, and requested amount. |
+| (2) | BR181 | Restricted to Admin users. |
+| (3) | BR182 | DTO should include booking ID, user name, and requested amount. |
+
+

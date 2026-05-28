@@ -1,7 +1,6 @@
 // src/app/(admin)/showtimes/page.tsx
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import { Plus, Calendar as CalendarIcon, Clock, Trash2, Pencil } from 'lucide-react';
@@ -13,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@movie-hub/shacdn-ui/card';
-import { Label } from '@movie-hub/shacdn-ui/label';
 import {
   Select,
   SelectContent,
@@ -24,10 +22,16 @@ import {
 import { Badge } from '@movie-hub/shacdn-ui/badge';
 import { Calendar } from '@movie-hub/shacdn-ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@movie-hub/shacdn-ui/popover';
-import { useShowtimes, useDeleteShowtime, useMovies, useCinemas, useHallsGroupedByCinema } from '@/libs/api';
-import type { Showtime, Hall } from '@/libs/api/types';
+import { useAdminMovies } from '@/features/admin/movies';
+import { useAdminCinemas, useAdminHallsGroupedByCinema } from '@/features/admin/cinemas';
+import {
+  useAdminDeleteShowtime,
+  useAdminShowtimes,
+} from '@/features/admin/showtimes';
+import type { Showtime, Hall } from '@/types';
 import { format } from 'date-fns';
 import ShowtimeDialog from '../_components/forms/ShowtimeDialog';
+import { adjustDateFromBackend } from '@/app/utils/timezone-fix';
 
 export default function ShowtimesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -46,22 +50,22 @@ export default function ShowtimesPage() {
     return `${year}-${month}-${day}`;
   };
 
-  const { data: showtimesData = [], isLoading: loading, refetch: refetchShowtimes } = useShowtimes({
+  const { data: showtimesData = [], isLoading: loading, refetch: refetchShowtimes } = useAdminShowtimes({
     cinemaId: selectedCinemaId !== 'all' ? selectedCinemaId : undefined,
     movieId: selectedMovieId !== 'all' ? selectedMovieId : undefined,
     date: formatDateForQuery(selectedDate),
   });
   const showtimes = showtimesData || [];
-  const { data: moviesData = [] } = useMovies();
+  const { data: moviesData = [] } = useAdminMovies();
   const movies = moviesData || [];
   const moviesAdmin = movies;
-  const { data: cinemasData = [] } = useCinemas();
+  const { data: cinemasData = [] } = useAdminCinemas();
   const cinemas = cinemasData || [];
   const cinemasAdmin = cinemas;
-  const deleteShowtime = useDeleteShowtime();
+  const deleteShowtime = useAdminDeleteShowtime();
 
   // Halls: derive a flat halls list from grouped halls by cinema
-  const { data: hallsByCinema = {} } = useHallsGroupedByCinema();
+  const { data: hallsByCinema = {} } = useAdminHallsGroupedByCinema();
   const halls: Hall[] = Object.values(hallsByCinema).flatMap((g: { cinema: unknown; halls: unknown[] }) => (g.halls || []) as Hall[]);
 
   useEffect(() => {
@@ -122,7 +126,7 @@ export default function ShowtimesPage() {
             setEditingShowtime(null);
             setDialogOpen(true);
           }}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          className="bg-brand-gradient hover-brand-gradient"
         >
           <Plus className="mr-2 h-4 w-4" />
           Thêm Suất Chiếu
@@ -303,7 +307,7 @@ export default function ShowtimesPage() {
                     {movieShowtimes.map((showtime) => {
                       const cinema = cinemas.find((c) => c.id === showtime.cinemaId);
                       // TIMEZONE WORKAROUND: BE adds +7h in mapper, we need to subtract it
-                      const correctedStartTime = new Date(new Date(showtime.startTime).getTime() - 7 * 60 * 60 * 1000);
+                      const correctedStartTime = adjustDateFromBackend(showtime.startTime);
                       return (
                         <Card key={showtime.id} className="relative">
                           <CardContent className="pt-6">
@@ -416,3 +420,5 @@ export default function ShowtimesPage() {
     </div>
   );
 }
+
+

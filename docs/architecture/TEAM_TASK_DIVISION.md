@@ -292,9 +292,19 @@ Owns all authentication, authorization, external integration concerns, and secur
 
 ### Primary Responsibilities
 
+#### 2.0 Implementation Priorities (Sprint View)
+
+To keep the original design while making execution practical, Member 2 follows this priority order:
+
+- **P0 (Week 1-2)**: Enforce RBAC/ownership on protected admin endpoints, remove sensitive auth logging, and add rate limits to high-risk routes.
+- **P1 (Week 3-4)**: Harden Clerk sync reliability (retry/reconciliation) and payment webhook trust boundaries (signature, replay protection, idempotency).
+- **P2 (Week 5-6)**: Add security regression gates in CI, observability for auth/webhook anomalies, and finalize incident runbook.
+
+This priority layer does not replace the detailed responsibilities below; it defines implementation order.
+
 #### 2.1 Authentication & Token Validation
 
-**Quality Attributes**: Security (credential protection, session integrity), Performance (fast validation ≤50ms)
+**Quality Attributes**: Security (credential protection, session integrity), Performance (fast validation =50ms)
 
 **Responsibilities**:
 
@@ -327,31 +337,31 @@ Owns all authentication, authorization, external integration concerns, and secur
    - Throw ForbiddenException if headers missing (defense in depth)
 3. Implement Brute-Force Protection:
    - Track failed login attempts per account and per IP using Redis
-   - Threshold: 5 failed attempts → temporary lockout
+   - Threshold: 5 failed attempts ? temporary lockout
    - Lockout duration: 5 minutes, then reset counter
    - Log attempts with IP, timestamp, and correlation ID
 4. Token Validation Performance:
    - Cache Clerk public keys in Redis with 1-hour TTL
-   - Validate token locally using cached key (≤10ms)
+   - Validate token locally using cached key (=10ms)
    - If local validation fails, fetch fresh key from Clerk (longer, but rare)
-   - Measure validation latency in logs; target ≤50ms per request
+   - Measure validation latency in logs; target =50ms per request
 5. Session Management:
    - Delegate session creation entirely to Clerk
    - Do not create custom session tokens internally
    - Use Clerk's refresh token mechanism for token refresh
 6. Test Scenarios:
-   - Valid JWT → passes validation and attaches user context
-   - Expired JWT → returns 401
-   - Invalid signature → returns 401
-   - Missing authorization header → returns 401
-   - Brute-force 6 login attempts → 6th attempt triggers lockout
-   - Lockout release after 5 minutes → next attempt succeeds
+   - Valid JWT ? passes validation and attaches user context
+   - Expired JWT ? returns 401
+   - Invalid signature ? returns 401
+   - Missing authorization header ? returns 401
+   - Brute-force 6 login attempts ? 6th attempt triggers lockout
+   - Lockout release after 5 minutes ? next attempt succeeds
 
 ---
 
 #### 2.2 Authorization & Access Control
 
-**Quality Attributes**: Security (privilege enforcement, data ownership), Performance (fast checks ≤100ms)
+**Quality Attributes**: Security (privilege enforcement, data ownership), Performance (fast checks =100ms)
 
 **Responsibilities**:
 
@@ -395,11 +405,11 @@ Owns all authentication, authorization, external integration concerns, and secur
      - Rationale: Avoid revealing whether resource exists
    - Log all authorization failures with: user ID, attempted action, target resource, correlation ID
 6. Test Scenarios:
-   - Customer role accessing their own booking → success
-   - Customer role accessing another user's booking → 404
-   - Staff role accessing non-assigned cinema → 403
-   - ADMIN role accessing sensitive endpoint → success
-   - Invalid role claim → 403
+   - Customer role accessing their own booking ? success
+   - Customer role accessing another user's booking ? 404
+   - Staff role accessing non-assigned cinema ? 403
+   - ADMIN role accessing sensitive endpoint ? success
+   - Invalid role claim ? 403
 
 ---
 
@@ -467,12 +477,12 @@ Owns all authentication, authorization, external integration concerns, and secur
    - If provider indicates completion, update local state
    - If provider has no record, mark as TIMEOUT_NO_RESPONSE
 7. Test Scenarios:
-   - Valid payment initiation → returns redirect URL, stores idempotency key
-   - Duplicate payment request (same idempotency key) → returns same redirect URL
-   - Payment success callback with valid signature → updates payment to SUCCESS, marks booking CONFIRMED
-   - Payment success callback with invalid signature → logged as suspicious, state unchanged
-   - Duplicate success callback → second callback ignored, booking remains CONFIRMED
-   - Callback timeout (no response from provider after 30s) → booking stays PENDING, retry later
+   - Valid payment initiation ? returns redirect URL, stores idempotency key
+   - Duplicate payment request (same idempotency key) ? returns same redirect URL
+   - Payment success callback with valid signature ? updates payment to SUCCESS, marks booking CONFIRMED
+   - Payment success callback with invalid signature ? logged as suspicious, state unchanged
+   - Duplicate success callback ? second callback ignored, booking remains CONFIRMED
+   - Callback timeout (no response from provider after 30s) ? booking stays PENDING, retry later
 
 ---
 
@@ -510,17 +520,17 @@ Owns all authentication, authorization, external integration concerns, and secur
 3. State Machine for Payment Processing:
    - Current state: PENDING_PAYMENT
    - Callback arrives with status SUCCESS:
-     - Verify signature ✓
-     - Check current state = PENDING ✓
+     - Verify signature ?
+     - Check current state = PENDING ?
      - Transition to PAYMENT_SUCCESS
      - Trigger booking confirmation and ticket issuance
    - Callback arrives with status FAILED:
-     - Verify signature ✓
-     - Check current state ≠ PAYMENT_SUCCESS (already confirmed)
+     - Verify signature ?
+     - Check current state ? PAYMENT_SUCCESS (already confirmed)
      - Transition to PAYMENT_FAILED
      - Release held seats
    - Callback arrives with status CANCELLED or EXPIRED:
-     - Verify signature ✓
+     - Verify signature ?
      - Release held seats if still held
 4. Callback Ordering & Late Arrival:
    - Store callback timestamp for reconciliation
@@ -531,11 +541,11 @@ Owns all authentication, authorization, external integration concerns, and secur
    - Never expose error details to provider
    - Store all callbacks (including invalid/duplicate) in audit log with full context
 6. Test Scenarios:
-   - Valid success callback → booking confirmed, ticket issued
-   - Success callback sent twice → first processes, second returns 200 but no state change
-   - Late failure callback (arrives after success) → ignored, booking stays confirmed
-   - Callback with missing signature → returns 200 but not processed (logged as suspicious)
-   - Callback timeout to provider (never arrives) → booking stays PENDING, reconciliation job finds it after 15 min
+   - Valid success callback ? booking confirmed, ticket issued
+   - Success callback sent twice ? first processes, second returns 200 but no state change
+   - Late failure callback (arrives after success) ? ignored, booking stays confirmed
+   - Callback with missing signature ? returns 200 but not processed (logged as suspicious)
+   - Callback timeout to provider (never arrives) ? booking stays PENDING, reconciliation job finds it after 15 min
 
 ---
 
@@ -578,10 +588,10 @@ Owns all authentication, authorization, external integration concerns, and secur
    - Max 3 attempts with exponential backoff (1s, 2s, 4s)
    - If all retries fail, log event and mark for manual review (not critical)
 4. Test Scenarios:
-   - Booking confirmed → notification event persisted in outbox
-   - Async worker processes event → calls notification adapter
-   - Provider returns 503 → worker retries, eventually succeeds
-   - Provider unavailable → max retries exhausted, event marked as failed (booking still confirmed)
+   - Booking confirmed ? notification event persisted in outbox
+   - Async worker processes event ? calls notification adapter
+   - Provider returns 503 ? worker retries, eventually succeeds
+   - Provider unavailable ? max retries exhausted, event marked as failed (booking still confirmed)
 
 ---
 
@@ -619,7 +629,7 @@ Owns all authentication, authorization, external integration concerns, and secur
    - Return generic error message to user (e.g., "Payment processing failed. Please try again.")
    - Log full error details server-side with correlation ID
 4. Test Scenarios:
-   - Payment processing error → generic error returned to client, full details logged server-side
+   - Payment processing error ? generic error returned to client, full details logged server-side
    - Logs do not contain payment card data, API keys, or secrets
    - All service-to-service communication over HTTPS
 

@@ -1,4 +1,4 @@
-# [GM-01] List All Genres
+﻿# [GM-01] List All Genres
 
 ## 1. Description
 
@@ -56,4 +56,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Returns all genres defined in the movie service database. |
+| (3) | BR74 | The response must return all distinct genres from the movie database, each including an `id` and `name`; duplicate genre names must be collapsed. |
+
+

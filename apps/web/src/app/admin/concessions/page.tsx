@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, ShoppingBag, Package, AlertCircle } from 'lucide-react';
@@ -36,13 +35,13 @@ import {
   useUpdateConcession,
   useDeleteConcession,
   useCinemas,
-} from '@/libs/api';
+} from '@/features/admin/shared/api-hooks';
 import type {
   Concession,
   CreateConcessionRequest,
   UpdateConcessionRequest,
   ConcessionCategory,
-} from '@/libs/api/types';
+} from '@/types';
 
 const CATEGORIES: { value: ConcessionCategory | string; label: string; icon: string }[] = [
   { value: 'FOOD', label: 'Thức Ăn', icon: '🍿' },
@@ -55,7 +54,9 @@ export default function ConcessionsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string>('');
-  const [editingConcession, setEditingConcession] = useState<Concession | null>(null);
+  const [editingConcession, setEditingConcession] = useState<Concession | null>(
+    null
+  );
   const [filterCinemaId, setFilterCinemaId] = useState<string>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterAvailable, setFilterAvailable] = useState<string>('all');
@@ -77,10 +78,18 @@ export default function ConcessionsPage() {
   const { data: cinemasData = [] } = useCinemas();
   const cinemas = Array.isArray(cinemasData) ? cinemasData : [];
 
-  const { data: concessionsData = [], isLoading: loading, error } = useConcessions({
+  const {
+    data: concessionsData = [],
+    isLoading: loading,
+    error,
+  } = useConcessions({
     cinemaId: filterCinemaId !== 'all' ? filterCinemaId : undefined,
-    category: filterCategory !== 'all' ? (filterCategory as ConcessionCategory) : undefined,
-    available: filterAvailable !== 'all' ? filterAvailable === 'true' : undefined,
+    category:
+      filterCategory !== 'all'
+        ? (filterCategory as ConcessionCategory)
+        : undefined,
+    available:
+      filterAvailable !== 'all' ? filterAvailable === 'true' : undefined,
   });
   const concessions = concessionsData || [];
 
@@ -138,9 +147,13 @@ export default function ConcessionsPage() {
           available: formData.available,
           inventory: formData.inventory,
           cinemaId: formData.cinemaId || undefined,
-          allergens: formData.allergens.length > 0 ? formData.allergens : undefined,
+          allergens:
+            formData.allergens.length > 0 ? formData.allergens : undefined,
         };
-        await updateConcession.mutateAsync({ id: editingConcession.id, data: updateData });
+        await updateConcession.mutateAsync({
+          id: editingConcession.id,
+          data: updateData,
+        });
       } else {
         const createData: CreateConcessionRequest = {
           name: formData.name,
@@ -152,7 +165,8 @@ export default function ConcessionsPage() {
           available: formData.available,
           inventory: formData.inventory,
           cinemaId: formData.cinemaId || undefined,
-          allergens: formData.allergens.length > 0 ? formData.allergens : undefined,
+          allergens:
+            formData.allergens.length > 0 ? formData.allergens : undefined,
         };
         await createConcession.mutateAsync(createData);
       }
@@ -235,27 +249,43 @@ export default function ConcessionsPage() {
     total: concessions.length,
     available: concessions.filter((c: Concession) => c.available).length,
     unavailable: concessions.filter((c: Concession) => !c.available).length,
-    food: concessions.filter((c: Concession) => String(c.category) === 'FOOD').length,
-    drink: concessions.filter((c: Concession) => String(c.category) === 'DRINK').length,
-    combo: concessions.filter((c: Concession) => String(c.category) === 'COMBO').length,
-    merchandise: concessions.filter((c: Concession) => String(c.category) === 'MERCHANDISE').length,
-    totalValue: concessions.reduce((sum: number, c: Concession) => sum + (c.price * (c.inventory || 0)), 0),
-    avgPrice: concessions.length > 0 ? concessions.reduce((sum: number, c: Concession) => sum + c.price, 0) / concessions.length : 0,
+    food: concessions.filter((c: Concession) => String(c.category) === 'FOOD')
+      .length,
+    drink: concessions.filter((c: Concession) => String(c.category) === 'DRINK')
+      .length,
+    combo: concessions.filter((c: Concession) => String(c.category) === 'COMBO')
+      .length,
+    merchandise: concessions.filter(
+      (c: Concession) => String(c.category) === 'MERCHANDISE'
+    ).length,
+    totalValue: concessions.reduce(
+      (sum: number, c: Concession) => sum + c.price * (c.inventory || 0),
+      0
+    ),
+    avgPrice:
+      concessions.length > 0
+        ? concessions.reduce((sum: number, c: Concession) => sum + c.price, 0) /
+          concessions.length
+        : 0,
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Quản Lý Bán Hàng Bổ Sung</h1>
-          <p className="text-gray-500 mt-1">Quản lý thức ăn, đồ uống và hàng hóa</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Quản Lý Bán Hàng Bổ Sung
+          </h1>
+          <p className="text-gray-500 mt-1">
+            Quản lý thức ăn, đồ uống và hàng hóa
+          </p>
         </div>
         <Button
           onClick={() => {
             resetForm();
             setDialogOpen(true);
           }}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          className="bg-brand-gradient hover-brand-gradient"
         >
           <Plus className="mr-2 h-4 w-4" />
           Thêm Mặt Hàng
@@ -267,10 +297,14 @@ export default function ConcessionsPage() {
         {/* Total Items Card */}
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200/60 shadow-md hover:shadow-lg transition-shadow">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-purple-700 uppercase tracking-wider">📦 Tổng Mặt Hàng</CardTitle>
+            <CardTitle className="text-sm font-semibold text-purple-700 uppercase tracking-wider">
+              📦 Tổng Mặt Hàng
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-purple-900">{stats.total}</div>
+            <div className="text-3xl font-bold text-purple-900">
+              {stats.total}
+            </div>
             <p className="text-xs text-purple-600 mt-2 font-medium">
               {stats.available} có sẵn · {stats.unavailable} không có sẵn
             </p>
@@ -280,12 +314,17 @@ export default function ConcessionsPage() {
         {/* Category Breakdown Card */}
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200/60 shadow-md hover:shadow-lg transition-shadow">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-blue-700 uppercase tracking-wider">🎯 Theo Loại</CardTitle>
+            <CardTitle className="text-sm font-semibold text-blue-700 uppercase tracking-wider">
+              🎯 Theo Loại
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-900">{stats.food + stats.drink + stats.combo + stats.merchandise}</div>
+            <div className="text-3xl font-bold text-blue-900">
+              {stats.food + stats.drink + stats.combo + stats.merchandise}
+            </div>
             <p className="text-xs text-blue-600 mt-2 font-medium">
-              🍿{stats.food} 🥤{stats.drink} 🍔{stats.combo} 🎁{stats.merchandise}
+              🍿{stats.food} 🥤{stats.drink} 🍔{stats.combo} 🎁
+              {stats.merchandise}
             </p>
           </CardContent>
         </Card>
@@ -293,10 +332,14 @@ export default function ConcessionsPage() {
         {/* Inventory Value Card */}
         <Card className="bg-gradient-to-br from-pink-50 to-pink-100 border-pink-200/60 shadow-md hover:shadow-lg transition-shadow">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-pink-700 uppercase tracking-wider">💰 Giá Trị Tồn Kho</CardTitle>
+            <CardTitle className="text-sm font-semibold text-pink-700 uppercase tracking-wider">
+              💰 Giá Trị Tồn Kho
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-pink-900">₫{(stats.totalValue / 1000).toFixed(1)}K</div>
+            <div className="text-3xl font-bold text-pink-900">
+              ₫{(stats.totalValue / 1000).toFixed(1)}K
+            </div>
             <p className="text-xs text-pink-600 mt-2 font-medium">
               Giá trị tồn kho toàn bộ
             </p>
@@ -306,10 +349,14 @@ export default function ConcessionsPage() {
         {/* Average Price Card */}
         <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200/60 shadow-md hover:shadow-lg transition-shadow">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-emerald-700 uppercase tracking-wider">💵 Giá Trung Bình</CardTitle>
+            <CardTitle className="text-sm font-semibold text-emerald-700 uppercase tracking-wider">
+              💵 Giá Trung Bình
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-emerald-900">₫{(stats.avgPrice / 1000).toFixed(1)}K</div>
+            <div className="text-3xl font-bold text-emerald-900">
+              ₫{(stats.avgPrice / 1000).toFixed(1)}K
+            </div>
             <p className="text-xs text-emerald-600 mt-2 font-medium">
               Mỗi mặt hàng
             </p>
@@ -322,7 +369,9 @@ export default function ConcessionsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
           {/* Cinema Filter */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">🏢 Rạp</label>
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              🏢 Rạp
+            </label>
             <Select value={filterCinemaId} onValueChange={setFilterCinemaId}>
               <SelectTrigger className="h-11 border-purple-200 focus:ring-purple-500">
                 <SelectValue placeholder="Tất Cả Rạp" />
@@ -340,7 +389,9 @@ export default function ConcessionsPage() {
 
           {/* Category Filter */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">🎯 Danh Mục</label>
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              🎯 Danh Mục
+            </label>
             <Select value={filterCategory} onValueChange={setFilterCategory}>
               <SelectTrigger className="h-11 border-purple-200 focus:ring-purple-500">
                 <SelectValue placeholder="Tất Cả Danh Mục" />
@@ -358,7 +409,9 @@ export default function ConcessionsPage() {
 
           {/* Availability Filter */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">✅ Tính Sẵn Có</label>
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              ✅ Tính Sẵn Có
+            </label>
             <Select value={filterAvailable} onValueChange={setFilterAvailable}>
               <SelectTrigger className="h-11 border-purple-200 focus:ring-purple-500">
                 <SelectValue placeholder="Tất Cả" />
@@ -373,12 +426,14 @@ export default function ConcessionsPage() {
         </div>
 
         {/* Active Filter Chips */}
-        {(filterCinemaId !== 'all' || filterCategory !== 'all' || filterAvailable !== 'all') && (
+        {(filterCinemaId !== 'all' ||
+          filterCategory !== 'all' ||
+          filterAvailable !== 'all') && (
           <div className="flex flex-wrap gap-2 pt-3 border-t border-purple-200/50">
             {filterCinemaId !== 'all' && (
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-white rounded-full border border-purple-200 shadow-sm">
                 <span className="text-xs font-medium text-gray-700">
-                  🏢 {cinemas.find(c => c.id === filterCinemaId)?.name}
+                  🏢 {cinemas.find((c) => c.id === filterCinemaId)?.name}
                 </span>
                 <button
                   onClick={() => setFilterCinemaId('all')}
@@ -391,7 +446,8 @@ export default function ConcessionsPage() {
             {filterCategory !== 'all' && (
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-white rounded-full border border-purple-200 shadow-sm">
                 <span className="text-xs font-medium text-gray-700">
-                  {CATEGORIES.find(c => c.value === filterCategory)?.icon} {CATEGORIES.find(c => c.value === filterCategory)?.label}
+                  {CATEGORIES.find((c) => c.value === filterCategory)?.icon}{' '}
+                  {CATEGORIES.find((c) => c.value === filterCategory)?.label}
                 </span>
                 <button
                   onClick={() => setFilterCategory('all')}
@@ -447,13 +503,15 @@ export default function ConcessionsPage() {
         ) : concessions.length === 0 ? (
           <div className="text-center py-16 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-100">
             <ShoppingBag className="h-16 w-16 text-purple-300 mx-auto mb-4" />
-            <p className="text-gray-600 mb-4 font-medium">Không tìm thấy mặt hàng bổ sung.</p>
+            <p className="text-gray-600 mb-4 font-medium">
+              Không tìm thấy mặt hàng bổ sung.
+            </p>
             <Button
               onClick={() => {
                 resetForm();
                 setDialogOpen(true);
               }}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              className="bg-brand-gradient hover-brand-gradient"
             >
               <Plus className="mr-2 h-4 w-4" />
               Thêm Mặt Hàng Đầu Tiên
@@ -462,10 +520,15 @@ export default function ConcessionsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {concessions.map((concession: Concession) => {
-              const category = CATEGORIES.find((c) => c.value === concession.category);
-              const isLowStock = concession.inventory !== undefined && concession.inventory < 10 && concession.inventory > 0;
+              const category = CATEGORIES.find(
+                (c) => c.value === concession.category
+              );
+              const isLowStock =
+                concession.inventory !== undefined &&
+                concession.inventory < 10 &&
+                concession.inventory > 0;
               const isOutOfStock = concession.inventory === 0;
-              
+
               return (
                 <div
                   key={concession.id}
@@ -510,7 +573,11 @@ export default function ConcessionsPage() {
 
                     {/* Category Badge - Top Left */}
                     <div className="absolute top-2 left-2">
-                      <div className={`${getCategoryBadgeColor(concession.category)} px-3 py-1 rounded-full text-xs font-semibold shadow-md`}>
+                      <div
+                        className={`${getCategoryBadgeColor(
+                          concession.category
+                        )} px-3 py-1 rounded-full text-xs font-semibold shadow-md`}
+                      >
                         {category?.icon} {category?.label}
                       </div>
                     </div>
@@ -518,7 +585,9 @@ export default function ConcessionsPage() {
                     {/* Availability Indicator */}
                     {!concession.available && (
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">Không Sẵn Có</span>
+                        <span className="text-white font-bold text-lg">
+                          Không Sẵn Có
+                        </span>
                       </div>
                     )}
                   </div>
@@ -527,21 +596,27 @@ export default function ConcessionsPage() {
                   <div className="relative p-4 space-y-3">
                     {/* Name & English Name */}
                     <div>
-                      <h3 className="font-bold text-gray-900 text-base line-clamp-2">{concession.name}</h3>
+                      <h3 className="font-bold text-gray-900 text-base line-clamp-2">
+                        {concession.name}
+                      </h3>
                       {concession.nameEn && (
-                        <p className="text-xs text-gray-500">{concession.nameEn}</p>
+                        <p className="text-xs text-gray-500">
+                          {concession.nameEn}
+                        </p>
                       )}
                     </div>
 
                     {/* Description */}
                     {concession.description && (
-                      <p className="text-xs text-gray-600 line-clamp-2">{concession.description}</p>
+                      <p className="text-xs text-gray-600 line-clamp-2">
+                        {concession.description}
+                      </p>
                     )}
 
                     {/* Price Section */}
                     <div className="pt-2 border-t border-gray-100">
                       <div className="flex items-baseline justify-between">
-                        <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        <span className="text-2xl font-bold text-brand-gradient">
                           ₫{(concession.price / 1000).toFixed(0)}K
                         </span>
                         <span className="text-xs text-gray-500">Giá</span>
@@ -551,7 +626,9 @@ export default function ConcessionsPage() {
                     {/* Inventory Bar */}
                     <div className="pt-1">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-semibold text-gray-700">Tồn Kho</span>
+                        <span className="text-xs font-semibold text-gray-700">
+                          Tồn Kho
+                        </span>
                         <span className="text-xs font-bold text-gray-900">
                           {concession.inventory || 0} chiếc
                         </span>
@@ -561,12 +638,16 @@ export default function ConcessionsPage() {
                           className={`h-full transition-all duration-300 ${
                             concession.inventory === 0
                               ? 'bg-red-500'
-                              : concession.inventory && concession.inventory < 10
-                                ? 'bg-orange-500'
-                                : 'bg-gradient-to-r from-green-400 to-emerald-500'
+                              : concession.inventory &&
+                                concession.inventory < 10
+                              ? 'bg-orange-500'
+                              : 'bg-gradient-to-r from-green-400 to-emerald-500'
                           }`}
                           style={{
-                            width: `${Math.min((((concession.inventory || 0) / 50) * 100), 100)}%`,
+                            width: `${Math.min(
+                              ((concession.inventory || 0) / 50) * 100,
+                              100
+                            )}%`,
                           }}
                         ></div>
                       </div>
@@ -576,29 +657,33 @@ export default function ConcessionsPage() {
                     <div className="pt-1 text-xs text-gray-600">
                       <span className="font-semibold">
                         {concession.cinemaId
-                          ? cinemas.find((c) => c.id === concession.cinemaId)?.name
+                          ? cinemas.find((c) => c.id === concession.cinemaId)
+                              ?.name
                           : 'All Cinemas'}
                       </span>
                     </div>
 
                     {/* Allergens if present */}
-                    {concession.allergens && concession.allergens.length > 0 && (
-                      <div className="pt-1 flex flex-wrap gap-1">
-                        {concession.allergens.slice(0, 2).map((allergen, idx) => (
-                          <span
-                            key={idx}
-                            className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full"
-                          >
-                            ⚠ {allergen}
-                          </span>
-                        ))}
-                        {concession.allergens.length > 2 && (
-                          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
-                            +{concession.allergens.length - 2} cái khác
-                          </span>
-                        )}
-                      </div>
-                    )}
+                    {concession.allergens &&
+                      concession.allergens.length > 0 && (
+                        <div className="pt-1 flex flex-wrap gap-1">
+                          {concession.allergens
+                            .slice(0, 2)
+                            .map((allergen, idx) => (
+                              <span
+                                key={idx}
+                                className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full"
+                              >
+                                ⚠ {allergen}
+                              </span>
+                            ))}
+                          {concession.allergens.length > 2 && (
+                            <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                              +{concession.allergens.length - 2} cái khác
+                            </span>
+                          )}
+                        </div>
+                      )}
                   </div>
 
                   {/* Action Buttons - Bottom */}
@@ -634,10 +719,14 @@ export default function ConcessionsPage() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingConcession ? 'Chỉnh Sửa Mặt Hàng' : 'Thêm Mặt Hàng Bổ Sung'}
+              {editingConcession
+                ? 'Chỉnh Sửa Mặt Hàng'
+                : 'Thêm Mặt Hàng Bổ Sung'}
             </DialogTitle>
             <DialogDescription>
-              {editingConcession ? 'Cập nhật thông tin mặt hàng' : 'Thêm mặt hàng bổ sung mới vào hệ thống'}
+              {editingConcession
+                ? 'Cập nhật thông tin mặt hàng'
+                : 'Thêm mặt hàng bổ sung mới vào hệ thống'}
             </DialogDescription>
           </DialogHeader>
 
@@ -650,7 +739,9 @@ export default function ConcessionsPage() {
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 className="col-span-3"
                 placeholder="Ví dụ: Ngô Lắn"
               />
@@ -664,7 +755,9 @@ export default function ConcessionsPage() {
               <Input
                 id="nameEn"
                 value={formData.nameEn}
-                onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, nameEn: e.target.value })
+                }
                 className="col-span-3"
                 placeholder="Tên tiếng Anh tùy chọn"
               />
@@ -678,7 +771,9 @@ export default function ConcessionsPage() {
               <Textarea
                 id="description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 className="col-span-3"
                 placeholder="Mô tả mặt hàng"
                 rows={3}
@@ -693,7 +788,9 @@ export default function ConcessionsPage() {
               <div className="col-span-3 grid grid-cols-2 gap-4">
                 <Select
                   value={formData.category}
-                  onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, category: value })
+                  }
                 >
                   <SelectTrigger id="category">
                     <SelectValue placeholder="Chọn danh mục" />
@@ -710,7 +807,12 @@ export default function ConcessionsPage() {
                   id="price"
                   type="number"
                   value={formData.price || ''}
-                  onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      price: parseFloat(e.target.value) || 0,
+                    })
+                  }
                   placeholder="Giá (₫)"
                   min="0"
                 />
@@ -725,7 +827,9 @@ export default function ConcessionsPage() {
               <Input
                 id="imageUrl"
                 value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, imageUrl: e.target.value })
+                }
                 className="col-span-3"
                 placeholder="https://example.com/image.jpg"
               />
@@ -739,7 +843,12 @@ export default function ConcessionsPage() {
               <div className="col-span-3">
                 <Select
                   value={formData.cinemaId}
-                  onValueChange={(value) => setFormData({ ...formData, cinemaId: value === 'all' ? '' : value })}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      cinemaId: value === 'all' ? '' : value,
+                    })
+                  }
                 >
                   <SelectTrigger id="cinemaId">
                     <SelectValue placeholder="Tất cả rạp (thẮa trống)" />
@@ -769,7 +878,12 @@ export default function ConcessionsPage() {
                   id="inventory"
                   type="number"
                   value={formData.inventory || ''}
-                  onChange={(e) => setFormData({ ...formData, inventory: parseInt(e.target.value) || 0 })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      inventory: parseInt(e.target.value) || 0,
+                    })
+                  }
                   placeholder="Số lượng tồn kho"
                   min="0"
                 />
@@ -778,7 +892,9 @@ export default function ConcessionsPage() {
                     type="checkbox"
                     id="available"
                     checked={formData.available}
-                    onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, available: e.target.checked })
+                    }
                     className="rounded border-gray-300"
                   />
                   <Label htmlFor="available" className="cursor-pointer">
@@ -796,10 +912,15 @@ export default function ConcessionsPage() {
               <Input
                 id="allergens"
                 value={formData.allergens.join(', ')}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
-                  allergens: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-                })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    allergens: e.target.value
+                      .split(',')
+                      .map((s) => s.trim())
+                      .filter(Boolean),
+                  })
+                }
                 className="col-span-3"
                 placeholder="Ví dụ: hạt, sữa, lúa mì (phân tách bằng dấu phẩy)"
               />
@@ -818,10 +939,17 @@ export default function ConcessionsPage() {
             </Button>
             <Button
               onClick={handleSubmit}
-              className="bg-gradient-to-r from-purple-600 to-pink-600"
-              disabled={createConcession.isPending || updateConcession.isPending || !formData.name.trim() || formData.price < 0}
+              className="bg-brand-gradient"
+              disabled={
+                createConcession.isPending ||
+                updateConcession.isPending ||
+                !formData.name.trim() ||
+                formData.price < 0
+              }
             >
-              {createConcession.isPending || updateConcession.isPending ? 'Đang Lưu...' : 'Lưu'}
+              {createConcession.isPending || updateConcession.isPending
+                ? 'Đang Lưu...'
+                : 'Lưu'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -833,7 +961,8 @@ export default function ConcessionsPage() {
           <DialogHeader>
             <DialogTitle>Xác Nhận Xóa</DialogTitle>
             <DialogDescription>
-              Bạn có chắc muốn xóa mặt hàng này không? Hành động này không thể hoàn tác.
+              Bạn có chắc muốn xóa mặt hàng này không? Hành động này không thể
+              hoàn tác.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -859,3 +988,4 @@ export default function ConcessionsPage() {
     </div>
   );
 }
+

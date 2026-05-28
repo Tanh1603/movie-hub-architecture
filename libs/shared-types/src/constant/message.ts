@@ -1,7 +1,11 @@
 export const UserMessage = {
   GET_PERMISSIONS: 'user.getPermissions',
+  GET_USER_ROLES: 'user.getRoles',
   GET_USERS: 'user.getAll',
   GET_USER_DETAIL: 'user.getDetail',
+  AUTH: {
+    PROCESS_CLERK_WEBHOOK: 'auth.clerk.webhook.process',
+  },
   STAFF: {
     GET_LIST: 'staff.list',
     CREATED: 'staff.created',
@@ -13,6 +17,13 @@ export const UserMessage = {
   CONFIG: {
     GET_LIST: 'config.list',
     UPDATED: 'config.updated',
+  },
+  RBAC: {
+    LIST_ROLES: 'rbac.roles.list',
+    LIST_PERMISSIONS: 'rbac.permissions.list',
+    UPSERT_ROLE_PERMISSIONS: 'rbac.rolePermissions.upsert',
+    ASSIGN_USER_ROLE: 'rbac.userRole.assign',
+    REMOVE_USER_ROLE: 'rbac.userRole.remove',
   },
 };
 
@@ -113,6 +124,8 @@ export const BookingMessage = {
   FIND_BY_SHOWTIME: 'booking.findByShowtime',
   FIND_BY_CINEMA: 'booking.findByCinema',
   FIND_BY_DATE_RANGE: 'booking.findByDateRange',
+  GET_SHOWTIME_CONTEXT: 'booking.getShowtimeContext',
+  GET_ADMIN_BOOKING_CONTEXT: 'booking.getAdminBookingContext',
   UPDATE_STATUS: 'booking.updateStatus',
   CONFIRM: 'booking.confirm',
   COMPLETE: 'booking.complete',
@@ -148,8 +161,8 @@ export const PaymentMessage = {
   CREATE: 'payment.create',
   FIND_ONE: 'payment.findOne',
   FIND_BY_BOOKING: 'payment.findByBooking',
-  VNPAY_IPN: 'payment.vnpay.ipn',
-  VNPAY_RETURN: 'payment.vnpay.return',
+  PROVIDER_IPN: 'payment.provider.ipn',
+  PROVIDER_RETURN: 'payment.provider.return',
   // Admin operations
   ADMIN_FIND_ALL: 'payment.admin.findAll',
   FIND_BY_STATUS: 'payment.findByStatus',

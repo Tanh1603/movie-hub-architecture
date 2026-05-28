@@ -1,4 +1,4 @@
-# [MR-03] Delete Movie Release
+﻿# [MR-03] Delete Movie Release
 
 ## 1. Description
 
@@ -65,4 +65,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | General | Deleting a release is prevented if it's currently linked to active showtimes. |
+| (3) | BR73 | Deleting a release is prevented if it's currently linked to active showtimes. |
+
+

@@ -10,6 +10,7 @@ import {
   SeatPricingWithTtlDto,
   SeatTypeEnum,
   MovieServiceMessage,
+  ResponseMessage,
   ServiceResult,
   AdminShowtimeFilterDTO,
   FormatEnum,
@@ -113,7 +114,7 @@ export class ShowtimeService {
 
     return {
       data,
-      message: 'Fetch showtimes successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -128,7 +129,7 @@ export class ShowtimeService {
 
     return {
       data: ShowtimeMapper.toShowtimDetailResponse(showtime),
-      message: 'Fetch showtime successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -218,7 +219,7 @@ export class ShowtimeService {
 
     return {
       data,
-      message: 'Fetch showtimes successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -262,7 +263,7 @@ export class ShowtimeService {
 
     return {
       data: ShowtimeMapper.toShowtimeSummaryList(showtimes),
-      message: 'Fetch showtimes successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 

@@ -1,4 +1,4 @@
-# [RV-01] List Reviews
+﻿# [RV-01] List Reviews
 
 ## 1. Description
 
@@ -54,5 +54,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | N/A | Typically used for general review feeds or admin moderation. |
-| (1) | BR-REVIEW-02 | Ratings are on a scale of 1 to 5. |
+| (1) | BR79 | Business rule for activity (1): behavior must follow the defined sequence and validations for this step. |
+| (1) | BR80 | Ratings are on a scale of 1 to 5. |
+
+

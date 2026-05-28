@@ -7,7 +7,10 @@ import {
   FindPaymentsByStatusDto,
   FindPaymentsByDateRangeDto,
   GetPaymentStatisticsDto,
+  PaymentMessage,
+  PaymentMethod,
 } from '@movie-hub/shared-types';
+import { RequestContextMetadata } from '@movie-hub/shared-types/common';
 
 @Controller()
 export class PaymentController {
@@ -20,39 +23,67 @@ export class PaymentController {
       bookingId: string;
       dto: CreatePaymentDto;
       ipAddr: string;
+      userId: string;
+      _meta?: RequestContextMetadata;
     }
   ) {
     return this.paymentService.createPayment(
       payload.bookingId,
       payload.dto,
-      payload.ipAddr
+      payload.ipAddr,
+      payload.userId,
+      payload._meta
     );
   }
 
   @MessagePattern('payment.findOne')
-  async findOne(@Payload() payload: { id: string }) {
-    return this.paymentService.findOne(payload.id);
+  async findOne(@Payload() payload: { id: string; userId?: string }) {
+    return this.paymentService.findOne(payload.id, payload.userId);
   }
 
   @MessagePattern('payment.findByBooking')
-  async findByBooking(@Payload() payload: { bookingId: string }) {
-    return this.paymentService.findByBooking(payload.bookingId);
+  async findByBooking(
+    @Payload() payload: { bookingId: string; userId: string }
+  ) {
+    return this.paymentService.findByBooking(payload.bookingId, payload.userId);
   }
 
-  @MessagePattern('payment.vnpay.ipn')
-  async handleVNPayIPN(@Payload() payload: { params: Record<string, string> }) {
-    return this.paymentService.handleVNPayIPN(payload.params);
+  @MessagePattern(PaymentMessage.PROVIDER_IPN)
+  async handleProviderIPN(
+    @Payload()
+    payload: {
+      provider: PaymentMethod;
+      params: Record<string, string>;
+      _meta?: RequestContextMetadata;
+    }
+  ) {
+    return this.paymentService.handleProviderIPN(
+      payload.provider,
+      payload.params,
+      payload._meta
+    );
   }
 
-  @MessagePattern('payment.vnpay.return')
-  async handleVNPayReturn(@Payload() payload: { params: Record<string, string> }) {
-    return this.paymentService.handleVNPayReturn(payload.params);
+  @MessagePattern(PaymentMessage.PROVIDER_RETURN)
+  async handleProviderReturn(
+    @Payload()
+    payload: {
+      provider: PaymentMethod;
+      params: Record<string, string>;
+    }
+  ) {
+    return this.paymentService.handleProviderReturn(
+      payload.provider,
+      payload.params
+    );
   }
 
   // ==================== ADMIN OPERATIONS ====================
 
   @MessagePattern('payment.admin.findAll')
-  async adminFindAll(@Payload() payload: { filters?: AdminFindAllPaymentsDto }) {
+  async adminFindAll(
+    @Payload() payload: { filters?: AdminFindAllPaymentsDto }
+  ) {
     return this.paymentService.adminFindAllPayments(payload?.filters || {});
   }
 
@@ -66,7 +97,9 @@ export class PaymentController {
   }
 
   @MessagePattern('payment.findByDateRange')
-  async findByDateRange(@Payload() payload: { filters?: FindPaymentsByDateRangeDto }) {
+  async findByDateRange(
+    @Payload() payload: { filters?: FindPaymentsByDateRangeDto }
+  ) {
     return this.paymentService.findPaymentsByDateRange(payload?.filters || {});
   }
 
@@ -76,7 +109,9 @@ export class PaymentController {
   }
 
   @MessagePattern('payment.getStatistics')
-  async getStatistics(@Payload() payload: { filters?: GetPaymentStatisticsDto }) {
+  async getStatistics(
+    @Payload() payload: { filters?: GetPaymentStatisticsDto }
+  ) {
     return this.paymentService.getPaymentStatistics(payload?.filters || {});
   }
 }

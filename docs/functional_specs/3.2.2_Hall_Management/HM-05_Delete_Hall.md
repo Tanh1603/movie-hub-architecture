@@ -1,4 +1,4 @@
-# [HM-05] Delete Hall
+﻿# [HM-05] Delete Hall
 
 ## 1. Description
 
@@ -65,4 +65,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | General | Halls with historical data should be soft-deleted. |
+| (3) | BR57 | Halls with historical data should be soft-deleted. |
+
+

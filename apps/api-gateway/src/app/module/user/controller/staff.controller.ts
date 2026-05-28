@@ -20,17 +20,21 @@ import {
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 import { StaffService } from '../service/staff.service';
 import { TransformInterceptor } from '../../../common/interceptor/transform.interceptor';
+import { Permission } from '../../../common/decorator/permission.decorator';
+import { SensitiveThrottle } from '../../../common/decorator/sensitive-throttle.decorator';
 
 @Controller({
   version: '1',
   path: 'staffs',
 })
 @UseInterceptors(new TransformInterceptor())
+@SensitiveThrottle()
 export class StaffController {
   constructor(private readonly staffService: StaffService) {}
 
   @Post()
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'user', action: 'update', scope: 'global' })
   async create(@Req() req: any, @Body() request: CreateStaffRequest) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId && request.cinemaId !== userCinemaId) {
@@ -43,6 +47,7 @@ export class StaffController {
 
   @Get()
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'user', action: 'read', scope: 'global' })
   async findAll(@Req() req: any, @Query() query: StaffQuery) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -53,6 +58,7 @@ export class StaffController {
 
   @Get(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'user', action: 'read', scope: 'global' })
   async findOne(@Req() req: any, @Param('id') id: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     const staff = await this.staffService.findOne(id);
@@ -66,6 +72,7 @@ export class StaffController {
 
   @Put(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'user', action: 'update', scope: 'global' })
   async update(
     @Req() req: any,
     @Param('id') id: string,
@@ -85,6 +92,7 @@ export class StaffController {
 
   @Delete(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'user', action: 'update', scope: 'global' })
   async remove(@Req() req: any, @Param('id') id: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -98,3 +106,6 @@ export class StaffController {
     return this.staffService.remove(id);
   }
 }
+
+
+

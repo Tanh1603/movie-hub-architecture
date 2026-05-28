@@ -1,4 +1,4 @@
-# [CS-04] Update Concession
+﻿# [CS-04] Update Concession
 
 ## 1. Description
 
@@ -55,5 +55,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | N/A | Can update price, name, category, or description. |
-| (4) | N/A | Price updates only affect future transactions. |
+| (4) | BR195 | Allowed updatable fields: `price`, `name`, `category`, and `description`; attempts to update immutable fields must be rejected with HTTP 400. |
+| (4) | BR196 | Concession price updates apply only to future transactions; existing completed transactions must retain their original pricing. |
+
+

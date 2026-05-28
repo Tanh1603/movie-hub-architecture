@@ -1,4 +1,4 @@
-# [PM-03] Find Promotion by Code
+﻿# [PM-03] Find Promotion by Code
 
 ## 1. Description
 
@@ -64,5 +64,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Code matching should be case-insensitive. |
-| (3) | BR-PROMO-01 | Even if found, the promotion must still be within its valid date range to be usable. |
+| (3) | BR17 | Promotion code lookup must be case-insensitive; codes differing only by case map to the same promotion. |
+| (3) | BR18 | A found promotion must also satisfy validity checks (e.g., active flag and `valid_from/valid_to` range); otherwise it must be treated as not found/expired. |
+
+

@@ -1,4 +1,4 @@
-# [HM-02] Get Halls of Cinema
+﻿# [HM-02] Get Halls of Cinema
 
 ## 1. Description
 
@@ -55,4 +55,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | SRS 5.2 | Should return halls regardless of status (Active/Maintenance) for Admins, but maybe filter for Members? (SRS implies general access, assumed all visible). |
+| (3) | BR54 | Should return halls regardless of status (Active/Maintenance) for Admins, but maybe filter for Members? (SRS implies general access, assumed all visible). |
+
+

@@ -1,4 +1,4 @@
-import CinemasFilter from "./ cinema-filter";
+import CinemasFilter from "./cinema-filter";
 
 
 

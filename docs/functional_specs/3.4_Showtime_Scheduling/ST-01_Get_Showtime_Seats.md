@@ -1,4 +1,4 @@
-# [ST-01] Get Showtime Seats
+﻿# [ST-01] Get Showtime Seats
 
 ## 1. Description
 
@@ -66,5 +66,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (5) | BR-SEAT-04 | A seat cannot be held if it is already held by another user. |
-| (7) | SRS 5.2 | Seat types (VIP/Standard) determine the base price displayed on UI. |
+| (5) | BR87 | A seat cannot be held if it is already held by another user. |
+| (7) | BR88 | Seat types (VIP/Standard) determine the base price displayed on UI. |
+
+

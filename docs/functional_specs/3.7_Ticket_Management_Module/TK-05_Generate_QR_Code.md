@@ -1,4 +1,4 @@
-# [TK-05] Generate QR Code
+﻿# [TK-05] Generate QR Code
 
 ## 1. Description
 
@@ -58,5 +58,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | N/A | QR code typically contains the ticket's internal UUID or a specialized validation token. |
-| (4) | SRS 1.2 | QR Code Generation technology: `qrcode` v1.5.4. |
+| (4) | BR170 | QR code typically contains the ticket's internal UUID or a specialized validation token. |
+| (4) | BR171 | QR Code Generation technology: `qrcode` v1.5.4. |
+
+

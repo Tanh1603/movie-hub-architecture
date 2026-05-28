@@ -1,4 +1,7 @@
-export function updateLocalStorage(newPartialData: any, storageKey: string) {
+export function updateLocalStorage(
+  newPartialData: Record<string, unknown>,
+  storageKey: string
+) {
   const saved = localStorage.getItem(storageKey);
   const currentData = saved ? JSON.parse(saved) : {};
   const mergedData = { ...currentData, ...newPartialData };

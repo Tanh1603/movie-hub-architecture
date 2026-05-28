@@ -1,4 +1,4 @@
-# [BK-04] Get Booking Summary
+﻿# [BK-04] Get Booking Summary
 
 ## 1. Description
 
@@ -54,4 +54,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Excludes internal technical fields and full QR data. |
+| (3) | BR110 | Excludes internal technical fields and full QR data. |
+
+

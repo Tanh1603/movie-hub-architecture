@@ -1,6 +1,22 @@
 const fs = require('fs');
 const path = require('path');
 
+// Load environment variables from booking-service's .env file
+require('dotenv').config({ path: path.resolve(__dirname, '../../apps/booking-service/.env') });
+
+// Load cinema-service env variables for cross-service database access
+try {
+  const cinemaEnvPath = path.resolve(__dirname, '../../apps/cinema-service/.env');
+  if (fs.existsSync(cinemaEnvPath)) {
+    const cinemaEnv = require('dotenv').parse(fs.readFileSync(cinemaEnvPath));
+    if (cinemaEnv.DATABASE_URL) {
+      process.env.CINEMA_DATABASE_URL = process.env.CINEMA_DATABASE_URL || cinemaEnv.DATABASE_URL;
+    }
+  }
+} catch (e) {
+  // ignore
+}
+
 // Helper to find PrismaClient in different environments
 function getPrismaClient(serviceName, customPath) {
   const possiblePaths = [

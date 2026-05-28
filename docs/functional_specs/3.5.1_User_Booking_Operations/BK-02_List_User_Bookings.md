@@ -1,4 +1,4 @@
-# [BK-02] List User Bookings
+﻿# [BK-02] List User Bookings
 
 ## 1. Description
 
@@ -56,4 +56,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Only returns bookings belonging to the requesting user. |
+| (3) | BR107 | Only returns bookings belonging to the requesting user. |
+
+

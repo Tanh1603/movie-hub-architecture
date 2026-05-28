@@ -1,7 +1,6 @@
 // src/app/(admin)/halls/page.tsx
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
@@ -53,8 +52,8 @@ import {
   useDeleteHall,
   useCinemas,
   hallsApi,
-} from '@/libs/api';
-import type { Hall, HallType, CreateHallRequest } from '@/libs/api/types';
+} from '@/features/admin/shared/api-hooks';
+import type { Hall, HallType, CreateHallRequest } from '@/types';
 import {
   HallTypeEnum,
   LayoutTypeEnum,
@@ -246,7 +245,7 @@ export default function HallsPage() {
             resetForm();
             setDialogOpen(true);
           }}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          className="bg-brand-gradient hover-brand-gradient"
         >
           <Plus className="mr-2 h-4 w-4" />
           Thêm Phòng
@@ -677,7 +676,7 @@ export default function HallsPage() {
             </Button>
             <Button
               onClick={handleSubmit}
-              className="bg-gradient-to-r from-purple-600 to-pink-600"
+              className="bg-brand-gradient"
             >
               {selectedHall ? 'Cập nhật' : 'Tạo'}
             </Button>
@@ -723,3 +722,4 @@ export default function HallsPage() {
     </div>
   );
 }
+

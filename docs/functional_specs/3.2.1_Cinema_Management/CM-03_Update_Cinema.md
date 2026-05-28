@@ -1,4 +1,4 @@
-# [CM-03] Update Cinema
+﻿# [CM-03] Update Cinema
 
 ## 1. Description
 
@@ -66,4 +66,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | SRS 5.2 | If status is changed to `CLOSED` or `MAINTENANCE`, it may impact future showtimes (though not explicitly enforced in this atomic op, it's a systemic implication). |
+| (4) | BR44 | If status is changed to `CLOSED` or `MAINTENANCE`, it may impact future showtimes (though not explicitly enforced in this atomic op, it's a systemic implication). |
+
+

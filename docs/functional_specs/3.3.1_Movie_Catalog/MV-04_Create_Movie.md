@@ -1,4 +1,4 @@
-# [MV-04] Create Movie
+﻿# [MV-04] Create Movie
 
 ## 1. Description
 
@@ -56,4 +56,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | SRS 5.1 | Required: Title, Overview, Poster URL, Backdrop URL, Trailer URL, Release Date, Runtime, Age Rating. |
+| (1) | BR66 | Required: Title, Overview, Poster URL, Backdrop URL, Trailer URL, Release Date, Runtime, Age Rating. |
+
+

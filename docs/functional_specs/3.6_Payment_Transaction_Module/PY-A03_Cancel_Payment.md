@@ -1,4 +1,4 @@
-# [PY-A03] Cancel Payment
+﻿# [PY-A03] Cancel Payment
 
 ## 1. Description
 
@@ -53,4 +53,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Does not trigger a refund at the gateway; only updates internal status. |
+| (3) | BR160 | Does not trigger a refund at the gateway; only updates internal status. |
+
+
