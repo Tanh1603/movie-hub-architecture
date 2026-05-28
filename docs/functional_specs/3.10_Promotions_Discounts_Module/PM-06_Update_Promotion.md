@@ -1,4 +1,4 @@
-# [PM-06] Update Promotion
+﻿# [PM-06] Update Promotion
 
 ## 1. Description
 
@@ -55,6 +55,8 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | N/A | Can update dates, values, and limits. |
-| (4) | N/A | Changing the code is generally discouraged but allowed if unique. |
+| (4) | BR26 | Can update dates, values, and limits. |
+| (4) | BR27 | Changing the code is generally discouraged but allowed if unique. |
 @enduml
+
+

@@ -1,0 +1,114 @@
+{
+  "title": "Security Anomaly Overview",
+  "uid": "security-anomalies",
+  "panels": [
+    {
+      "title": "Auth Failure Rate (by reason)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (reason) (rate(auth_failures_total[5m]))",
+          "legendFormat": "{{reason}}"
+        }
+      ]
+    },
+    {
+      "title": "Webhook Anomalies by Provider",
+      "type": "barchart",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (provider) (increase(webhook_signature_fail_total[1h]))",
+          "legendFormat": "Signature Fail ({{provider}})"
+        },
+        {
+          "expr": "sum by (provider) (increase(webhook_replay_detected_total[1h]))",
+          "legendFormat": "Replay ({{provider}})"
+        },
+        {
+          "expr": "sum by (provider) (increase(webhook_stale_rejected_total[1h]))",
+          "legendFormat": "Stale ({{provider}})"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "Active Brute Force Lockouts",
+      "type": "gauge",
+      "gridPos": { "x": 0, "y": 8, "w": 6, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum(increase(brute_force_lockouts_total[1h]))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 5 },
+              { "color": "red", "value": 10 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Clerk Sync Health — Retries Exhausted",
+      "type": "stat",
+      "gridPos": { "x": 6, "y": 8, "w": 6, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum(increase(clerk_sync_retry_exhausted_total[1h]))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Clerk Sync Drift (by direction)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 8, "w": 6, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (direction) (increase(clerk_sync_drift_total[1h]))",
+          "legendFormat": "{{direction}}"
+        }
+      ],
+      "description": "Tracks direction of drift resolution: internal_wins (local DB authoritative) vs manual_triage (requires human review)."
+    },
+    {
+      "title": "Notification Dead Letters (by event type)",
+      "type": "timeseries",
+      "gridPos": { "x": 18, "y": 8, "w": 6, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (event_type) (increase(notification_outbox_dead_letter_total[1h]))",
+          "legendFormat": "{{event_type}}"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 38,
+  "timezone": "browser"
+}

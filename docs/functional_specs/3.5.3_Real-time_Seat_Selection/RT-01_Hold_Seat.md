@@ -1,4 +1,4 @@
-# [RT-01] Hold Seat
+﻿# [RT-01] Hold Seat
 
 ## 1. Description
 
@@ -92,6 +92,8 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (5) | BR-SEAT-01 | Maximum seats per user per showtime: 8 seats. |
-| (7) | BR-SEAT-02 | Seat hold duration (TTL): 10 minutes (600 seconds). |
-| (3) | BR-SEAT-04 | A seat cannot be held if it is already held by another user. |
+| (5) | BR139 | Maximum seats per user per showtime: 8 seats. |
+| (7) | BR140 | Seat hold duration (TTL): 10 minutes (600 seconds). |
+| (3) | BR141 | A seat cannot be held if it is already held by another user. |
+
+

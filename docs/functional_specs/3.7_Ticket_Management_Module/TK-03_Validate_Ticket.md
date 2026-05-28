@@ -1,4 +1,4 @@
-# [TK-03] Validate Ticket
+﻿# [TK-03] Validate Ticket
 
 ## 1. Description
 
@@ -70,5 +70,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | SRS 5.2 | Valid states for validation: `VALID`. |
-| (3) | General | Tickets cannot be validated after the movie showtime has ended. |
+| (3) | BR166 | Valid states for validation: `VALID`. |
+| (3) | BR167 | Tickets cannot be validated after the movie showtime has ended. |
+
+

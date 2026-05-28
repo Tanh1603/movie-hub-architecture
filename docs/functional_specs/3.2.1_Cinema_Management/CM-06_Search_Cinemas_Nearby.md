@@ -1,4 +1,4 @@
-# [CM-06] Search Cinemas Nearby
+﻿# [CM-06] Search Cinemas Nearby
 
 ## 1. Description
 
@@ -60,5 +60,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (5) | General | Default search radius is typically 10km or 20km if not specified. |
-| (6) | SRS 5.2 | Only `ACTIVE` cinemas are returned. |
+| (5) | BR47 | Default search radius is typically 10km or 20km if not specified. |
+| (6) | BR48 | Only `ACTIVE` cinemas are returned. |
+
+

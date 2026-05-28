@@ -1,4 +1,4 @@
-# [BK-A08] Get Booking Statistics
+﻿# [BK-A08] Get Booking Statistics
 
 ## 1. Description
 
@@ -57,4 +57,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Statistics help in identifying system performance and booking trends. |
+| (3) | BR136 | Statistics help in identifying system performance and booking trends. |
+
+

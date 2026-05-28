@@ -1,4 +1,4 @@
-# [CM-01] List All Cinemas
+﻿# [CM-01] List All Cinemas
 
 ## 1. Description
 
@@ -56,4 +56,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | SRS 5.2 | Only cinemas with `CinemaStatus` = `ACTIVE` should be visible to public users. |
+| (3) | BR42 | Only cinemas with `CinemaStatus` = `ACTIVE` should be visible to public users. |
+
+

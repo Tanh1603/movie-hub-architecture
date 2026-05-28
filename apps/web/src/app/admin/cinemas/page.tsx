@@ -1,10 +1,8 @@
 // src/app/(dashboard)/cinemas/page.tsx
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
-import { useUser } from '@clerk/nextjs';
 import {
   Plus,
   Search,
@@ -41,14 +39,17 @@ import { Label } from '@movie-hub/shacdn-ui/label';
 import { Textarea } from '@movie-hub/shacdn-ui/textarea';
 // removed unused toast import
 import {
-  useCinemas,
-  useCreateCinema,
-  useUpdateCinema,
-  useDeleteCinema,
-  useHallsGroupedByCinema,
-} from '@/libs/api';
-import type { CreateCinemaRequest as ApiCreateCinemaRequest } from '@/libs/api';
-import type { Cinema, CreateCinemaRequest } from '@/libs/api/types';
+  useAdminCinemas,
+  useAdminCreateCinema,
+  useAdminDeleteCinema,
+  useAdminHallsGroupedByCinema,
+  useAdminUpdateCinema,
+} from '@/features/admin/cinemas';
+import type { CreateCinemaRequest as ApiCreateCinemaRequest } from '@/types';
+import type { Cinema, CreateCinemaRequest } from '@/types';
+import { useRBAC } from '@/features/admin/shared/hooks/use-rbac';
+import { RoleGate } from '@/features/admin/shared/role-gate';
+import { AdminPermission } from '@/features/admin/shared/rbac';
 
 // Preset amenities for quick selection
 const PRESET_AMENITIES = [
@@ -59,14 +60,14 @@ const PRESET_AMENITIES = [
   { name: 'Wheelchair Access', defaultValue: 'Có' },
   { name: 'Baby Care Room', defaultValue: 'Có' },
   { name: 'Restroom', defaultValue: 'Sạch sẽ' },
-  { name: 'Concession', defaultValue: 'Bán đầy đủ' },
+  { name: 'Concession', defaultValue: 'Bán đồ ăn, đồ uống' },
 ] as const;
+type FormOperatingHours = { open?: string; close?: string; [key: string]: unknown };
+type FormSocialMedia = { facebook?: string; instagram?: string; twitter?: string; [key: string]: unknown };
+type FacilityValue = string | number | boolean;
 
 export default function CinemasPage() {
-  const { user } = useUser();
-  const userRole = user?.publicMetadata?.role as string;
-  const userCinemaId = user?.publicMetadata?.cinemaId as string | undefined;
-  const isManager = userRole === 'CINEMA_MANAGER';
+  const { isCinemaManager: isManager, cinemaId: userCinemaId } = useRBAC();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -87,19 +88,19 @@ export default function CinemasPage() {
     facilities: {},
     images: [],
     virtualTour360Url: '',
-    operatingHours: { open: '', close: '' } as any,
-    socialMedia: { facebook: '', instagram: '', twitter: '' } as any,
+    operatingHours: { open: '', close: '' } as FormOperatingHours,
+    socialMedia: { facebook: '', instagram: '', twitter: '' } as FormSocialMedia,
     timezone: 'Asia/Ho_Chi_Minh',
   });
   // toast not used in this page
 
   // API hooks
-  const { data: cinemasData = [], isLoading: loading } = useCinemas();
+  const { data: cinemasData = [], isLoading: loading } = useAdminCinemas();
   const cinemas = cinemasData || [];
-  const { data: hallsByCinema = {} } = useHallsGroupedByCinema();
-  const createCinema = useCreateCinema();
-  const updateCinema = useUpdateCinema();
-  const deleteCinema = useDeleteCinema();
+  const { data: hallsByCinema = {} } = useAdminHallsGroupedByCinema();
+  const createCinema = useAdminCreateCinema();
+  const updateCinema = useAdminUpdateCinema();
+  const deleteCinema = useAdminDeleteCinema();
 
   // Calculate halls count for each cinema - using actual API data
   const getHallsCount = (cinemaId: string) => {
@@ -142,10 +143,10 @@ export default function CinemasPage() {
   };
 
   // Normalize operating hours from DB format to form format (open/close time inputs)
-  const normalizeOperatingHours = (hours: any) => {
+  const normalizeOperatingHours = (hours: unknown) => {
     if (!hours) return { open: '', close: '' };
 
-    const h = hours as Record<string, any>;
+    const h = hours as Record<string, unknown>;
 
     // Already in open/close format
     if (h.open && h.close) {
@@ -298,25 +299,25 @@ export default function CinemasPage() {
       {/* Header Actions */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold tracking-tight text-brand-gradient">
             Rạp Chiếu Phim
           </h1>
           <p className="text-gray-500 mt-1">
             Quản lý các vị trí rạp chiếu phim của bạn trên toàn hệ thống
           </p>
         </div>
-        {!isManager && (
+        <RoleGate requirePermission={AdminPermission.MANAGE_CINEMAS}>
           <Button
             onClick={() => {
               resetForm();
               setDialogOpen(true);
             }}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg"
+            className="shadow-lg bg-brand-gradient hover-brand-gradient"
           >
             <Plus className="mr-2 h-4 w-4" />
             Thêm Rạp
           </Button>
-        )}
+        </RoleGate>
       </div>
 
       {/* Search Bar & Stats */}
@@ -393,9 +394,9 @@ export default function CinemasPage() {
                           onClick={() => openEditDialog(cinema)}
                         >
                           <Edit className="mr-2 h-4 w-4" />
-                          Chỉnh Sửa
+                          Chỉnh sửa
                         </DropdownMenuItem>
-                        {!isManager && (
+                        <RoleGate requirePermission={AdminPermission.MANAGE_CINEMAS}>
                           <DropdownMenuItem
                             onClick={() => {
                               setSelectedCinema(cinema);
@@ -406,7 +407,7 @@ export default function CinemasPage() {
                             <Trash2 className="mr-2 h-4 w-4" />
                             Xóa
                           </DropdownMenuItem>
-                        )}
+                        </RoleGate>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -554,7 +555,7 @@ export default function CinemasPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="address">Địa Chỉ *</Label>
+              <Label htmlFor="address">Địa chỉ *</Label>
               <Input
                 id="address"
                 value={formData.address}
@@ -567,7 +568,7 @@ export default function CinemasPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="city">Thành Phố *</Label>
+                <Label htmlFor="city">Thành phố *</Label>
                 <Input
                   id="city"
                   value={formData.city}
@@ -592,7 +593,7 @@ export default function CinemasPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="phone">Điện Thoại</Label>
+                <Label htmlFor="phone">Điện thoại</Label>
                 <Input
                   id="phone"
                   value={formData.phone}
@@ -768,7 +769,7 @@ export default function CinemasPage() {
                         onClick={() => {
                           const fac = {
                             ...(formData.facilities || {}),
-                          } as Record<string, any>;
+                          } as Record<string, FacilityValue>;
                           // Only add if not already exists
                           if (!fac[amenity.name]) {
                             fac[amenity.name] = amenity.defaultValue;
@@ -784,7 +785,7 @@ export default function CinemasPage() {
               </div>
               <div className="space-y-2 flex-1">
                 {(
-                  Object.entries(formData.facilities || {}) as [string, any][]
+                  Object.entries(formData.facilities || {}) as [string, FacilityValue][]
                 ).map(([key, value], idx) => (
                   <div
                     key={key || idx}
@@ -797,7 +798,7 @@ export default function CinemasPage() {
                         const newKey = e.target.value;
                         const fac = {
                           ...(formData.facilities || {}),
-                        } as Record<string, any>;
+                        } as Record<string, FacilityValue>;
                         // rename key
                         const val = fac[key];
                         delete fac[key];
@@ -815,7 +816,7 @@ export default function CinemasPage() {
                       onChange={(e) => {
                         const fac = {
                           ...(formData.facilities || {}),
-                        } as Record<string, any>;
+                        } as Record<string, FacilityValue>;
                         const parsed = (() => {
                           const v = e.target.value.trim();
                           if (v === 'true') return true;
@@ -833,7 +834,7 @@ export default function CinemasPage() {
                       onClick={() => {
                         const fac = {
                           ...(formData.facilities || {}),
-                        } as Record<string, any>;
+                        } as Record<string, FacilityValue>;
                         delete fac[key];
                         setFormData({ ...formData, facilities: fac });
                       }}
@@ -847,13 +848,13 @@ export default function CinemasPage() {
                 onClick={() => {
                   const fac = { ...(formData.facilities || {}) } as Record<
                     string,
-                    any
+                    FacilityValue
                   >;
                   // Start with empty key so user can type meaningful names like "WiFi", "Parking", etc.
                   fac[''] = '';
                   setFormData({ ...formData, facilities: fac });
                 }}
-                className="mt-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                className="mt-2 text-white bg-brand-gradient hover-brand-gradient"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Thêm Cơ Sở Vật Chất
@@ -959,7 +960,7 @@ export default function CinemasPage() {
             </Button>
             <Button
               onClick={handleSubmit}
-              className="bg-gradient-to-r from-purple-600 to-pink-600"
+              className="bg-brand-gradient"
             >
               {selectedCinema ? 'Cập nhật' : 'Tạo'}
             </Button>
@@ -993,3 +994,5 @@ export default function CinemasPage() {
     </div>
   );
 }
+
+

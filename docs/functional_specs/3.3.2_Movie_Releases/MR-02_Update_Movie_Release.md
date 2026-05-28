@@ -1,4 +1,4 @@
-# [MR-02] Update Movie Release
+﻿# [MR-02] Update Movie Release
 
 ## 1. Description
 
@@ -67,4 +67,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (5) | N/A | Updating a release format or date might affect scheduled showtimes (Manual reconciliation required). |
+| (5) | BR72 | Changes to a release's date or format must detect conflicts with existing scheduled showtimes; if conflicts are found the update must be rejected with HTTP 409 and include affected showtime IDs for manual reconciliation. |
+
+

@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
 import {
@@ -50,13 +49,13 @@ import {
   useUpdatePromotion,
   useDeletePromotion,
   useTogglePromotionActive,
-} from '@/libs/api';
+} from '@/features/admin/shared/api-hooks';
 import type {
   Promotion,
   CreatePromotionRequest,
   UpdatePromotionRequest,
   PromotionType,
-} from '@/libs/api/types';
+} from '@/types';
 import { cn } from '@movie-hub/shacdn-utils';
 import { format } from 'date-fns';
 
@@ -253,7 +252,7 @@ export default function PromotionsPage() {
             resetForm();
             setDialogOpen(true);
           }}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-md transition-all active:scale-95"
+          className="shadow-md active:scale-95 bg-brand-gradient hover-brand-gradient"
         >
           <Plus className="mr-2 h-4 w-4" />
           Thêm Khuyến Mãi
@@ -442,7 +441,7 @@ export default function PromotionsPage() {
                             <span className="font-semibold">
                               {p.type === 'PERCENTAGE'
                                 ? `${p.value}%`
-                                : `${Number(p.value).toLocaleString()}đ`}
+                                : `${Number(p.value).toLocaleString()}₫`}
                             </span>
                             <span className="text-[10px] text-gray-400 font-medium uppercase tracking-tight">
                               {typeInfo?.label}
@@ -547,7 +546,7 @@ export default function PromotionsPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <DialogTitle className="text-2xl font-bold text-brand-gradient">
               {editingPromotion ? 'Chỉnh Sửa Khuyến Mãi' : 'Tạo Khuyến Mãi Mới'}
             </DialogTitle>
             <DialogDescription>
@@ -813,7 +812,7 @@ export default function PromotionsPage() {
             </Button>
             <Button
               onClick={handleSubmit}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white min-w-[120px]"
+              className="text-white min-w-[120px] bg-brand-gradient hover-brand-gradient"
               disabled={createPromotion.isPending || updatePromotion.isPending}
             >
               {createPromotion.isPending || updatePromotion.isPending ? (
@@ -857,3 +856,4 @@ export default function PromotionsPage() {
     </div>
   );
 }
+

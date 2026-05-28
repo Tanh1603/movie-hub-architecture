@@ -1,4 +1,4 @@
-# [HM-04] Update Hall
+﻿# [HM-04] Update Hall
 
 ## 1. Description
 
@@ -54,4 +54,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | SRS 5.2 | Status changes (e.g., to MAINTENANCE) must be handled carefully if future showtimes exist (Manual process implied). |
+| (3) | BR56 | Status changes (e.g., to MAINTENANCE) must be handled carefully if future showtimes exist (Manual process implied). |
+
+

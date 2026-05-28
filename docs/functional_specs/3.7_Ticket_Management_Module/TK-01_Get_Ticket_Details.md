@@ -1,4 +1,4 @@
-# [TK-01] Get Ticket Details
+﻿# [TK-01] Get Ticket Details
 
 ## 1. Description
 
@@ -64,5 +64,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Ticket status must be one of the `TicketStatus` enum values. |
-| (3) | N/A | Only the member who bought the ticket can view its detailed information. |
+| (3) | BR162 | Ticket status must be one of the `TicketStatus` enum values. |
+| (3) | BR163 | Only the member who bought the ticket can view its detailed information. |
+
+

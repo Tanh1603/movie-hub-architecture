@@ -16,7 +16,7 @@ import {
   getAllCinemas,
   getMovieAtCinemas,
   getMovieShowtimesAtCinema,
-} from '@/libs/actions/cinemas/cinema-action';
+} from '@/api/services';
 
 interface Cinema {
   id: string;

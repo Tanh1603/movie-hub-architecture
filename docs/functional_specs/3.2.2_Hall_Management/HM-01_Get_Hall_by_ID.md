@@ -1,4 +1,4 @@
-# [HM-01] Get Hall by ID
+﻿# [HM-01] Get Hall by ID
 
 ## 1. Description
 
@@ -63,4 +63,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | N/A | Returns full seat layout including row/col coordinates and types (VIP/Standard). |
+| (4) | BR53 | Response must include the complete seat layout with stable row/column coordinates and seat type (e.g., VIP, Standard); seat identifiers must be deterministic for booking and validation. |
+
+

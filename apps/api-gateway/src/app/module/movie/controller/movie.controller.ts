@@ -20,6 +20,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
+import { Permission } from '../../../common/decorator/permission.decorator';
 import { MovieService } from '../service/movie.service';
 
 @Controller({
@@ -46,6 +47,7 @@ export class MovieController {
 
   @Post()
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'movie', action: 'create', scope: 'global' })
   async createMovie(@Req() req: any, @Body() request: CreateMovieRequest) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -56,6 +58,7 @@ export class MovieController {
 
   @Put(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'movie', action: 'update', scope: 'global' })
   async updateMovie(
     @Req() req: any,
     @Param('id') id: string,
@@ -70,6 +73,7 @@ export class MovieController {
 
   @Delete(':id')
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'movie', action: 'delete', scope: 'global' })
   async remove(@Req() req: any, @Param('id') id: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -103,3 +107,5 @@ export class MovieController {
     return this.movieService.updateReview(reviewId, request);
   }
 }
+
+

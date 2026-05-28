@@ -1,6 +1,3 @@
-import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
-import { getBookingDetails } from '@/libs/actions/booking/booking-action';
-import { getQueryClient } from '@/libs/get-query-client';
 import { BookingCard } from './booking-details-card';
 
 export default async function BookingDetailsPage({

@@ -14,6 +14,8 @@ import {
 } from '@nestjs/common';
 import { TransformInterceptor } from '../../../common/interceptor/transform.interceptor';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
+import { Permission } from '../../../common/decorator/permission.decorator';
+import { SensitiveThrottle } from '../../../common/decorator/sensitive-throttle.decorator';
 import {
   CreateHallRequest,
   HallStatusEnum,
@@ -28,6 +30,7 @@ import { lastValueFrom } from 'rxjs';
   path: 'halls',
 })
 @UseInterceptors(new TransformInterceptor())
+@SensitiveThrottle()
 export class HallController {
   constructor(private readonly hallService: HallService) {}
 
@@ -35,12 +38,14 @@ export class HallController {
 
   @Get('hall/:hallId')
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'cinema', action: 'read', scope: 'cinema' })
   getHallById(@Param('hallId') hallId: string) {
     return this.hallService.getHallById(hallId);
   }
 
   @Get('cinema/:cinemaId')
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'cinema', action: 'read', scope: 'cinema' })
   getHallsOfCinema(
     @Req() req: any,
     @Param('cinemaId') cinemaId: string,
@@ -61,7 +66,7 @@ export class HallController {
    */
   @Post('hall')
   @UseGuards(ClerkAuthGuard)
-  //@Permission('hall:create')
+  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
   createHall(@Req() req: any, @Body() createHallRequest: CreateHallRequest) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId && createHallRequest.cinemaId !== userCinemaId) {
@@ -77,7 +82,7 @@ export class HallController {
    */
   @Patch('hall/:hallId')
   @UseGuards(ClerkAuthGuard)
-  //@Permission('hall:create')
+  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
   async updateHall(
     @Req() req: any,
     @Param('hallId') hallId: string,
@@ -102,7 +107,7 @@ export class HallController {
    */
   @Delete('hall/:hallId')
   @UseGuards(ClerkAuthGuard)
-  //@Permission('hall:create')
+  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
   async deleteHall(@Req() req: any, @Param('hallId') hallId: string) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
@@ -123,7 +128,7 @@ export class HallController {
    */
   @Patch('seat/:seatId/status')
   @UseGuards(ClerkAuthGuard)
-  //@Permission('hall:create')
+  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
   async updateSeatStatus(
     @Req() req: any,
     @Param('seatId') seatId: string,
@@ -131,6 +136,8 @@ export class HallController {
   ) {
     const userCinemaId = req.staffContext?.cinemaId;
     if (userCinemaId) {
+      // NOTE: Seat-to-cinema ownership should be validated in service/data layer
+      // once a direct seat lookup endpoint is available.
       // For seat status updates, we would need to verify the seat belongs to a hall in user's cinema
       // This requires fetching seat details. For now, we trust the hallId context from the request
       // or implement a getSeatById service method. Leaving as TODO if needed.
@@ -138,3 +145,6 @@ export class HallController {
     return this.hallService.updateSeatStatus(seatId, updateSeatStatusRequest);
   }
 }
+
+
+

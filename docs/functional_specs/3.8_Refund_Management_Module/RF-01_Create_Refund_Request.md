@@ -1,4 +1,4 @@
-# [RF-01] Create Refund Request
+﻿# [RF-01] Create Refund Request
 
 ## 1. Description
 
@@ -67,5 +67,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR-BOOK-05 | Cancellation must be made at least 2 hours before showtime to be eligible. |
-| (4) | BR-BOOK-06 | Refund percentage on ticket cancellation: 70%. |
+| (3) | BR179 | Cancellation must be made at least 2 hours before showtime to be eligible. |
+| (4) | BR180 | Refund percentage on ticket cancellation: 70%. |
+
+

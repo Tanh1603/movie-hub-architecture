@@ -1,4 +1,4 @@
-# [ST-07] Get Movie Showtimes at Cinema
+﻿# [ST-07] Get Movie Showtimes at Cinema
 
 ## 1. Description
 
@@ -56,5 +56,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | SRS 5.2 | Only showtimes with status `SELLING` or `SCHEDULED` are returned to the public. |
-| (5) | SRS 5.2 | Results are categorized by format (2D, 3D, IMAX) for better user experience. |
+| (3) | BR97 | Only showtimes with status `SELLING` or `SCHEDULED` are returned to the public. |
+| (5) | BR98 | Results are categorized by format (2D, 3D, IMAX) for better user experience. |
+
+

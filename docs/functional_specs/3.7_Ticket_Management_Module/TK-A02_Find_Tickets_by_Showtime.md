@@ -1,4 +1,4 @@
-# [TK-A02] Find Tickets by Showtime
+﻿# [TK-A02] Find Tickets by Showtime
 
 ## 1. Description
 
@@ -54,5 +54,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Useful for verifying seat occupancy for a specific screening. |
-| (3) | N/A | Includes status of each ticket (VALID, USED, CANCELLED). |
+| (3) | BR174 | Useful for verifying seat occupancy for a specific screening. |
+| (3) | BR175 | Includes status of each ticket (VALID, USED, CANCELLED). |
+
+

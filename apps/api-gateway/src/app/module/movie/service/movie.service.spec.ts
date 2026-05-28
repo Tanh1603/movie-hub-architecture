@@ -5,6 +5,7 @@ import {
   SERVICE_NAME,
   MovieServiceMessage,
   CreateMovieRequest,
+  ResponseMessage,
 } from '@movie-hub/shared-types';
 import { of, throwError } from 'rxjs';
 
@@ -207,7 +208,7 @@ describe('MovieService', () => {
   describe('deleteMovie', () => {
     it('should proxy delete movie request', async () => {
       const movieId = '123';
-      const mockResponse = { message: 'Movie deleted successfully' };
+      const mockResponse = { message: ResponseMessage.MSG_7 };
 
       clientProxy.send.mockReturnValue(of(mockResponse));
 

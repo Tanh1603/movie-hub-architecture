@@ -1,0 +1,229 @@
+{
+  "uid": "moviehub-api-gateway",
+  "title": "API Gateway Metrics",
+  "tags": ["moviehub", "api-gateway", "phase-10c"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "editable": false,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Service Health",
+      "datasource": {
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 2
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "horizontal",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(up{job=\"api-gateway-metrics\",instance!~\"^api-gateway(:.*)?$\"} == 1)"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Request Rate",
+      "datasource": {
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 6,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(moviehub_http_requests_total{job=\"api-gateway-metrics\"}[5m]))",
+          "legendFormat": "api-gateway"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Error Rate",
+      "datasource": {
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * (sum(rate(moviehub_http_requests_total{job=\"api-gateway-metrics\",status=~\"5..\"}[5m])) / clamp_min(sum(rate(moviehub_http_requests_total{job=\"api-gateway-metrics\"}[5m])), 1e-6))",
+          "legendFormat": "api-gateway"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "p95 Latency",
+      "datasource": {
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(moviehub_http_request_duration_seconds_bucket{job=\"api-gateway-metrics\"}[5m])))",
+          "legendFormat": "api-gateway"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "In-Flight Requests",
+      "datasource": {
+        "type": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(moviehub_http_requests_in_flight{job=\"api-gateway-metrics\"})",
+          "legendFormat": "api-gateway"
+        }
+      ]
+    },
+  {
+    "id": 11,
+    "type": "timeseries",
+    "title": "Replica Health (by instance)",
+    "datasource": {
+      "type": "prometheus"
+    },
+    "gridPos": {
+      "h": 8,
+      "w": 12,
+      "x": 0,
+      "y": 21
+    },
+    "fieldConfig": {
+      "defaults": {
+        "unit": "none"
+      },
+      "overrides": []
+    },
+    "targets": [
+      {
+        "refId": "A",
+        "expr": "up{job=\"api-gateway-metrics\",instance!~\"^api-gateway(:.*)?$\"} == 1",
+        "legendFormat": "{{instance}}"
+      }
+    ]
+  },
+  {
+    "id": 12,
+    "type": "timeseries",
+    "title": "Request Rate (by instance)",
+    "datasource": {
+      "type": "prometheus"
+    },
+    "gridPos": {
+      "h": 8,
+      "w": 12,
+      "x": 12,
+      "y": 21
+    },
+    "fieldConfig": {
+      "defaults": {
+        "unit": "short"
+      },
+      "overrides": []
+    },
+    "targets": [
+      {
+        "refId": "A",
+        "expr": "sum by (instance) (rate(moviehub_http_requests_total{job=\"api-gateway-metrics\",instance!~\"^api-gateway(:.*)?$\"}[5m])) and on(instance) up{job=\"api-gateway-metrics\"} == 1",
+        "legendFormat": "{{instance}}"
+      }
+    ]
+  }
+  ]
+}

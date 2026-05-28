@@ -107,7 +107,7 @@ export default function MembershipSection() {
               </ul>
 
               <SignUpButton mode="modal">
-                <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl px-8 h-12 shadow-lg shadow-purple-900/50">
+                <Button className="hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-xl px-8 h-12 shadow-lg shadow-purple-900/50 bg-brand-gradient">
                   Đăng Ký VIP <ChevronRight className="ml-2 w-4 h-4" />
                 </Button>
               </SignUpButton>

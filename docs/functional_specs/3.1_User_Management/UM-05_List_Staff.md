@@ -1,4 +1,4 @@
-# [UM-05] List Staff
+﻿# [UM-05] List Staff
 
 ## 1. Description
 
@@ -64,5 +64,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (2) | SRS 3.1 | Query Parameters supported: `cinemaId` (Filter by location), `position` (Filter by StaffPosition enum), `status` (ACTIVE/INACTIVE). |
-| (4) | SRS 2.3 | Cinema Managers should typically only see staff assigned to their specific cinema (Implicit data scoping rule). |
+| (2) | BR08 | Query Parameters supported: `cinemaId` (Filter by location), `position` (Filter by StaffPosition enum), `status` (ACTIVE/INACTIVE). |
+| (4) | BR09 | Cinema Managers should typically only see staff assigned to their specific cinema (Implicit data scoping rule). |
+
+

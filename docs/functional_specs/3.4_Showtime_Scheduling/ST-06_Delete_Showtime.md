@@ -1,4 +1,4 @@
-# [ST-06] Delete Showtime
+﻿# [ST-06] Delete Showtime
 
 ## 1. Description
 
@@ -66,4 +66,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | General | Showtimes with confirmed or pending bookings cannot be physically deleted. They should be cancelled instead. |
+| (4) | BR96 | Showtimes with confirmed or pending bookings cannot be physically deleted. They should be cancelled instead. |
+
+

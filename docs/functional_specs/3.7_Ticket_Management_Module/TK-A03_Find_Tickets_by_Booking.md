@@ -1,4 +1,4 @@
-# [TK-A03] Find Tickets by Booking
+﻿# [TK-A03] Find Tickets by Booking
 
 ## 1. Description
 
@@ -54,4 +54,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | A single booking can contain multiple tickets (up to 8, as per BR-SEAT-01). |
+| (3) | BR176 | A single booking can contain multiple tickets (up to 8, as per BR-SEAT-01). |
+
+

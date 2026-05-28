@@ -1,4 +1,4 @@
-# [RF-04] Find Refunds by Payment
+﻿# [RF-04] Find Refunds by Payment
 
 ## 1. Description
 
@@ -54,5 +54,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Typically, only one refund is allowed per payment. |
-| (3) | N/A | Used to track whether a payment has already been reversed. |
+| (3) | BR184 | Typically, only one refund is allowed per payment. |
+| (3) | BR185 | Used to track whether a payment has already been reversed. |
+
+

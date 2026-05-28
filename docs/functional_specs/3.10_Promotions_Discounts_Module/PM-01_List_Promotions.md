@@ -1,4 +1,4 @@
-# [PM-01] List Promotions
+﻿# [PM-01] List Promotions
 
 ## 1. Description
 
@@ -56,7 +56,9 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR-PROMO-01 | Promotion must be within valid date range (valid_from to valid_to). |
-| (3) | N/A | Only promotions marked as `is_active = true` are displayed. |
-| (3) | N/A | Supports various types: PERCENTAGE, FIXED_AMOUNT, etc. |
+| (3) | BR13 | A promotion is considered active if `valid_from <= NOW() <= valid_to`; only active promotions are returned. |
+| (3) | BR14 | Only promotions with `is_active = true` are included in responses; inactive promotions must be excluded. |
+| (3) | BR15 | Promotions must specify a type (e.g., PERCENTAGE, FIXED_AMOUNT); unknown types should be rejected with HTTP 500 or omitted from results until corrected. |
 @enduml
+
+

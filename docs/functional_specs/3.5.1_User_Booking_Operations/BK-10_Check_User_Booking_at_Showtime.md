@@ -1,4 +1,4 @@
-# [BK-10] Check User Booking at Showtime
+﻿# [BK-10] Check User Booking at Showtime
 
 ## 1. Description
 
@@ -59,4 +59,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR-BOOK-02 | Prevents users from creating multiple active bookings for the same showtime. |
+| (3) | BR122 | Prevents users from creating multiple active bookings for the same showtime. |
+
+

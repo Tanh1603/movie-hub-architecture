@@ -8,6 +8,16 @@
 # - Database services use .env.db files in their respective service folders
 # - Production: Cloud only production
 #
+# PROBE ENDPOINTS (Phase 05 & 07):
+# - Liveness probe (`/health/live`): used by Docker healthcheck to detect process responsiveness
+# - Readiness probe (`/health/ready`): checks if dependencies (DB/Redis) are ready; used in Swarm deployment (Phase 07)
+#   Docker Compose healthcheck uses liveness probe only; readiness is verified in Docker Swarm via docker-stack.yml
+#
+# DEPLOYMENT OPTIONS:
+# - Local dev: docker compose up -d (uses liveness probes only)
+# - Demo with replicas: docker compose --scale service=2 up -d (for Phase 07 demo)
+# - Production-like Swarm: docker swarm init && docker stack deploy -c docker-stack.yml moviehub (uses readiness + liveness)
+#
 # USAGE (~~~~!!!!!IMPORTANT!!!!!~~~~)
 #   docker compose up -d            Use base + docker-compose.override.yml (development)
 #   docker compose -f docker-compose.yml up -d   Use base only (production)
@@ -21,9 +31,9 @@ services:
   # ===========================================
   redis:
     image: redis:7
-    command: ["redis-server", "--notify-keyspace-events", "Ex"]
+    command: ['redis-server', '--notify-keyspace-events', 'Ex']
     ports:
-      - "6379:6379"
+      - '6379:6379'
     container_name: moviehub-redis
     restart: unless-stopped
     networks:
@@ -40,13 +50,13 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres} # ⚠️ FILL THIS IN .env
       POSTGRES_DB: ${POSTGRES_DB:-movie_hub_user}
     ports:
-      - "5435:5432" # External:Internal (Internal is always 5432)
+      - '5435:5432' # External:Internal (Internal is always 5432)
     volumes:
       - postgres_user_data:/var/lib/postgresql/data
     networks:
       - moviehub-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d movie_hub_user"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d movie_hub_user']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -62,13 +72,13 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres} # ⚠️ FILL THIS IN .env
       POSTGRES_DB: ${POSTGRES_DB:-movie_hub_movie}
     ports:
-      - "5436:5432" # External:Internal (Internal is always 5432)
+      - '5436:5432' # External:Internal (Internal is always 5432)
     volumes:
       - postgres_movie_data:/var/lib/postgresql/data
     networks:
       - moviehub-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d movie_hub_movie"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d movie_hub_movie']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -84,18 +94,16 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres} # ⚠️ FILL THIS IN .env
       POSTGRES_DB: ${POSTGRES_DB:-movie_hub_cinema}
     ports:
-      - "5437:5432" # External:Internal (Internal is always 5432)
+      - '5437:5432' # External:Internal (Internal is always 5432)
     volumes:
       - postgres_cinema_data:/var/lib/postgresql/data
     networks:
       - moviehub-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d movie_hub_cinema"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d movie_hub_cinema']
       interval: 10s
       timeout: 5s
       retries: 5
-
-
 
   postgres-booking:
     image: postgres:15-alpine
@@ -105,16 +113,16 @@ services:
       - ./apps/booking-service/.env.db
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}  # ⚠️ FILL THIS IN .env
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres} # ⚠️ FILL THIS IN .env
       POSTGRES_DB: ${POSTGRES_DB:-movie_hub_booking}
     ports:
-      - "5438:5432"  # External:Internal (Internal is always 5432)
+      - '5438:5432' # External:Internal (Internal is always 5432)
     volumes:
       - postgres_booking_data:/var/lib/postgresql/data
     networks:
       - moviehub-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d movie_hub_booking"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d movie_hub_booking']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -131,8 +139,15 @@ services:
     restart: unless-stopped
     env_file:
       - ./apps/user-service/.env
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@postgres-user:5432/movie_hub_user?schema=public
+      - TCP_HOST=0.0.0.0
+      - REDIS_URL=redis://redis:6379
+      - PORT=3001
+      - TCP_PORT=3001
     ports:
-      - "4001:3001"
+      - '4001:3001'
     depends_on:
       postgres-user:
         condition: service_healthy
@@ -142,13 +157,20 @@ services:
       # Mount for hot-reload in development (optional)
       - ./apps/user-service/src:/app/apps/user-service/src:ro
     healthcheck:
-      test: ["CMD", "node", "--version"]
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:3001/health/live',
+        ]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
     command: sh -c "npx --yes prisma@6.16.2 db push --accept-data-loss --skip-generate && node main.js"
-
   movie-service:
     build:
       context: .
@@ -158,8 +180,15 @@ services:
     restart: unless-stopped
     env_file:
       - ./apps/movie-service/.env
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@postgres-movie:5432/movie_hub_movie?schema=public
+      - TCP_HOST=0.0.0.0
+      - REDIS_URL=redis://redis:6379
+      - PORT=3002
+      - TCP_PORT=3002
     ports:
-      - "4002:3002"
+      - '4002:3002'
     depends_on:
       postgres-movie:
         condition: service_healthy
@@ -169,7 +198,15 @@ services:
       # Mount for hot-reload in development (optional)
       - ./apps/movie-service/src:/app/apps/movie-service/src:ro
     healthcheck:
-      test: ["CMD", "node", "--version"]
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:3002/health/live',
+        ]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -184,8 +221,17 @@ services:
     restart: unless-stopped
     env_file:
       - ./apps/cinema-service/.env
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@postgres-cinema:5432/movie_hub_cinema?schema=public
+      - TCP_HOST=0.0.0.0
+      - REDIS_URL=redis://redis:6379
+      - PORT=3003
+      - TCP_PORT=3003
+      - MOVIE_HOST=movie-service
+      - MOVIE_PORT=3002
     ports:
-      - "4003:3003"
+      - '4003:3003'
     depends_on:
       postgres-cinema:
         condition: service_healthy
@@ -195,13 +241,20 @@ services:
       # Mount for hot-reload in development (optional)
       - ./apps/cinema-service/src:/app/apps/cinema-service/src:ro
     healthcheck:
-      test: ["CMD", "node", "--version"]
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:3003/health/live',
+        ]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
     command: sh -c "npx --yes prisma@6.16.2 db push --accept-data-loss --skip-generate && node main.js"
-
 
   booking-service:
     build:
@@ -212,8 +265,19 @@ services:
     restart: unless-stopped
     env_file:
       - ./apps/booking-service/.env
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@postgres-booking:5432/movie_hub_booking?schema=public
+      - TCP_HOST=0.0.0.0
+      - REDIS_URL=redis://redis:6379
+      - PORT=3004
+      - TCP_PORT=3004
+      - CINEMA_HOST=cinema-service
+      - CINEMA_PORT=3003
+      - USER_HOST=user-service
+      - USER_PORT=3001
     ports:
-      - "4004:3004"
+      - '4004:3004'
     depends_on:
       postgres-booking:
         condition: service_healthy
@@ -223,12 +287,68 @@ services:
       # Mount for hot-reload in development (optional)
       - ./apps/booking-service/src:/app/apps/booking-service/src:ro
     healthcheck:
-      test: ["CMD", "node", "--version"]
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:3004/health/live',
+        ]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
     command: sh -c "npx --yes prisma@6.16.2 db push --accept-data-loss --skip-generate && node main.js"
+
+  backup-service:
+    build:
+      context: .
+      dockerfile: apps/backup-service/Dockerfile
+      target: production
+    container_name: moviehub-backup-service
+    restart: unless-stopped
+    env_file:
+      - ./apps/backup-service/.env
+    environment:
+      - NODE_ENV=production
+    user: '0:0'
+    ports:
+      - '4005:3006'
+    depends_on:
+      postgres-user:
+        condition: service_healthy
+      postgres-movie:
+        condition: service_healthy
+      postgres-cinema:
+        condition: service_healthy
+      postgres-booking:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - moviehub-network
+    volumes:
+      # Required for the current docker exec-based backup strategy.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - backup_data:/data/backups
+      - restore_data:/data/restores
+      - backup_metadata:/data
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:3006/health/live',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   api-gateway:
     build:
@@ -239,8 +359,19 @@ services:
     restart: unless-stopped
     env_file:
       - ./apps/api-gateway/.env
+    environment:
+      - NODE_ENV=production
+      - USER_PORT=3001
+      - MOVIE_HOST=movie-service
+      - MOVIE_PORT=3002
+      - CINEMA_HOST=cinema-service
+      - CINEMA_PORT=3003
+      - BOOKING_HOST=booking-service
+      - BOOKING_PORT=3004
+      - REDIS_HOST=redis
+      - REDIS_URL=redis://redis:6379
     ports:
-      - "4000:3000"
+      - '4000:3000'
     depends_on:
       - user-service
       - movie-service
@@ -254,18 +385,118 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:3000/api/health",
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:3000/api/health/live',
         ]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
     command: sh -c "node main.js"
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: moviehub-prometheus
+    restart: unless-stopped
+    ports:
+      - '9090:9090'
+    networks:
+      - moviehub-network
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infra/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=360h'
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:9090/-/healthy',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  loki:
+    image: grafana/loki:latest
+    container_name: moviehub-loki
+    restart: unless-stopped
+    ports:
+      - '3100:3100'
+    command: -config.file=/etc/loki/loki.yml
+    volumes:
+      - ./infra/loki/loki.yml:/etc/loki/loki.yml:ro
+      - loki_data:/loki
+    networks:
+      - moviehub-network
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: moviehub-alloy
+    restart: unless-stopped
+    command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
+    volumes:
+      - ./infra/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - moviehub-network
+    depends_on:
+      - loki
+
+  log-exporter:
+    build:
+      context: ./infra/loki/exporter
+      dockerfile: Dockerfile
+    container_name: moviehub-log-exporter
+    restart: unless-stopped
+    depends_on:
+      - loki
+    volumes:
+      - ./infra/loki/exports:/exports
+    networks:
+      - moviehub-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: moviehub-grafana
+    restart: unless-stopped
+    ports:
+      - '3009:3000'
+    networks:
+      - moviehub-network
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:3000/api/health',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   # web:
   #   build:
@@ -289,7 +520,6 @@ services:
   #     retries: 3
   #     start_period: 5s
   #   command: sh -c "node apps/web/server.js"
-      
 
 # ===========================================
 # NETWORKS
@@ -312,11 +542,15 @@ volumes:
     name: moviehub_postgres_cinema_data
   postgres_booking_data:
     name: moviehub_postgres_booking_data
-
-
-
-
-
-
-
-
+  prometheus_data:
+    name: moviehub_prometheus_data
+  grafana_data:
+    name: moviehub_grafana_data
+  backup_data:
+    name: moviehub_backup_data
+  restore_data:
+    name: moviehub_restore_data
+  backup_metadata:
+    name: moviehub_backup_metadata
+  loki_data:
+    name: moviehub_loki_data

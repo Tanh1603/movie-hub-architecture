@@ -1,4 +1,4 @@
-# [MV-01] List Movies
+﻿# [MV-01] List Movies
 
 ## 1. Description
 
@@ -57,5 +57,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Supports filtering by `genre`, `ageRating`, and searching by `title`. |
-| (6) | SRS 5.2 | Returns basic info: Title, Poster, Age Rating, Duration. |
+| (3) | BR62 | The endpoint must support filtering by `genre` and `ageRating`, and full-text or partial matching search on `title`; invalid filters must return HTTP 400. |
+| (6) | BR63 | Each movie card returned must include at minimum `title`, `posterUrl`, `ageRating`, and `duration` fields; missing required fields constitute an API contract violation. |
+
+

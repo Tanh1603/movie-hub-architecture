@@ -1,4 +1,4 @@
-# [BK-A02] Find Bookings by Showtime
+﻿# [BK-A02] Find Bookings by Showtime
 
 ## 1. Description
 
@@ -54,4 +54,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Useful for checking attendance or managing issues for a specific screening. |
+| (3) | BR127 | Useful for checking attendance or managing issues for a specific screening. |
+
+

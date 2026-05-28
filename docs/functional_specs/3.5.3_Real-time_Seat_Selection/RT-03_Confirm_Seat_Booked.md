@@ -1,4 +1,4 @@
-# [RT-03] Confirm Seat Booked
+﻿# [RT-03] Confirm Seat Booked
 
 ## 1. Description
 
@@ -56,4 +56,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | N/A | Real-time "Hold" state is temporary. Permanent "Booked" state is derived from Database (Postgres) but broadcasted via WebSocket for UX. |
+| (4) | BR143 | Real-time "Hold" state is temporary. Permanent "Booked" state is derived from Database (Postgres) but broadcasted via WebSocket for UX. |
+
+

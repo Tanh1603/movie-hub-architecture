@@ -1,4 +1,4 @@
-# [CM-09] Get Available Cities
+﻿# [CM-09] Get Available Cities
 
 ## 1. Description
 
@@ -54,4 +54,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Only cities with *active* cinemas should be returned to avoid empty search results. |
+| (3) | BR51 | Only cities with *active* cinemas should be returned to avoid empty search results. |
+
+

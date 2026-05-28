@@ -1,7 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MovieController } from './movie.controller';
 import { MovieService } from './movie.service';
-import { MovieQuery, MovieServiceMessage } from '@movie-hub/shared-types';
+import {
+  MovieQuery,
+  MovieServiceMessage,
+  ResponseMessage,
+} from '@movie-hub/shared-types';
 
 describe('MovieController', () => {
   let controller: MovieController;
@@ -233,7 +237,7 @@ describe('MovieController', () => {
             { id: 'genre2', name: 'Drama' },
           ],
         },
-        message: 'Create movie successfully!',
+        message: ResponseMessage.MSG_7,
       };
 
       mockMovieService.createMovie.mockResolvedValue(expectedResult);
@@ -285,7 +289,7 @@ describe('MovieController', () => {
           cast: [{ name: 'Minimal Actor' }],
           genre: [{ id: 'genre1', name: 'Comedy' }],
         },
-        message: 'Create movie successfully!',
+        message: ResponseMessage.MSG_7,
       };
 
       mockMovieService.createMovie.mockResolvedValue(expectedResult);
@@ -335,7 +339,7 @@ describe('MovieController', () => {
             { id: 'genre4', name: 'Thriller' },
           ],
         },
-        message: 'Update movie successfully!',
+        message: ResponseMessage.MSG_7,
       };
 
       mockMovieService.updateMovie.mockResolvedValue(expectedResult);
@@ -381,7 +385,7 @@ describe('MovieController', () => {
           cast: [{ name: 'Original Actor' }],
           genre: [{ id: 'genre1', name: 'Original Genre' }],
         },
-        message: 'Update movie successfully!',
+        message: ResponseMessage.MSG_7,
       };
 
       mockMovieService.updateMovie.mockResolvedValue(expectedResult);
@@ -400,7 +404,7 @@ describe('MovieController', () => {
     it('should call movieService.deleteMovie with correct movie ID', async () => {
       const movieId = 'delete-movie-id';
       const expectedResult = {
-        message: 'Delete movie successfully!',
+        message: ResponseMessage.MSG_7,
       };
 
       mockMovieService.deleteMovie.mockResolvedValue(expectedResult);

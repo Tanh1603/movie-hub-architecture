@@ -3,8 +3,10 @@ import { MovieController } from './movie.controller';
 import { MovieService } from '../service/movie.service';
 import {
   CreateMovieRequest,
+  ResponseMessage,
   UpdateMovieRequest,
 } from '@movie-hub/shared-types';
+import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
 
 describe('MovieController', () => {
   let controller: MovieController;
@@ -27,7 +29,10 @@ describe('MovieController', () => {
           useValue: mockMovieService,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(ClerkAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<MovieController>(MovieController);
     movieService = module.get(MovieService);
@@ -111,6 +116,7 @@ describe('MovieController', () => {
 
   describe('createMovie', () => {
     it('should create a new movie', async () => {
+      const req = { staffContext: undefined } as any;
       const createRequest: CreateMovieRequest = {
         title: 'New Movie',
         overview: 'New Overview',
@@ -131,18 +137,19 @@ describe('MovieController', () => {
       };
       const mockResult = {
         data: { id: '456', ...createRequest },
-        message: 'Movie created successfully',
+        message: ResponseMessage.MSG_7,
       };
 
       movieService.createMovie.mockResolvedValue(mockResult);
 
-      const result = await controller.createMovie(createRequest);
+      const result = await controller.createMovie(req, createRequest);
 
       expect(movieService.createMovie).toHaveBeenCalledWith(createRequest);
       expect(result).toEqual(mockResult);
     });
 
     it('should handle validation errors', async () => {
+      const req = { staffContext: undefined } as any;
       const createRequest: CreateMovieRequest = {
         title: '',
         overview: 'Overview',
@@ -165,7 +172,7 @@ describe('MovieController', () => {
 
       movieService.createMovie.mockRejectedValue(error);
 
-      await expect(controller.createMovie(createRequest)).rejects.toThrow(
+      await expect(controller.createMovie(req, createRequest)).rejects.toThrow(
         error
       );
       expect(movieService.createMovie).toHaveBeenCalledWith(createRequest);
@@ -174,6 +181,7 @@ describe('MovieController', () => {
 
   describe('updateMovie', () => {
     it('should update an existing movie', async () => {
+      const req = { staffContext: undefined } as any;
       const movieId = '123';
       const updateRequest: UpdateMovieRequest = {
         title: 'Updated Movie',
@@ -181,12 +189,12 @@ describe('MovieController', () => {
       };
       const mockResult = {
         data: { id: movieId, ...updateRequest },
-        message: 'Movie updated successfully',
+        message: ResponseMessage.MSG_7,
       };
 
       movieService.updateMovie.mockResolvedValue(mockResult);
 
-      const result = await controller.updateMovie(movieId, updateRequest);
+      const result = await controller.updateMovie(req, movieId, updateRequest);
 
       expect(movieService.updateMovie).toHaveBeenCalledWith(
         movieId,
@@ -196,6 +204,7 @@ describe('MovieController', () => {
     });
 
     it('should handle non-existent movie for update', async () => {
+      const req = { staffContext: undefined } as any;
       const movieId = 'non-existent';
       const updateRequest: UpdateMovieRequest = { title: 'Updated Title' };
       const error = new Error('Movie not found');
@@ -203,7 +212,7 @@ describe('MovieController', () => {
       movieService.updateMovie.mockRejectedValue(error);
 
       await expect(
-        controller.updateMovie(movieId, updateRequest)
+        controller.updateMovie(req, movieId, updateRequest)
       ).rejects.toThrow(error);
       expect(movieService.updateMovie).toHaveBeenCalledWith(
         movieId,
@@ -214,34 +223,37 @@ describe('MovieController', () => {
 
   describe('remove', () => {
     it('should delete a movie and return null', async () => {
+      const req = { staffContext: undefined } as any;
       const movieId = '123';
-      const mockResult = { message: 'Movie deleted successfully' };
+      const mockResult = { message: ResponseMessage.MSG_7 };
 
       movieService.deleteMovie.mockResolvedValue(mockResult);
 
-      const result = await controller.remove(movieId);
+      const result = await controller.remove(req, movieId);
 
       expect(movieService.deleteMovie).toHaveBeenCalledWith(movieId);
       expect(result).toBeNull();
     });
 
     it('should handle delete errors', async () => {
+      const req = { staffContext: undefined } as any;
       const movieId = '123';
       const error = new Error('Delete failed');
 
       movieService.deleteMovie.mockRejectedValue(error);
 
-      await expect(controller.remove(movieId)).rejects.toThrow(error);
+      await expect(controller.remove(req, movieId)).rejects.toThrow(error);
       expect(movieService.deleteMovie).toHaveBeenCalledWith(movieId);
     });
 
     it('should handle non-existent movie for delete', async () => {
+      const req = { staffContext: undefined } as any;
       const movieId = 'non-existent';
       const error = new Error('Movie not found');
 
       movieService.deleteMovie.mockRejectedValue(error);
 
-      await expect(controller.remove(movieId)).rejects.toThrow(error);
+      await expect(controller.remove(req, movieId)).rejects.toThrow(error);
       expect(movieService.deleteMovie).toHaveBeenCalledWith(movieId);
     });
   });

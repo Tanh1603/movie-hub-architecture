@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
 import { Building2, DoorOpen, DollarSign, Calendar, Sparkles, Edit2, Check, X, AlertCircle } from 'lucide-react';
@@ -23,10 +22,10 @@ import { Badge } from '@movie-hub/shacdn-ui/badge';
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { Input } from '@movie-hub/shacdn-ui/input';
 import { useToast } from '../_libs/use-toast';
-import { useCinemas, useHallsByCinema, useTicketPricing, useUpdateTicketPricing } from '@/libs/api';
-import type { SeatType, DayType } from '@/libs/api/types';
+import { useCinemas, useHallsByCinema, useTicketPricing, useUpdateTicketPricing } from '@/features/admin/shared/api-hooks';
+import type { SeatType, DayType } from '@/types';
 import { SeatTypeEnum, DayTypeEnum } from '@movie-hub/shared-types/cinema/enum';
-import type { TicketPricingFiltersParams } from '@/libs/api';
+import type { TicketPricingFiltersParams } from '@/types';
 
 interface TicketPricing {
   id: string;
@@ -488,3 +487,4 @@ export default function TicketPricingPage() {
     </div>
   );
 }
+

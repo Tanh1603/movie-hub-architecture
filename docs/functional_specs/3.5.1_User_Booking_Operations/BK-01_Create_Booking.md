@@ -1,4 +1,4 @@
-# [BK-01] Create Booking
+﻿# [BK-01] Create Booking
 
 ## 1. Description
 
@@ -74,6 +74,8 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (8) | BR-BOOK-01 | Booking expiry time: 15 minutes from creation. |
-| (6) | BR-BOOK-02 | Only one pending booking per user per showtime is allowed. |
-| (4) | BR-PAY-03 | VAT rate: 10% on all transactions. |
+| (8) | BR104 | Booking expiry time: 15 minutes from creation. |
+| (6) | BR105 | Only one pending booking per user per showtime is allowed. |
+| (4) | BR106 | VAT rate: 10% on all transactions. |
+
+

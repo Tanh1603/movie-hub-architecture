@@ -1,4 +1,4 @@
-# [RT-06] Get User Held Seats
+﻿# [RT-06] Get User Held Seats
 
 ## 1. Description
 
@@ -44,4 +44,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (2) | N/A | Used to highlight which seats are "Yours" vs "Others" on the UI. |
+| (2) | BR146 | Used to highlight which seats are "Yours" vs "Others" on the UI. |
+
+

@@ -1,4 +1,4 @@
-# [UM-02] List Users
+﻿# [UM-02] List Users
 
 ## 1. Description
 
@@ -69,4 +69,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (2) | N/A | Access is restricted to Admin role only (SRS Section 6.3). |
+| (2) | BR03 | Only users with the `ADMIN` role may access the user list; unauthorized requests must return HTTP 403 and must not expose any user data. |
+
+

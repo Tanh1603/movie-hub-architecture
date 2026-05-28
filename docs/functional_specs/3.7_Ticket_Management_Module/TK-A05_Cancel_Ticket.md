@@ -1,4 +1,4 @@
-# [TK-A05] Cancel Ticket
+﻿# [TK-A05] Cancel Ticket
 
 ## 1. Description
 
@@ -64,4 +64,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | SRS 5.2 | Transitioning a ticket to `CANCELLED` makes the corresponding seat available in the database (via cascading effects or manual trigger). |
+| (4) | BR178 | Transitioning a ticket to `CANCELLED` makes the corresponding seat available in the database (via cascading effects or manual trigger). |
+
+

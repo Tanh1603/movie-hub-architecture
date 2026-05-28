@@ -1,4 +1,4 @@
-# [PY-A02] Find Payments by Status
+﻿# [PY-A02] Find Payments by Status
 
 ## 1. Description
 
@@ -54,4 +54,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | SRS 5.2 | Valid values: `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`, `REFUNDED`. |
+| (3) | BR159 | Valid values: `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`, `REFUNDED`. |
+
+

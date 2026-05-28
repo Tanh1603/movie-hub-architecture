@@ -1,4 +1,4 @@
-# [BK-A04] Update Booking Status
+﻿# [BK-A04] Update Booking Status
 
 ## 1. Description
 
@@ -59,5 +59,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | N/A | Target status must be a valid member of `BookingStatus` enum. |
-| (5) | N/A | Changing status manually should be logged for auditing purposes. |
+| (4) | BR129 | Target status must be a valid member of `BookingStatus` enum. |
+| (5) | BR130 | Changing status manually should be logged for auditing purposes. |
+
+

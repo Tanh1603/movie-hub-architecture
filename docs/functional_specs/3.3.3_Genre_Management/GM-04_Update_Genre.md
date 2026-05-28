@@ -1,4 +1,4 @@
-# [GM-04] Update Genre
+﻿# [GM-04] Update Genre
 
 ## 1. Description
 
@@ -67,4 +67,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (5) | General | Updated genre name must not conflict with other existing genre names. |
+| (5) | BR77 | Updated genre name must not conflict with other existing genre names. |
+
+

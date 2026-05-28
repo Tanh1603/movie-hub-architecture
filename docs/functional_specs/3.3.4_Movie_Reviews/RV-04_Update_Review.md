@@ -1,4 +1,4 @@
-# [RV-04] Update Review
+﻿# [RV-04] Update Review
 
 ## 1. Description
 
@@ -67,5 +67,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | General | Users can only update reviews they created themselves. |
-| (5) | BR-REVIEW-02 | New rating must be between 1 and 5. |
+| (4) | BR84 | Users can only update reviews they created themselves. |
+| (5) | BR85 | New rating must be between 1 and 5. |
+
+

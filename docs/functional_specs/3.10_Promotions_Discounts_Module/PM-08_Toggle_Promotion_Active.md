@@ -1,4 +1,4 @@
-# [PM-08] Toggle Promotion Active
+﻿# [PM-08] Toggle Promotion Active
 
 ## 1. Description
 
@@ -54,5 +54,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Deactivated promotions cannot be validated or used in checkout, even if the code is known. |
+| (3) | BR29 | Deactivated promotions cannot be validated or used in checkout, even if the code is known. |
 @enduml
+
+

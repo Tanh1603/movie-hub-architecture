@@ -16,7 +16,7 @@ export enum WorkType {
 
 export enum StaffPosition {
   /// Cấp quản trị cao nhất
-  SUPER_ADMIN,
+  ADMIN,
 
   /// Quản lý rạp phim
   CINEMA_MANAGER,

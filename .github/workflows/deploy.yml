@@ -169,8 +169,6 @@ jobs:
             -var="environment=${{ github.event.inputs.environment || 'dev' }}" \
             -var="clerk_secret_key=${{ secrets.CLERK_SECRET_KEY }}" \
             -var="clerk_publishable_key=${{ secrets.CLERK_PUBLISHABLE_KEY }}" \
-            -var="redis_host=${{ secrets.REDIS_HOST }}" \
-            -var="redis_port=${{ secrets.REDIS_PORT }}" \
             -var="redis_connection_string=${{ secrets.REDIS_CONNECTION_STRING }}" \
             -var='database_urls=${{ secrets.DATABASE_URLS }}' \
             -var='email_config=${{ secrets.EMAIL_CONFIG }}' \
@@ -271,7 +269,7 @@ jobs:
           SERVICE="${{ matrix.service.name }}"
           MANUAL_SERVICES="${{ github.event.inputs.services || 'all' }}"
           CHANGED="${{ needs.detect-changes.outputs[matrix.service.name] }}"
-          
+
           if [[ "$MANUAL_SERVICES" == "all" ]] || [[ "$MANUAL_SERVICES" == *"$SERVICE"* ]] || [[ "$CHANGED" == "true" ]]; then
             echo "build=true" >> $GITHUB_OUTPUT
           else
@@ -319,12 +317,12 @@ jobs:
     strategy:
       matrix:
         service:
+          - name: api-gateway
           - name: user-service
           - name: movie-service
           - name: cinema-service
           - name: booking-service
-          - name: api-gateway
-      max-parallel: 2
+      max-parallel: 1
     steps:
       - name: Azure Login
         uses: azure/login@v2
@@ -341,15 +339,42 @@ jobs:
       - name: Wait for deployment
         run: |
           echo "Waiting for ${{ matrix.service.name }} deployment to stabilize..."
-          sleep 30
-          
+          sleep 60
+
           # Check deployment status
           STATUS=$(az containerapp show \
             --name ${{ matrix.service.name }} \
             --resource-group ${{ secrets.RESOURCE_GROUP_NAME }} \
             --query "properties.runningStatus" -o tsv)
-          
+
           echo "Deployment status: $STATUS"
+
+          if [ "$STATUS" != "Running" ]; then
+            echo "Deployment failed, rolling back..."
+            # Get latest revision
+            LATEST_REV=$(az containerapp revision list \
+              --name ${{ matrix.service.name }} \
+              --resource-group ${{ secrets.RESOURCE_GROUP_NAME }} \
+              --query "[0].name" -o tsv)
+            
+            # Get previous revision
+            PREV_REV=$(az containerapp revision list \
+              --name ${{ matrix.service.name }} \
+              --resource-group ${{ secrets.RESOURCE_GROUP_NAME }} \
+              --query "[1].name" -o tsv)
+            
+            if [ -n "$PREV_REV" ]; then
+              az containerapp revision set-traffic \
+                --name ${{ matrix.service.name }} \
+                --resource-group ${{ secrets.RESOURCE_GROUP_NAME }} \
+                --revision-weight "$PREV_REV=100"
+              echo "Rolled back to $PREV_REV"
+              exit 1
+            else
+              echo "No previous revision to rollback to"
+              exit 1
+            fi
+          fi
 
   # ===========================================
   # RUN DATABASE MIGRATIONS

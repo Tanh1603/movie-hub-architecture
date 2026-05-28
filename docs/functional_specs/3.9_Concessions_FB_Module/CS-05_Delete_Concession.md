@@ -1,4 +1,4 @@
-# [CS-05] Delete Concession
+﻿# [CS-05] Delete Concession
 
 ## 1. Description
 
@@ -65,4 +65,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | General | Items with transaction history should be soft-deleted to maintain data integrity for reporting. |
+| (3) | BR197 | Items with transaction history should be soft-deleted to maintain data integrity for reporting. |
+
+

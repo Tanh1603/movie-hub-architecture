@@ -1,4 +1,4 @@
-# [UM-01] User Authentication
+﻿# [UM-01] User Authentication
 
 ## 1. Description
 
@@ -63,5 +63,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | N/A | Authentication is handled entirely by Clerk (Third-party). |
-| (5) | N/A | Tokens must be included in the `Authorization` header for all protected API calls (Section 6.1). |
+| (1) | BR01 | Clerk (third-party) is the authoritative authenticator; the system must delegate authentication to Clerk and must not accept local credential validation. |
+| (5) | BR02 | Protected API requests must include a valid Bearer token in the `Authorization` header; requests with missing or invalid tokens must be rejected with HTTP 401. |
+
+

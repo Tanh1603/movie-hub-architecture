@@ -1,4 +1,4 @@
-# [UM-07] Update Staff
+﻿# [UM-07] Update Staff
 
 ## 1. Description
 
@@ -68,5 +68,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | SRS 5.2 | Updates to `Position` must be valid `StaffPosition` enum values. |
-| (4) | SRS 5.2 | Updates to `Status` must be valid `StaffStatus` (ACTIVE/INACTIVE). |
+| (4) | BR11 | Updates to `Position` must be valid `StaffPosition` enum values. |
+| (4) | BR12 | Updates to `Status` must be valid `StaffStatus` (ACTIVE/INACTIVE). |
+
+

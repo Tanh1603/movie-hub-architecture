@@ -1,4 +1,4 @@
-# [CS-01] List Concessions
+﻿# [CS-01] List Concessions
 
 ## 1. Description
 
@@ -56,5 +56,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | SRS 5.2 | Categorized by `ConcessionCategory` (FOOD, DRINK, COMBO, MERCHANDISE). |
-| (4) | N/A | Only items currently in stock or active are displayed to public users. |
+| (4) | BR190 | Items must be categorized by `ConcessionCategory` (FOOD, DRINK, COMBO, MERCHANDISE); category is required in the DTO. |
+| (4) | BR191 | Only items where `is_active = true` and stock > 0 should be included in public listings; otherwise they must be excluded. |
+
+

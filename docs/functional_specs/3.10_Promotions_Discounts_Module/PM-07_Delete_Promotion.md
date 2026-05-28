@@ -1,4 +1,4 @@
-# [PM-07] Delete Promotion
+﻿# [PM-07] Delete Promotion
 
 ## 1. Description
 
@@ -65,5 +65,7 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | General | Promotions used in completed bookings should be soft-deleted to maintain audit integrity. |
+| (3) | BR28 | Promotions used in completed bookings should be soft-deleted to maintain audit integrity. |
 @enduml
+
+

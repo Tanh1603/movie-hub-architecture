@@ -12,24 +12,39 @@ import {
 } from '@nestjs/common';
 import { TicketService } from '../service/ticket.service';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
+import { RoleGuard } from '../../../common/guard/role.guard';
 import { CurrentUserId } from '../../../common/decorator/current-user-id.decorator';
-import { AdminFindAllTicketsDto, BulkValidateTicketsDto } from '@movie-hub/shared-types';
+import { Permission } from '../../../common/decorator/permission.decorator';
+import { Roles } from '../../../common/decorator/roles.decorator';
+import { AppRole, AdminFindAllTicketsDto, BulkValidateTicketsDto } from '@movie-hub/shared-types';
+import { BookingService } from '../service/booking.service';
 
 @Controller({
   version: '1',
   path: 'tickets',
 })
 export class TicketController {
-  constructor(private readonly ticketService: TicketService) {}
+  constructor(
+    private readonly ticketService: TicketService,
+    private readonly bookingService: BookingService
+  ) {}
+
+  private async assertTicketOwnership(userId: string, bookingId: string) {
+    await this.bookingService.findOne(bookingId, userId);
+  }
 
   /**
    * Get ticket details by ID
    * Authenticated endpoint
    */
   @Get(':id')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
+  @Permission({ resource: 'ticket', action: 'read', scope: 'own' })
   async getTicket(@CurrentUserId() userId: string, @Param('id') id: string) {
-    return this.ticketService.findOne(id);
+    const ticket = await this.ticketService.findOne(id);
+    await this.assertTicketOwnership(userId, ticket.data.bookingId);
+    return ticket;
   }
 
   /**
@@ -37,12 +52,16 @@ export class TicketController {
    * Authenticated endpoint
    */
   @Get('code/:ticketCode')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
+  @Permission({ resource: 'ticket', action: 'read', scope: 'own' })
   async getTicketByCode(
     @CurrentUserId() userId: string,
     @Param('ticketCode') ticketCode: string
   ) {
-    return this.ticketService.findByCode(ticketCode);
+    const ticket = await this.ticketService.findByCode(ticketCode);
+    await this.assertTicketOwnership(userId, ticket.data.bookingId);
+    return ticket;
   }
 
   /**
@@ -50,7 +69,9 @@ export class TicketController {
    * This endpoint checks if a ticket is valid for entry
    */
   @Post(':id/validate')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER, AppRole.STAFF)
+  @Permission({ resource: 'ticket', action: 'validate', scope: 'cinema' })
   @HttpCode(HttpStatus.OK)
   async validateTicket(
     @CurrentUserId() userId: string,
@@ -70,7 +91,9 @@ export class TicketController {
    * This is called after successful entry scan
    */
   @Post(':id/use')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER, AppRole.STAFF)
+  @Permission({ resource: 'ticket', action: 'update', scope: 'cinema' })
   @HttpCode(HttpStatus.OK)
   async useTicket(@CurrentUserId() userId: string, @Param('id') ticketId: string) {
     return this.ticketService.useTicket(ticketId);
@@ -81,11 +104,15 @@ export class TicketController {
    * Returns base64 encoded QR code image
    */
   @Get(':id/qr')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CUSTOMER)
+  @Permission({ resource: 'ticket', action: 'read', scope: 'own' })
   async generateQRCode(
     @CurrentUserId() userId: string,
     @Param('id') ticketId: string
   ) {
+    const ticket = await this.ticketService.findOne(ticketId);
+    await this.assertTicketOwnership(userId, ticket.data.bookingId);
     const qrCode = await this.ticketService.generateQRCode(ticketId);
     return { qrCode };
   }
@@ -93,32 +120,42 @@ export class TicketController {
   // ==================== ADMIN ENDPOINTS ====================
 
   @Get('admin/all')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER, AppRole.STAFF)
+  @Permission({ resource: 'ticket', action: 'read', scope: 'cinema' })
   async adminFindAll(@Query() filters: AdminFindAllTicketsDto) {
     return this.ticketService.adminFindAll(filters);
   }
 
   @Get('admin/showtime/:showtimeId')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER, AppRole.STAFF)
+  @Permission({ resource: 'ticket', action: 'read', scope: 'cinema' })
   async findByShowtime(@Param('showtimeId') showtimeId: string) {
     return this.ticketService.findByShowtime(showtimeId);
   }
 
   @Get('admin/booking/:bookingId')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER, AppRole.STAFF)
+  @Permission({ resource: 'ticket', action: 'read', scope: 'cinema' })
   async findByBooking(@Param('bookingId') bookingId: string) {
     return this.ticketService.findByBooking(bookingId);
   }
 
   @Post('admin/bulk-validate')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER, AppRole.STAFF)
+  @Permission({ resource: 'ticket', action: 'validate', scope: 'cinema' })
   @HttpCode(HttpStatus.OK)
   async bulkValidate(@Body() bulkValidateDto: BulkValidateTicketsDto) {
     return this.ticketService.bulkValidate(bulkValidateDto);
   }
 
   @Put('admin/:id/cancel')
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(ClerkAuthGuard, RoleGuard)
+  @Roles(AppRole.CINEMA_MANAGER)
+  @Permission({ resource: 'ticket', action: 'update', scope: 'cinema' })
   async cancelTicket(
     @Param('id') ticketId: string,
     @Body('reason') reason?: string
@@ -126,3 +163,9 @@ export class TicketController {
     return this.ticketService.cancelTicket(ticketId, reason);
   }
 }
+
+
+
+
+
+

@@ -8,8 +8,8 @@ import {
   SelectValue,
 } from '@movie-hub/shacdn-ui/select';
 import { useUser } from '@clerk/nextjs';
-import { useFindPromotionByTypes } from '@/hooks/promotion-hook';
-import { PromotionType } from '@/libs/types/promotion.type';
+import { useFindPromotionByTypes } from '@/features/client/promotions/hooks';
+import { PromotionType } from '@/types/promotion.type';
 import { useState } from 'react';
 import { PromotionCard } from './_components/promotion-card';
 

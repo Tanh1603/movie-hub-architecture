@@ -18,7 +18,7 @@ export default function SignUpPage() {
               headerTitle: 'text-2xl font-bold',
               headerSubtitle: 'text-gray-600',
               formButtonPrimary: 
-                'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700',
+                'bg-brand-gradient hover-brand-gradient',
             },
           }}
           routing="path"

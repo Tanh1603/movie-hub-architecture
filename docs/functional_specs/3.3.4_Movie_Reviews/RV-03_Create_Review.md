@@ -1,4 +1,4 @@
-# [RV-03] Create Review
+﻿# [RV-03] Create Review
 
 ## 1. Description
 
@@ -66,5 +66,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | BR-REVIEW-01 | One user can only submit one review per movie. |
-| (1) | BR-REVIEW-02 | Rating scale: 1 to 5. |
+| (4) | BR82 | One user can only submit one review per movie. |
+| (1) | BR83 | Rating scale: 1 to 5. |
+
+

@@ -1,4 +1,4 @@
-# [RT-05] Get All Held Seats
+﻿# [RT-05] Get All Held Seats
 
 ## 1. Description
 
@@ -46,4 +46,6 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (2) | N/A | Efficient scanning of Redis is required to avoid blocking the main thread. |
+| (2) | BR145 | Efficient scanning of Redis is required to avoid blocking the main thread. |
+
+

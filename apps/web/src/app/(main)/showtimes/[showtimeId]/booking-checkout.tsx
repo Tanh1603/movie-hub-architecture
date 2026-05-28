@@ -1,4 +1,4 @@
-import { ShowtimeSeatResponse } from '@/libs/types/showtime.type';
+import { ShowtimeSeatResponse } from '@/types/showtime.type';
 import { PaymentSection } from './_components/payment';
 import TicketPreview from './_components/ticket-preview';
 
@@ -10,8 +10,8 @@ export const BookingCheckout = ({data}: {data?: ShowtimeSeatResponse}) => {
       </h1>
       <div className="flex max-sm:flex-col gap-8 items-center justify-center">
         <PaymentSection />
-        <TicketPreview  data={data} />
-      </div>  
+        <TicketPreview data={data} />
+      </div>
     </div>
   );
 };

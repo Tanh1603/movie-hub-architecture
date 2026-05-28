@@ -1,4 +1,4 @@
-# [TP-02] Update Ticket Pricing
+﻿# [TP-02] Update Ticket Pricing
 
 ## 1. Description
 
@@ -67,5 +67,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (5) | N/A | Prices must be positive numerical values. |
-| (5) | N/A | Changes to pricing do not affect bookings already confirmed, only future ones. |
+| (5) | BR60 | Updated prices must be positive numbers greater than zero; invalid price values must be rejected with HTTP 400. |
+| (5) | BR61 | Price updates apply only to future bookings; bookings already confirmed before the update must retain their original pricing. |
+
+

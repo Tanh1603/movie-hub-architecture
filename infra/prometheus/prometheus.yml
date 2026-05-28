@@ -1,0 +1,44 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
+scrape_configs:
+  - job_name: 'api-gateway-metrics'
+    metrics_path: /metrics
+    # Use Swarm task discovery so Prometheus scrapes each replica individually
+    # `tasks.<service>` resolves to the A records of all tasks for the service
+    dns_sd_configs:
+      - names: ['tasks.api-gateway']
+        type: 'A'
+        port: 3000
+
+  - job_name: 'booking-service-metrics'
+    metrics_path: /metrics
+    dns_sd_configs:
+      - names: ['tasks.booking-service']
+        type: 'A'
+        port: 3005
+
+  - job_name: 'user-service-metrics'
+    metrics_path: /metrics
+    dns_sd_configs:
+      - names: ['tasks.user-service']
+        type: 'A'
+        port: 3006
+
+  - job_name: 'movie-service-metrics'
+    metrics_path: /metrics
+    dns_sd_configs:
+      - names: ['tasks.movie-service']
+        type: 'A'
+        port: 3007
+
+  - job_name: 'cinema-service-metrics'
+    metrics_path: /metrics
+    dns_sd_configs:
+      - names: ['tasks.cinema-service']
+        type: 'A'
+        port: 3008

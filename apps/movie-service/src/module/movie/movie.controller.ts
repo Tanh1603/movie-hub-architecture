@@ -13,16 +13,16 @@ import {
   Controller,
   Logger,
   UseFilters,
-  UseInterceptors,
+
 } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { MovieService } from './movie.service';
 import { AllExceptionsFilter } from '../../filter/all-exceptions.filter';
-import { LoggingInterceptor } from '@movie-hub/shared-types/common/logging.interceptor';
+
 
 @Controller('movies')
 @UseFilters(new AllExceptionsFilter())
-@UseInterceptors(new LoggingInterceptor('Movie-Service'))
+
 export class MovieController {
   logger = new Logger(MovieController.name);
 

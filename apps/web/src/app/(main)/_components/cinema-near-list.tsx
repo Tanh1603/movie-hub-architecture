@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useGetCinemasNearby } from '@/hooks/cinema-hooks';
+import { useGetCinemasNearby } from '@/features/client/cinemas/hooks';
 import { useRouter } from 'next/navigation';
-import { CinemaLocationCard } from './cinema-loaction-card';
+import { CinemaLocationCard } from './cinema-location-card';
 import { ErrorFallback } from '@/components/error-fallback';
 import { BlurCircle } from '@/components/blur-circle';
-import type { CinemaLocationResponse } from '@/libs/types/cinema.type';
+import type { CinemaLocationResponse } from '@/types/cinema.type';
 import {
   Carousel,
   CarouselContent,
@@ -15,44 +15,61 @@ import {
   CarouselPrevious,
 } from '@movie-hub/shacdn-ui/carousel';
 import { Button } from '@movie-hub/shacdn-ui/button';
+import { Loader } from '@/components/loader';
 
 export const CinemaListNearby = () => {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
     null
   );
   const [error, setError] = useState<string | null>(null);
+  const [isRequesting, setIsRequesting] = useState(false);
 
-  const requestLocation = () => {
+  const requestLocation = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
     if (!navigator.geolocation) {
       setError('Trình duyệt của bạn không hỗ trợ định vị.');
       return;
     }
+
+    setIsRequesting(true);
+    setError(null);
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setError('');
+        setIsRequesting(false);
       },
       (err) => {
+        setIsRequesting(false);
         switch (err.code) {
           case err.PERMISSION_DENIED:
-            setError('Bạn đã từ chối chia sẻ vị trí.');
+            setError(
+              'Bạn đã từ chối chia sẻ vị trí. Vui lòng cho phép trong cài đặt trình duyệt để xem rạp gần nhất.'
+            );
             break;
           case err.POSITION_UNAVAILABLE:
             setError('Không thể xác định vị trí hiện tại.');
             break;
           case err.TIMEOUT:
-            setError('Yêu cầu định vị mất quá nhiều thời gian.');
+            setError('Yêu cầu định vị quá hạn (timeout).');
             break;
           default:
             setError('Lỗi không xác định khi lấy vị trí.');
         }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
       }
     );
-  };
+  }, []);
 
   useEffect(() => {
     requestLocation();
-  }, []);
+  }, [requestLocation]);
 
   const {
     data,
@@ -71,15 +88,22 @@ export const CinemaListNearby = () => {
   if (!location) {
     return (
       <div className="px-6 py-10 text-center flex flex-col gap-4 text-gray-300">
-        <p className="text-base">
+        <p className="text-base font-medium">
           🎯 Bật định vị để xem rạp chiếu phim gần bạn nhất!
         </p>
-        {error && <p className="text-red-400 text-sm">{error}</p>}
+        {error && <p className="text-red-400 text-sm max-w-md mx-auto">{error}</p>}
         <Button
           onClick={requestLocation}
-          className="w-fit mx-auto rounded-xl px-6 py-2"
+          disabled={isRequesting}
+          className="w-fit mx-auto rounded-xl px-8 py-2 min-w-[160px]"
         >
-          Cấp quyền vị trí
+          {isRequesting ? (
+            <span className="flex items-center gap-2">
+              <Loader size={18} /> Đang lấy vị trí...
+            </span>
+          ) : (
+            'Cấp quyền vị trí'
+          )}
         </Button>
       </div>
     );

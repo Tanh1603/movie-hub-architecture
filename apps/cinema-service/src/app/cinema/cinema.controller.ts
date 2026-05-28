@@ -9,10 +9,10 @@ import {
   UpdateCinemaRequest,
 } from '@movie-hub/shared-types';
 import { PaginationQuery } from '@movie-hub/shared-types/common';
-import { LoggingInterceptor } from '@movie-hub/shared-types/common/logging.interceptor';
+
 
 @Controller('cinema')
-@UseInterceptors(new LoggingInterceptor('Cinema-Service'))
+
 export class CinemaController {
   constructor(private readonly cinemaService: CinemaService) {}
   logger = new Logger(CinemaController.name);

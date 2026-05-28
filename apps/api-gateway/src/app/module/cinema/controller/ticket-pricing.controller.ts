@@ -12,6 +12,7 @@ import {
 import { TicketPricingService } from '../service/ticket-pricing.service';
 import { TransformInterceptor } from '../../../common/interceptor/transform.interceptor';
 import { ClerkAuthGuard } from '../../../common/guard/clerk-auth.guard';
+import { Permission } from '../../../common/decorator/permission.decorator';
 
 @Controller({
   version: '1',
@@ -28,6 +29,7 @@ export class TicketPricingController {
 
   @Patch('pricing/:pricingId')
   @UseGuards(ClerkAuthGuard)
+  @Permission({ resource: 'cinema', action: 'update', scope: 'cinema' })
   async updateTicketPricing(
     @Req() req: any,
     @Param('pricingId') pricingId: string,
@@ -43,3 +45,5 @@ export class TicketPricingController {
     );
   }
 }
+
+

@@ -1,4 +1,4 @@
-# [MV-02] Get Movie Details
+﻿# [MV-02] Get Movie Details
 
 ## 1. Description
 
@@ -64,4 +64,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | N/A | Includes Title, Overview, Release Date, Trailer URL, Poster, Backdrop, Runtime, and Age Rating (SRS 5.1). |
+| (4) | BR64 | Movie detail response must include `title`, `overview`, `releaseDate`, `trailerUrl`, `posterUrl`, `backdropUrl`, `runtime`, and `ageRating` as specified in SRS 5.1; missing movie IDs must return HTTP 404. |
+
+

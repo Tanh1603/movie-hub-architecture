@@ -1,0 +1,62 @@
+groups:
+  - name: security_anomaly_alerts
+    rules:
+      - alert: AuthFailuresSpike
+        expr: sum(rate(auth_failures_total[5m])) > 10 # TBD: Update from baseline
+        for: 5m
+        labels:
+          severity: P2
+          channel: security-alerts
+        annotations:
+          summary: "High rate of authentication failures"
+          description: "Authentication failures exceed baseline threshold in the last 5 minutes."
+
+      - alert: BruteForceLockouts
+        expr: sum(increase(brute_force_lockouts_total[1m])) > 10
+        for: 1m
+        labels:
+          severity: P1
+          channel: on-call-security
+        annotations:
+          summary: "Active brute force lockouts"
+          description: "More than 10 accounts locked out in the last minute."
+
+      - alert: WebhookSignatureFailures
+        expr: sum(increase(webhook_signature_fail_total[5m])) > 5
+        for: 5m
+        labels:
+          severity: P1
+          channel: on-call-security
+        annotations:
+          summary: "Webhook signature failures (Possible Attack)"
+          description: "Multiple webhook signature failures detected for provider {{ $labels.provider }}."
+
+      - alert: WebhookReplayDetected
+        expr: sum(increase(webhook_replay_detected_total[5m])) > 3
+        for: 5m
+        labels:
+          severity: P1
+          channel: on-call-security
+        annotations:
+          summary: "Webhook replay attack detected"
+          description: "More than 3 replayed webhooks detected in the last 5 minutes."
+
+      - alert: ClerkSyncRetryExhausted
+        expr: sum(increase(clerk_sync_retry_exhausted_total[5m])) > 0
+        for: 1m
+        labels:
+          severity: P2
+          channel: security-alerts
+        annotations:
+          summary: "Clerk sync retry exhausted"
+          description: "User sync webhooks failed all retries and require manual triage."
+
+      - alert: NotificationDeadLetters
+        expr: sum(increase(notification_outbox_dead_letter_total[1h])) > 5
+        for: 1h
+        labels:
+          severity: P3
+          channel: security-triage
+        annotations:
+          summary: "Notification dead letters detected"
+          description: "More than 5 notifications moved to dead letter queue in the last hour."

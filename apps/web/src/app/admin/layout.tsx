@@ -1,6 +1,5 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -25,6 +24,7 @@ import {
   DollarSign,
   ShoppingBag,
   Percent,
+  Shield,
 } from 'lucide-react';
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { ScrollArea } from '@movie-hub/shacdn-ui/scroll-area';
@@ -32,8 +32,19 @@ import { cn } from '@movie-hub/shacdn-utils';
 import { useClerk, useUser } from '@clerk/nextjs';
 import { RequireAdminClerkAuth } from '@/components/require-admin-clerk-auth';
 import PageWrapper from '@/components/providers/page-wrapper';
+import { useRBAC } from '@/features/admin/shared/hooks/use-rbac';
+import { AdminPermission } from '@/features/admin/shared/rbac';
 
-const menuSections = [
+type AdminMenuItem = {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  href: string;
+  disabled: boolean;
+  adminOnly?: boolean;
+  permission?: AdminPermission;
+};
+
+const menuSections: Array<{ label: string; items: AdminMenuItem[] }> = [
   {
     label: 'Chính',
     items: [
@@ -42,6 +53,7 @@ const menuSections = [
         label: 'Bảng điều khiển',
         href: '/admin',
         disabled: false,
+        permission: AdminPermission.VIEW_DASHBOARD,
       },
     ],
   },
@@ -53,31 +65,41 @@ const menuSections = [
         label: 'Rạp chiếu phim',
         href: '/admin/cinemas',
         disabled: false,
+        permission: AdminPermission.VIEW_ALL_CINEMAS,
       },
       {
         icon: DoorOpen,
         label: 'Phòng chiếu',
         href: '/admin/halls',
         disabled: false,
+        permission: AdminPermission.VIEW_ALL_CINEMAS,
       },
       {
         icon: Wrench,
         label: 'Trạng thái ghế',
         href: '/admin/seat-status',
         disabled: false,
+        permission: AdminPermission.VIEW_ALL_CINEMAS,
       },
     ],
   },
   {
     label: 'Quản lý nội dung',
     items: [
-      { icon: Film, label: 'Phim', href: '/admin/movies', disabled: false },
+      {
+        icon: Film,
+        label: 'Phim',
+        href: '/admin/movies',
+        disabled: false,
+        permission: AdminPermission.MANAGE_MOVIES,
+      },
       {
         icon: Tag,
         label: 'Thể loại',
         href: '/admin/genres',
         disabled: false,
         adminOnly: true,
+        permission: AdminPermission.MANAGE_MOVIES,
       },
       {
         icon: Calendar,
@@ -85,6 +107,7 @@ const menuSections = [
         href: '/admin/movie-releases',
         disabled: false,
         adminOnly: true,
+        permission: AdminPermission.MANAGE_MOVIES,
       },
     ],
   },
@@ -96,18 +119,21 @@ const menuSections = [
         label: 'Suất chiếu',
         href: '/admin/showtimes',
         disabled: false,
+        permission: AdminPermission.VIEW_SHOWTIMES,
       },
       {
         icon: Eye,
         label: 'Ghế suất chiếu',
         href: '/admin/showtime-seats',
         disabled: false,
+        permission: AdminPermission.VIEW_SHOWTIMES,
       },
       {
         icon: Zap,
         label: 'Suất chiếu hàng loạt',
         href: '/admin/batch-showtimes',
         disabled: false,
+        permission: AdminPermission.MANAGE_SHOWTIMES,
       },
     ],
   },
@@ -120,18 +146,21 @@ const menuSections = [
         href: '/admin/ticket-pricing',
         disabled: false,
         adminOnly: true,
+        permission: AdminPermission.MANAGE_TICKETS,
       },
       {
         icon: ShoppingBag,
         label: 'Đồ ăn',
         href: '/admin/concessions',
         disabled: false,
+        permission: AdminPermission.MANAGE_CONCESSIONS,
       },
       {
         icon: Ticket,
         label: 'Đặt chỗ',
         href: '/admin/reservations',
         disabled: false,
+        permission: AdminPermission.MANAGE_RESERVATIONS,
       },
       {
         icon: Percent,
@@ -139,6 +168,7 @@ const menuSections = [
         href: '/admin/promotions',
         disabled: false,
         adminOnly: true,
+        permission: AdminPermission.MANAGE_TICKETS,
       },
     ],
   },
@@ -150,6 +180,7 @@ const menuSections = [
         label: 'Đánh giá',
         href: '/admin/reviews',
         disabled: false,
+        permission: AdminPermission.VIEW_REPORTS,
       },
     ],
   },
@@ -161,12 +192,22 @@ const menuSections = [
         label: 'Nhân viên',
         href: '/admin/staff',
         disabled: false,
+        permission: AdminPermission.MANAGE_STAFF,
+      },
+      {
+        icon: Shield,
+        label: 'Phân quyền RBAC',
+        href: '/admin/rbac',
+        disabled: false,
+        adminOnly: true,
+        permission: AdminPermission.MANAGE_STAFF,
       },
       {
         icon: BarChart3,
         label: 'Báo cáo',
         href: '/admin/reports',
         disabled: false,
+        permission: AdminPermission.VIEW_REPORTS,
       },
       {
         icon: Settings,
@@ -213,21 +254,26 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { signOut } = useClerk();
   const { user } = useUser();
-  const router = useRouter();
+  const { isLoaded, isAdmin, isCinemaManager, hasPermission: checkPermission } = useRBAC();
 
-  // Check if user is a manager (has cinemaId assigned)
-  const userRole = user?.publicMetadata?.role as string | undefined;
-  const isManager = userRole === 'CINEMA_MANAGER';
-
-  // Filter menu sections based on role
+  // Filter menu sections based on role and permissions
   const filteredMenuSections = menuSections
     .map((section) => ({
       ...section,
       items: section.items.filter((item) => {
-        // Hide admin-only items from managers
-        if (isManager && (item as any).adminOnly) {
+        // 1. Wait until RBAC is loaded before showing anything restricted
+        if (!isLoaded) return false;
+
+        // 2. Hide admin-only items from managers/staff
+        if (!isAdmin && item.adminOnly) {
           return false;
         }
+
+        // 3. If permission is required, check it (now that we know isLoaded is true)
+        if (item.permission && !checkPermission(item.permission)) {
+          return false;
+        }
+
         return true;
       }),
     }))
@@ -257,8 +303,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   }, []);
 
   const handleLogout = async () => {
-    await signOut();
-    router.push('/admin/login');
+    await signOut({ redirectUrl: '/admin/login' });
   };
 
   return (
@@ -326,7 +371,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                             item.disabled
                               ? 'bg-amber-900/20 text-amber-400 border border-amber-500/30 cursor-not-allowed'
                               : isActive
-                              ? 'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white shadow-lg shadow-fuchsia-500/40 ring-1 ring-fuchsia-400/30'
+                              ? 'bg-brand-gradient text-white shadow-lg shadow-fuchsia-500/40 ring-1 ring-fuchsia-400/30'
                               : 'text-slate-300 hover:text-white hover:bg-slate-700/50 hover:shadow-md hover:shadow-slate-800/50 cursor-pointer'
                           )}
                         >
@@ -413,3 +458,5 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+

@@ -62,11 +62,11 @@ output "api_gateway_fqdn" {
 output "service_internal_urls" {
   description = "Internal URLs for all services"
   value = {
-    user_service    = "user-service:${var.services["user-service"].port}"
-    movie_service   = "movie-service:${var.services["movie-service"].port}"
-    cinema_service  = "cinema-service:${var.services["cinema-service"].port}"
-    booking_service = "booking-service:${var.services["booking-service"].port}"
-    api_gateway     = "api-gateway:${var.services["api-gateway"].port}"
+    user_service    = "user-service:${var.services["user-service"].tcp_port}"
+    movie_service   = "movie-service:${var.services["movie-service"].tcp_port}"
+    cinema_service  = "cinema-service:${var.services["cinema-service"].tcp_port}"
+    booking_service = "booking-service:${var.services["booking-service"].tcp_port}"
+    api_gateway     = "api-gateway:${var.services["api-gateway"].http_port}"
   }
 }
 

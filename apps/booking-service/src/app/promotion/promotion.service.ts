@@ -12,6 +12,7 @@ import {
   ValidatePromotionResponseDto,
   CreatePromotionDto,
   UpdatePromotionDto,
+  ResponseMessage,
   ServiceResult,
 } from '@movie-hub/shared-types';
 
@@ -226,7 +227,7 @@ export class PromotionService {
 
     return {
       data: this.mapToDto(promotion),
-      message: 'Promotion created successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -276,7 +277,7 @@ export class PromotionService {
 
     return {
       data: this.mapToDto(promotion),
-      message: 'Promotion updated successfully',
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -312,6 +313,7 @@ export class PromotionService {
 
     return {
       data: { message: 'Promotion deleted successfully' },
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -333,9 +335,7 @@ export class PromotionService {
 
     return {
       data: this.mapToDto(updated),
-      message: `Promotion ${
-        updated.active ? 'activated' : 'deactivated'
-      } successfully`,
+      message: ResponseMessage.MSG_7,
     };
   }
 
@@ -385,7 +385,7 @@ export class PromotionService {
 
     return {
       data: this.mapToDto(promotion),
-      message: `Refund voucher generated successfully. Code: ${code}`,
+      message: ResponseMessage.MSG_7,
     };
   }
 

@@ -57,7 +57,7 @@ async function main() {
       backdropUrl:
         'https://image.tmdb.org/t/p/original/AcKVlWaNVVVFQwro3nLXqPljcYA.jpg',
       runtime: 166,
-      releaseDate: new Date('2024-02-28'),
+      releaseDate: new Date('2026-05-16'),
       ageRating: AgeRating.T13,
       originalLanguage: 'en',
       spokenLanguages: ['vi', 'en'],
@@ -84,7 +84,7 @@ async function main() {
       backdropUrl:
         'https://image.tmdb.org/t/p/original/w13Jg8p7icmPjOJ1rTmlQIP3h5E.jpg',
       runtime: 100,
-      releaseDate: new Date('2024-06-14'),
+      releaseDate: new Date('2026-05-20'),
       ageRating: AgeRating.P,
       originalLanguage: 'en',
       spokenLanguages: ['vi', 'en'],
@@ -106,12 +106,12 @@ async function main() {
       overview:
         'Chân dung J. Robert Oppenheimer trong cuộc chạy đua chế tạo bom nguyên tử, cùng những giằng xé đạo đức và hệ lụy hậu chiến.',
       posterUrl:
-        'https://image.tmdb.org/t/p/w500/8Gxv8g8EXXuS1wE3q4PPRyuqX3y.jpg',
+        'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg',
       trailerUrl: 'https://www.youtube.com/watch?v=uYPbbksJxIg',
       backdropUrl:
-        'https://image.tmdb.org/t/p/original/jIvdc7HqE0nqnEqMAH0lZVzfCwZ.jpg',
+        'https://image.tmdb.org/t/p/original/nb3xI8XI3w4pMVZ38VijbsyBqP4.jpg',
       runtime: 180,
-      releaseDate: new Date('2023-07-21'),
+      releaseDate: new Date('2026-06-10'),
       ageRating: AgeRating.T18,
       originalLanguage: 'en',
       spokenLanguages: ['vi', 'en'],
@@ -138,7 +138,7 @@ async function main() {
       backdropUrl:
         'https://image.tmdb.org/t/p/original/sRLC052ieEzkQs9dEtPMfFxYkej.jpg',
       runtime: 115,
-      releaseDate: new Date('2024-03-29'),
+      releaseDate: new Date('2026-05-15'),
       ageRating: AgeRating.T13,
       originalLanguage: 'en',
       spokenLanguages: ['vi', 'en'],
@@ -176,18 +176,29 @@ async function main() {
       },
     });
 
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const thirtyDaysHence = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const tenDaysHence = new Date(today.getTime() + 10 * 24 * 60 * 60 * 1000);
+    const fortyDaysHence = new Date(today.getTime() + 40 * 24 * 60 * 60 * 1000);
+
     const releaseStart =
       movieData.title === 'Godzilla x Kong: Đế Chúa & Quái Vật'
-        ? new Date('2026-02-10') // Upcoming (Future)
-        : new Date('2025-12-20'); // Now Showing (Past)
+        ? tenDaysHence // Upcoming (Future)
+        : thirtyDaysAgo; // Now Showing (Past)
+
+    const releaseEnd =
+      movieData.title === 'Godzilla x Kong: Đế Chúa & Quái Vật'
+        ? fortyDaysHence
+        : thirtyDaysHence;
 
     await prisma.movieRelease.create({
       data: {
         id: movieData.releaseId,
         movieId: movie.id,
         startDate: releaseStart,
-        endDate: new Date('2026-02-28'),
-        note: 'Lịch phát hành chiếu rạp dịp Tết 2026',
+        endDate: releaseEnd,
+        note: 'Lịch phát hành chiếu rạp tự động cập nhật',
       },
     });
 

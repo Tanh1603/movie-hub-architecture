@@ -1,4 +1,4 @@
-# [CF-01] Get All Settings
+﻿# [CF-01] Get All Settings
 
 ## 1. Description
 
@@ -55,6 +55,8 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (2) | N/A | Settings include things like VAT rate, cancellation deadlines, etc. (SRS 5.1). |
-| (2) | N/A | Only accessible to the Admin actor. |
+| (2) | BR38 | The settings payload must include keys such as VAT rate and cancellation deadlines as specified in SRS 5.1; missing required keys should be treated as a configuration error. |
+| (2) | BR39 | Only users with the Admin role may retrieve all settings; unauthorized requests must return HTTP 403. |
 @enduml
+
+

@@ -1,4 +1,4 @@
-# [PM-05] Create Promotion
+﻿# [PM-05] Create Promotion
 
 ## 1. Description
 
@@ -66,5 +66,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | SRS 5.1 | Required: Code, PromotionType, DiscountValue, ValidFrom, ValidTo. |
-| (1) | SRS 5.2 | PromotionType must be one of: PERCENTAGE, FIXED_AMOUNT, FREE_ITEM, POINTS. |
+| (1) | BR24 | Required: Code, PromotionType, DiscountValue, ValidFrom, ValidTo. |
+| (1) | BR25 | PromotionType must be one of: PERCENTAGE, FIXED_AMOUNT, FREE_ITEM, POINTS. |
+
+

@@ -1,6 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
+// Load environment variables from movie-service's .env file
+require('dotenv').config({ path: path.resolve(__dirname, '../../apps/movie-service/.env') });
+
 // Helper to find PrismaClient in different environments (Local vs Docker)
 function getPrismaClient() {
   const possiblePaths = [

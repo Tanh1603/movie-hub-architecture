@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Backup Service Dashboard</title>
+    <link rel="stylesheet" href="/dashboard/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Backup service</p>
+        <h1>Backup Dashboard</h1>
+        <p class="subtitle">
+          Manual triggers, schedule presets, restore actions, and recent backup
+          history.
+        </p>
+      </div>
+      <div class="topbar-actions">
+        <button id="refreshButton" class="secondary-button" type="button">
+          Refresh
+        </button>
+        <a
+          class="secondary-button link-button"
+          href="/health/live"
+          target="_blank"
+          rel="noreferrer"
+          >Health</a
+        >
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel status-panel">
+        <div class="status-card">
+          <span class="status-label">Last backup time</span>
+          <strong id="lastBackupTime">--</strong>
+        </div>
+        <div class="status-card">
+          <span class="status-label">Last status</span>
+          <strong id="lastBackupStatus">--</strong>
+        </div>
+        <div class="status-card">
+          <span class="status-label">Current preset</span>
+          <strong id="currentPreset">--</strong>
+        </div>
+        <div class="status-card">
+          <span class="status-label">Recent records</span>
+          <strong id="recentCount">--</strong>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Schedule</p>
+            <h2>Backup frequency</h2>
+          </div>
+          <button id="saveScheduleButton" class="primary-button" type="button">
+            Save preset
+          </button>
+        </div>
+        <div
+          class="schedule-group"
+          role="radiogroup"
+          aria-label="Backup preset selector"
+        >
+          <label
+            ><input type="radio" name="schedulePreset" value="EVERY_6_HOURS" />
+            Every 6 hours</label
+          >
+          <label
+            ><input type="radio" name="schedulePreset" value="DAILY" checked />
+            Daily</label
+          >
+          <label
+            ><input type="radio" name="schedulePreset" value="WEEKLY" />
+            Weekly</label
+          >
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Actions</p>
+            <h2>Manual triggers</h2>
+          </div>
+        </div>
+        <div class="button-grid">
+          <button
+            class="service-button"
+            data-service="booking-service"
+            type="button"
+          >
+            Backup booking-service
+          </button>
+          <button
+            class="service-button"
+            data-service="cinema-service"
+            type="button"
+          >
+            Backup cinema-service
+          </button>
+          <button
+            class="service-button"
+            data-service="movie-service"
+            type="button"
+          >
+            Backup movie-service
+          </button>
+          <button
+            class="service-button"
+            data-service="user-service"
+            type="button"
+          >
+            Backup user-service
+          </button>
+        </div>
+        <div id="actionMessage" class="message" aria-live="polite"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">History</p>
+            <h2>Recent backups</h2>
+          </div>
+          <button id="openRestoreButton" class="secondary-button" type="button">
+            Restore from backup
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Service</th>
+                <th>Status</th>
+                <th>Size</th>
+                <th>Duration</th>
+                <th>Backup ID</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="restoreDialog" class="restore-dialog">
+      <form id="restoreForm" method="dialog">
+        <div class="section-heading compact">
+          <div>
+            <p class="eyebrow">Restore</p>
+            <h2>Confirm restore</h2>
+          </div>
+        </div>
+        <p class="dialog-copy">
+          Select a backup ID and confirm the restore request.
+        </p>
+        <label>
+          Backup record
+          <select id="restoreSelect"></select>
+        </label>
+        <div class="dialog-actions">
+          <button
+            id="cancelRestoreButton"
+            class="secondary-button"
+            value="cancel"
+            type="button"
+          >
+            Cancel
+          </button>
+          <button
+            id="confirmRestoreButton"
+            class="primary-button"
+            value="default"
+            type="submit"
+          >
+            Restore
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="/dashboard/app.js"></script>
+  </body>
+</html>

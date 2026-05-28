@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@movie-hub/shacdn-ui/button';
-import { SeatTypeEnum } from '@/libs/types/showtime.type';
+import { SeatTypeEnum } from '@/types/showtime.type';
 import { Accessibility, Star, Armchair } from 'lucide-react';
 
 interface SeatProps {

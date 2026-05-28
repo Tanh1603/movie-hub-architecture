@@ -1,14 +1,19 @@
-import { LoggingInterceptor } from '@movie-hub/shared-types/common/logging.interceptor';
+
 /**
  * This is not a production server yet!
  * This is only a minimal backend to get started.
  */
 
-import { Logger, VersioningType } from '@nestjs/common';
+import { VersioningType } from '@nestjs/common';
+import { Logger } from 'nestjs-pino';
 import { NestFactory } from '@nestjs/core';
 import { OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+
 import { readFileSync } from 'fs';
+
 import * as yaml from 'js-yaml';
 import { AppModule } from './app/app.module';
 import { TransformInterceptor } from './app/common/interceptor/transform.interceptor';
@@ -16,13 +21,107 @@ import { GlobalExceptionFilter } from './app/exception/global-exception.filter';
 import { RedisIoAdapter } from './app/module/realtime/adapter/redis-io.adapter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    rawBody: true,
+    bufferLogs: true,
+  });
+ const logger = app.get(Logger);
+  app.useLogger(logger);
+
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:', 'validator.swagger.io'],
+        },
+      },
+      crossOriginEmbedderPolicy: false,
+    })
+  );
+
+  app.set('trust proxy', 1);
+
+  app.enableShutdownHooks();
+  const serviceName = 'api-gateway';
+  let shutdownStarted = false;
+
+  const shutdown = async (signal: NodeJS.Signals) => {
+    if (shutdownStarted) {
+      return;
+    }
+
+    shutdownStarted = true;
+    logger.log(
+      JSON.stringify({
+        event: 'shutdown-start',
+        service: serviceName,
+        signal,
+        timestamp: new Date().toISOString(),
+      }),
+      serviceName
+    );
+
+    const timeout = setTimeout(() => {
+      logger.error(
+        JSON.stringify({
+          event: 'shutdown-timeout',
+          service: serviceName,
+          signal,
+          timestamp: new Date().toISOString(),
+          timeoutMs: 30000,
+        }),
+        undefined,
+        serviceName
+      );
+      process.exit(1);
+    }, 30000);
+    timeout.unref();
+
+    try {
+      await app.close();
+      clearTimeout(timeout);
+      logger.log(
+        JSON.stringify({
+          event: 'shutdown-complete',
+          service: serviceName,
+          signal,
+          timestamp: new Date().toISOString(),
+        }),
+        serviceName
+      );
+      process.exit(0);
+    } catch (error) {
+      clearTimeout(timeout);
+      logger.error(
+        JSON.stringify({
+          event: 'shutdown-failed',
+          service: serviceName,
+          signal,
+          timestamp: new Date().toISOString(),
+        }),
+        error instanceof Error ? error.stack : String(error),
+        serviceName
+      );
+      process.exit(1);
+    }
+  };
+
+  process.once('SIGTERM', () => {
+    void shutdown('SIGTERM');
+  });
+
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix, {
-    exclude: ['/socket.io/(.*)'],
+    exclude: ['/socket.io/(.*)', 'metrics'],
   });
 
   app.use(cookieParser());
+
+
+
   app.enableVersioning({
     type: VersioningType.URI,
     prefix: 'v',
@@ -39,10 +138,8 @@ async function bootstrap() {
 
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalInterceptors(
-    new TransformInterceptor(),
-    new LoggingInterceptor('Api-Gateway')
+    new TransformInterceptor()
   );
-
   // Create Redis Adapter
   const redisIoAdapter = new RedisIoAdapter(app);
   await redisIoAdapter.connectToRedis();
@@ -51,7 +148,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  Logger.log(
+  logger.log(
     `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`
   );
 }

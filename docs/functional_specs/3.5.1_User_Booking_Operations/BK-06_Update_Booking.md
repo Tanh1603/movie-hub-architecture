@@ -1,4 +1,4 @@
-# [BK-06] Update Booking
+﻿# [BK-06] Update Booking
 
 ## 1. Description
 
@@ -67,5 +67,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | N/A | Bookings cannot be modified once they are CONFIRMED or PAID. |
-| (5) | BR-PAY-03 | VAT (10%) must be recalculated based on new items. |
+| (3) | BR113 | Bookings cannot be modified once they are CONFIRMED or PAID. |
+| (5) | BR114 | VAT (10%) must be recalculated based on new items. |
+
+

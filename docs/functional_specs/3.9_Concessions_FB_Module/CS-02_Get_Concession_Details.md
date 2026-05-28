@@ -1,4 +1,4 @@
-# [CS-02] Get Concession Details
+﻿# [CS-02] Get Concession Details
 
 ## 1. Description
 
@@ -64,4 +64,6 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | N/A | Standard read operation for a single concession item. |
+| (1) | BR192 | Retrieving concession details returns the full concession record (description, ingredients, nutritional info when available); requests for missing IDs must return HTTP 404. |
+
+

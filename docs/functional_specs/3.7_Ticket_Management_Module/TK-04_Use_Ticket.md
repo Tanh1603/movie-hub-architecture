@@ -1,4 +1,4 @@
-# [TK-04] Use Ticket (Mark Entry)
+﻿# [TK-04] Use Ticket (Mark Entry)
 
 ## 1. Description
 
@@ -64,5 +64,7 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | SRS 5.2 | A ticket can only be transitioned to `USED` from `VALID` status. |
-| (4) | N/A | The timestamp of usage should be recorded for auditing. |
+| (3) | BR168 | A ticket can only be transitioned to `USED` from `VALID` status. |
+| (4) | BR169 | The timestamp of usage should be recorded for auditing. |
+
+
