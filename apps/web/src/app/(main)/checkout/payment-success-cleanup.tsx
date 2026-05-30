@@ -7,9 +7,12 @@ export function PaymentSuccessCleanup() {
   const resetBooking = useBookingStore((state) => state.resetBooking);
 
   useEffect(() => {
-    Object.keys(window.sessionStorage)
-      .filter((key) => key.startsWith('pendingPaymentUrl:'))
-      .forEach((key) => window.sessionStorage.removeItem(key));
+    for (let index = window.sessionStorage.length - 1; index >= 0; index--) {
+      const key = window.sessionStorage.key(index);
+      if (key?.startsWith('pendingPaymentUrl:')) {
+        window.sessionStorage.removeItem(key);
+      }
+    }
     resetBooking();
   }, [resetBooking]);
 
