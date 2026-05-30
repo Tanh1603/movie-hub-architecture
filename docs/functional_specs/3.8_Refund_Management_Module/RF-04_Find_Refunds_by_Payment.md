@@ -1,4 +1,4 @@
-﻿# [RF-04] Find Refunds by Payment
+# [RF-04] Find Refunds by Payment
 
 ## 1. Description
 
@@ -7,27 +7,31 @@
 | **Name** | Find Refunds by Payment |
 | **Functional ID** | RF-04 |
 | **Description** | Retrieves the refund request(s) associated with a specific payment transaction. |
-| **Actor** | Admin |
+| **Actor** | Cinema Manager / Staff |
 | **Trigger** | `GET /v1/refunds/payment/:paymentId` |
-| **Pre-condition** | Admin authenticated; Payment ID exists. |
-| **Post-condition** | List of associated refund records returned. |
+| **Pre-condition** | Caller satisfies gateway auth/permission requirements and request data matches shared DTO/query schema. |
+| **Post-condition** | Requested data is returned or the targeted state change is persisted consistently. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor Admin
+actor "Cinema Manager / Staff" as Actor
 boundary "API Gateway" as GW
-control "Booking Service" as BS
-entity "Database (Booking)" as DB
+control "Booking Service" as SVC
+database "Booking Database" as DB
+control "Cinema/User/Notification Services" as EXT
 
-Admin -> GW: GET /v1/refunds/payment/:id
-GW -> BS: Get Refund by Payment Request
-BS -> DB: SELECT * FROM Refunds WHERE paymentId = :id
-DB --> BS: Refund Record(s)
-BS --> GW: Refund List DTO
-GW --> Admin: 200 OK
+Actor -> GW: GET /v1/refunds/payment/:paymentId
+GW -> GW: Validate auth/role/permission
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `refund.findByPayment`
+SVC -> DB: Read/write required records
+SVC -> EXT: Fetch showtime/user/payment/ticket context when required
+EXT --> SVC: Context or downstream failure
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -35,18 +39,56 @@ GW --> Admin: 200 OK
 
 ```plantuml
 @startuml
-|Admin|
+|Cinema Manager / Staff|
 start
-:(1) Check Payment Audit Trail;
+:Send request/event;
 |API Gateway|
-:(2) Request associated refund;
-|Booking Service|
-:(3) Query DB for paymentId;
-|Database|
-:(4) Return Data;
-|API Gateway|
-:(5) Return Response;
-stop
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
+    |Booking Service|
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Cinema Manager / Staff|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
+    endif
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
+    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
+endif
 @enduml
 ```
 
@@ -54,7 +96,13 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR184 | Typically, only one refund is allowed per payment. |
-| (3) | BR185 | Used to track whether a payment has already been reversed. |
-
-
+| Gateway guard | BR-RF-04-01 | Request must pass ClerkAuthGuard, RoleGuard where configured, and permission decorators for cinema/global scope before service dispatch. |
+| Input validation | BR-RF-04-02 | Refund DTOs require the referenced payment/refund/booking IDs and action-specific reason/provider fields; status filters use RefundStatus values. |
+| Route/message boundary | BR-RF-04-03 | Implemented trigger is `GET /v1/refunds/payment/:paymentId` and service boundary uses `refund.findByPayment`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-RF-04-04 | Refunds can only be created for existing completed payments or confirmed bookings that satisfy refund policy constraints. |
+| Business/state rule | BR-RF-04-05 | Refund status transitions are `PENDING -> PROCESSING -> COMPLETED` or `PENDING -> FAILED/REJECTED`; completed/rejected states must not be overwritten by stale actions. |
+| Business/state rule | BR-RF-04-06 | Voucher refunds create a fixed-amount promotion voucher for eligible bookings and then update booking/payment/ticket state consistently. |
+| Business/state rule | BR-RF-04-07 | Seat release for refunded bookings is delegated to Cinema Service/Redis release flow after refund state is persisted. |
+| Integration constraint | BR-RF-04-08 | Integration coordinates Booking, Payment, Ticket, Promotion voucher, Cinema seat release, and uses microservice pattern `refund.findByPayment`. |
+| Success response | BR-RF-04-09 | Successful write/validation/state-changing operations return service data with `ResponseMessage.MSG_7` where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
+| Failure response | BR-RF-04-10 | Expected failures include `Payment not found`, `Can only refund completed payments`, `Refund not found`, `Can only process pending refunds`, `Can only reject pending refunds`, `Booking not found`, `Cannot fetch showtime information`, `Showtime information not available`, and `No ticket amount to refund`. |

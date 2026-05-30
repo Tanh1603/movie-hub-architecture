@@ -1,4 +1,4 @@
-﻿# [ST-02] Get Session TTL
+# [ST-02] Get Session TTL
 
 ## 1. Description
 
@@ -7,32 +7,28 @@
 | **Name** | Get Session TTL |
 | **Functional ID** | ST-02 |
 | **Description** | Retrieves the remaining time (Time To Live) for the user's current seat-holding session for a showtime. |
-| **Actor** | Member |
+| **Actor** | Authenticated User |
 | **Trigger** | `GET /v1/showtimes/showtime/:showtimeId/ttl` |
-| **Pre-condition** | Member has at least one seat held for this showtime. |
-| **Post-condition** | Remaining seconds returned. |
+| **Pre-condition** | Caller satisfies gateway auth/permission requirements and request data matches shared DTO/query schema. |
+| **Post-condition** | Requested data is returned or the targeted state change is persisted consistently. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor Member
+actor "Authenticated User" as Actor
 boundary "API Gateway" as GW
-control "Cinema Service" as CS
-entity "Redis" as R
+control "Cinema Service" as SVC
+database "Cinema Database" as DB
 
-Member -> GW: GET /v1/showtimes/showtime/:id/ttl
-GW -> CS: Get TTL Request
-CS -> R: TTL hold:user:{userId}:showtime:{id}
-alt Key Exists
-    R --> CS: Remaining Seconds
-    CS --> GW: TTL DTO
-    GW --> Member: 200 OK
-else No Session
-    CS --> GW: 0 seconds / No Session
-    GW --> Member: 200 OK (ttl: 0)
-end
+Actor -> GW: GET /v1/showtimes/showtime/:showtimeId/ttl
+GW -> GW: Validate auth/role/permission
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `showtime.get_session_ttl`
+SVC -> DB: Read/write required records
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -40,23 +36,56 @@ end
 
 ```plantuml
 @startuml
-|Member|
+|Authenticated User|
 start
-:(1) Request Session Time Remaining;
+:Send request/event;
 |API Gateway|
-:(2) Forward Request;
-|Cinema Service|
-:(3) Query Redis for Hold TTL;
-|Redis|
-:(4) Return TTL value;
-if (Session Exists?) then (Yes)
-    |API Gateway|
-    :(5) Return Remaining Seconds;
-else (No)
-    |API Gateway|
-    :(6) Return 0;
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
+    |Cinema Service|
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Authenticated User|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
+    endif
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
+    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
-stop
 @enduml
 ```
 
@@ -64,6 +93,13 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR89 | Seat hold duration (TTL): 10 minutes (600 seconds). |
-
-
+| Gateway guard | BR-ST-02-01 | Request must pass ClerkAuthGuard and the configured Permission decorator before the gateway forwards the command. |
+| Input validation | BR-ST-02-02 | Showtime IDs and filter dates must be parseable; enum fields use FormatEnum and ShowtimeStatusEnum and pagination values are numeric where accepted. |
+| Route/message boundary | BR-ST-02-03 | Implemented trigger is `GET /v1/showtimes/showtime/:showtimeId/ttl` and service boundary uses `showtime.get_session_ttl`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-ST-02-04 | Showtime create/update must verify referenced movie release, cinema, and hall and reject overlapping hall schedules with the explicit conflict error returned by Showtime Service. |
+| Business/state rule | BR-ST-02-05 | Managers are limited to their own cinema; gateway overwrites or checks cinemaId from staff context before dispatch. |
+| Business/state rule | BR-ST-02-06 | Deleting or cancelling showtimes must respect existing bookings/reservations and service constraints. |
+| Business/state rule | BR-ST-02-07 | Seat map/TTL reads combine persisted showtime/seat data with Redis held-seat state for the requesting user. |
+| Integration constraint | BR-ST-02-08 | Gateway forwards the request to the target service through microservice pattern `showtime.get_session_ttl` and propagates service errors through the common exception layer. |
+| Success response | BR-ST-02-09 | Successful read operations return the requested DTO/list using the gateway's normal response wrapper; no artificial success text is invented by the spec. |
+| Failure response | BR-ST-02-10 | Expected failures include `Showtime not found`, conflict errors such as `Conflict with showtime existing in hall`, invalid showtime references, and wrong-cinema forbidden messages. |

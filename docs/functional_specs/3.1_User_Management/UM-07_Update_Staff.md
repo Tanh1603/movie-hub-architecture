@@ -1,4 +1,4 @@
-﻿# [UM-07] Update Staff
+# [UM-07] Update Staff
 
 ## 1. Description
 
@@ -7,34 +7,28 @@
 | **Name** | Update Staff |
 | **Functional ID** | UM-07 |
 | **Description** | Updates the information of an existing staff member (e.g., position, status, assignment). |
-| **Actor** | Admin, Cinema Manager |
+| **Actor** | Authorized Staff |
 | **Trigger** | `PUT /v1/staffs/:id` |
-| **Pre-condition** | Staff ID exists; User authorized; Valid update payload. |
-| **Post-condition** | Staff record is updated in the database. |
+| **Pre-condition** | Caller satisfies gateway auth/permission requirements and request data matches shared DTO/query schema. |
+| **Post-condition** | State change is persisted atomically or the request fails without partial data inconsistency. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor "Manager/Admin" as Admin
+actor "Authorized Staff" as Actor
 boundary "API Gateway" as GW
-control "User Service" as US
-entity "Database (User)" as DB
+control "User Service" as SVC
+database "User Database" as DB
 
-Admin -> GW: PUT /v1/staffs/:id (Update Data)
-GW -> GW: Validate Role
-GW -> US: Update Request
-US -> DB: Check Staff Exists
-alt Exists
-    US -> DB: Update Fields
-    DB --> US: Updated Record
-    US --> GW: Success Response
-    GW --> Admin: 200 OK
-else Not Found
-    US --> GW: Error 404
-    GW --> Admin: 404 Not Found
-end
+Actor -> GW: PUT /v1/staffs/:id
+GW -> GW: Validate auth/role/permission
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `staff.updated`
+SVC -> DB: Read/write required records
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -42,24 +36,55 @@ end
 
 ```plantuml
 @startuml
-|Manager/Admin|
+|Authorized Staff|
 start
-:(1) Submit Update Data;
+:Send request/event;
 |API Gateway|
-:(2) Validate Payload & Role;
-|User Service|
-:(3) Find Staff Record;
-if (Found?) then (Yes)
-    :(4) Apply Updates (Position/Status);
-    |Database|
-    :(5) Commit Changes;
-    |API Gateway|
-    :(6) Return Updated Profile;
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
+    |User Service|
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Authorized Staff|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
+    endif
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
     stop
-else (No)
-    |API Gateway|
-    :(7) Return 404 Error;
-    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
 @enduml
 ```
@@ -68,7 +93,14 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | BR11 | Updates to `Position` must be valid `StaffPosition` enum values. |
-| (4) | BR12 | Updates to `Status` must be valid `StaffStatus` (ACTIVE/INACTIVE). |
-
-
+| Gateway guard | BR-UM-07-01 | Request must pass ClerkAuthGuard and the configured Permission decorator before the gateway forwards the command. |
+| Input validation | BR-UM-07-02 | User/staff IDs and RBAC payloads must be present; DTO/Zod validation maps missing fields to `ResponseMessage.MSG_1` and bad format to `ResponseMessage.MSG_4` when the gateway validation layer catches them. |
+| Route/message boundary | BR-UM-07-03 | Implemented trigger is `PUT /v1/staffs/:id` and service boundary uses `staff.updated`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-UM-07-04 | User data is sourced from Clerk-synchronized records and staff context; Clerk webhook payloads must be verified before processing. |
+| Business/state rule | BR-UM-07-05 | Staff managers are limited to their assigned cinema for create, view, update, and delete operations where staffContext.cinemaId is present. |
+| Business/state rule | BR-UM-07-06 | RBAC and user operations require configured Permission decorators; unknown permissions, unknown roles, and removing the last ADMIN fail with explicit RBAC errors. |
+| Business/state rule | BR-UM-07-07 | Staff create/update synchronizes with Clerk where configured and returns propagated errors for duplicate identity or external sync failure. |
+| Business/state rule | BR-UM-07-08 | Update actions must merge only allowed DTO fields and leave omitted fields unchanged. |
+| Integration constraint | BR-UM-07-09 | Gateway forwards the request to the target service through microservice pattern `staff.updated` and propagates service errors through the common exception layer. |
+| Success response | BR-UM-07-10 | Successful write/validation/state-changing operations return service data with `ResponseMessage.MSG_7` where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
+| Failure response | BR-UM-07-11 | Expected failures include staff cinema-scope ForbiddenException messages, invalid Clerk webhook envelope, unknown permissions/roles, duplicate staff identity, and `Cannot remove the last ADMIN`. |

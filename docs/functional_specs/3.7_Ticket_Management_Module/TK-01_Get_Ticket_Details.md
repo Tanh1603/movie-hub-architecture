@@ -1,4 +1,4 @@
-﻿# [TK-01] Get Ticket Details
+# [TK-01] Get Ticket Details
 
 ## 1. Description
 
@@ -7,31 +7,31 @@
 | **Name** | Get Ticket Details |
 | **Functional ID** | TK-01 |
 | **Description** | Retrieves full information about a specific digital ticket, including seat number, showtime details, and its current validity status. |
-| **Actor** | Member |
+| **Actor** | Customer |
 | **Trigger** | `GET /v1/tickets/:id` |
-| **Pre-condition** | Member authenticated; Ticket ID exists and belongs to the member. |
-| **Post-condition** | Ticket details returned. |
+| **Pre-condition** | Ticket exists and caller has owner or cinema validation permission. |
+| **Post-condition** | Ticket details/QR are returned or ticket state is updated consistently. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor Member
+actor "Customer" as Actor
 boundary "API Gateway" as GW
-control "Booking Service" as BS
-entity "Database (Booking)" as DB
+control "Booking Service" as SVC
+database "Booking Database" as DB
+control "QR/Notification Components" as EXT
 
-Member -> GW: GET /v1/tickets/:id
-GW -> BS: Get Ticket Request
-BS -> DB: Find Unique Ticket
-alt Found & Owner
-    DB --> BS: Ticket Record
-    BS --> GW: Ticket Detail DTO
-    GW --> Member: 200 OK
-else Forbidden/Not Found
-    BS --> GW: 403 / 404
-end
+Actor -> GW: GET /v1/tickets/:id
+GW -> GW: Validate auth/role/permission
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `ticket.findOne`
+SVC -> DB: Read/write required records
+SVC -> EXT: Generate QR or coordinate delivery when required
+EXT --> SVC: Generated artifact/status
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -39,23 +39,55 @@ end
 
 ```plantuml
 @startuml
-|Member|
+|Customer|
 start
-:(1) Select Ticket to View;
+:Send request/event;
 |API Gateway|
-:(2) Forward Request;
-|Booking Service|
-:(3) Query DB for Ticket;
-|Database|
-:(4) Return Data;
-if (Is Owner?) then (Yes)
-    |API Gateway|
-    :(5) Return Ticket JSON;
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
+    |Booking Service|
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Customer|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
+    endif
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
     stop
-else (No)
-    |API Gateway|
-    :(6) Return 403 Forbidden;
-    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
 @enduml
 ```
@@ -64,11 +96,13 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (2) | BR203 | Only the member who bought the ticket or authorized staff can view detailed ticket information. |
-| (3) | BR204 | Ticket status must be one of the `TicketStatus` enum values and must reflect the related booking/payment state. |
-| (3) | BR205 | Confirmed tickets must include QR-ready data for e-ticket display and download. |
-| (3) | BR206 | QR data must identify a unique ticket and must not expose mutable payment data, OTP values, or customer PII. |
-| (5) | BR207 | Ticket details must remain accessible after payment confirmation for download, resend, and offline save workflows. |
-| (5) | BR208 | Ticket layout data must include essential movie, cinema, hall, showtime, seat, and booking code information. |
-
-
+| Gateway guard | BR-TK-01-01 | Customer request must pass ClerkAuthGuard; own-scope permissions and ownership checks prevent access to another user's booking, payment, ticket, loyalty, or refund data. |
+| Input validation | BR-TK-01-02 | Ticket IDs or ticket codes are required; validation may include `validationCode` and `cinemaId`; bulk validation requires a ticket list payload matching BulkValidateTicketsDto. |
+| Route/message boundary | BR-TK-01-03 | Implemented trigger is `GET /v1/tickets/:id` and service boundary uses `ticket.findOne`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-TK-01-04 | Customer ticket reads and QR generation require ownership through the ticket's booking; staff validation endpoints require cinema-scope permissions. |
+| Business/state rule | BR-TK-01-05 | Ticket states are `VALID`, `USED`, `CANCELLED`, and `EXPIRED`; used tickets cannot be cancelled and invalid tickets cannot be used for entry. |
+| Business/state rule | BR-TK-01-06 | QR payloads are generated from persisted ticket identity/code and must remain unique and tamper-resistant; duplicate code reuse must be rejected during validation. |
+| Business/state rule | BR-TK-01-07 | Ticket delivery depends on confirmed payment/booking flow and notification/outbox delivery where enabled; lookup must still work from persisted ticket data. |
+| Integration constraint | BR-TK-01-08 | Integration uses Booking Service ticket module and, for QR or delivery, notification/outbox/digital delivery components where enabled; microservice pattern `ticket.findOne`. |
+| Success response | BR-TK-01-09 | Successful write/validation/state-changing operations return service data with `ResponseMessage.MSG_7` where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
+| Failure response | BR-TK-01-10 | Expected failures include `Ticket not found`, invalid ticket status during validation/use, and `Cannot cancel a used ticket` for cancellation. |

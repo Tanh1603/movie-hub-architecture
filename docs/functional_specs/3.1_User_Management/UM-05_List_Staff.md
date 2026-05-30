@@ -1,4 +1,4 @@
-﻿# [UM-05] List Staff
+# [UM-05] List Staff
 
 ## 1. Description
 
@@ -7,28 +7,28 @@
 | **Name** | List Staff |
 | **Functional ID** | UM-05 |
 | **Description** | Allows Admins or Cinema Managers to view a list of staff members, with filtering options for cinema location, position, and employment status. |
-| **Actor** | Admin, Cinema Manager |
+| **Actor** | Authenticated User |
 | **Trigger** | `GET /v1/staffs` |
-| **Pre-condition** | User is authenticated with `ADMIN` or `CINEMA_MANAGER` role. |
-| **Post-condition** | A filtered list of staff members is returned. |
+| **Pre-condition** | Caller satisfies gateway auth/permission requirements and request data matches shared DTO/query schema. |
+| **Post-condition** | Requested data is returned or the targeted state change is persisted consistently. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor "Manager/Admin" as Admin
+actor "Authenticated User" as Actor
 boundary "API Gateway" as GW
-control "User Service" as US
-entity "Database (User)" as DB
+control "User Service" as SVC
+database "User Database" as DB
 
-Admin -> GW: GET /v1/staffs?cinemaId=...&position=...
-GW -> GW: Validate Permissions
-GW -> US: Request Staff List (Filters)
-US -> DB: Select * FROM Staff WHERE conditions
-DB --> US: List of Staff Records
-US --> GW: Staff List DTO
-GW --> Admin: 200 OK (JSON List)
+Actor -> GW: GET /v1/staffs
+GW -> GW: Validate auth/role/permission
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `staff.list`
+SVC -> DB: Read/write required records
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -36,26 +36,55 @@ GW --> Admin: 200 OK (JSON List)
 
 ```plantuml
 @startuml
-|Manager/Admin|
+|Authenticated User|
 start
-:(1) Request Staff List (provide filters);
+:Send request/event;
 |API Gateway|
-:(2) Validate Role Permissions;
-if (Authorized?) then (Yes)
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
     |User Service|
-    :(3) Parse Query Parameters (cinemaId, position, status);
-    :(4) Construct DB Query;
-    |Database|
-    :(5) Execute Search;
-    |User Service|
-    :(6) Serialize Results;
-    |API Gateway|
-    :(7) Return Staff List;
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Authenticated User|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
+    endif
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
     stop
-else (No)
-    |API Gateway|
-    :(8) Return 403 Forbidden;
-    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
 @enduml
 ```
@@ -64,7 +93,14 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (2) | BR08 | Query Parameters supported: `cinemaId` (Filter by location), `position` (Filter by StaffPosition enum), `status` (ACTIVE/INACTIVE). |
-| (4) | BR09 | Cinema Managers should typically only see staff assigned to their specific cinema (Implicit data scoping rule). |
-
-
+| Gateway guard | BR-UM-05-01 | Request must pass ClerkAuthGuard and the configured Permission decorator before the gateway forwards the command. |
+| Input validation | BR-UM-05-02 | User/staff IDs and RBAC payloads must be present; DTO/Zod validation maps missing fields to `ResponseMessage.MSG_1` and bad format to `ResponseMessage.MSG_4` when the gateway validation layer catches them. |
+| Route/message boundary | BR-UM-05-03 | Implemented trigger is `GET /v1/staffs` and service boundary uses `staff.list`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-UM-05-04 | User data is sourced from Clerk-synchronized records and staff context; Clerk webhook payloads must be verified before processing. |
+| Business/state rule | BR-UM-05-05 | Staff managers are limited to their assigned cinema for create, view, update, and delete operations where staffContext.cinemaId is present. |
+| Business/state rule | BR-UM-05-06 | RBAC and user operations require configured Permission decorators; unknown permissions, unknown roles, and removing the last ADMIN fail with explicit RBAC errors. |
+| Business/state rule | BR-UM-05-07 | Staff create/update synchronizes with Clerk where configured and returns propagated errors for duplicate identity or external sync failure. |
+| Business/state rule | BR-UM-05-08 | List responses must honor supported filters, pagination defaults, and cinema/user scoping before returning data. |
+| Integration constraint | BR-UM-05-09 | Gateway forwards the request to the target service through microservice pattern `staff.list` and propagates service errors through the common exception layer. |
+| Success response | BR-UM-05-10 | Successful read operations return the requested DTO/list using the gateway's normal response wrapper; no artificial success text is invented by the spec. |
+| Failure response | BR-UM-05-11 | Expected failures include staff cinema-scope ForbiddenException messages, invalid Clerk webhook envelope, unknown permissions/roles, duplicate staff identity, and `Cannot remove the last ADMIN`. |

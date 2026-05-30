@@ -1,4 +1,4 @@
-﻿# [BK-09] Cancel with Refund
+# [BK-09] Cancel with Refund
 
 ## 1. Description
 
@@ -7,32 +7,31 @@
 | **Name** | Cancel with Refund |
 | **Functional ID** | BK-09 |
 | **Description** | Processes a cancellation and initiates a refund request in one operation. |
-| **Actor** | Member |
+| **Actor** | Customer |
 | **Trigger** | `POST /v1/bookings/:id/cancel-with-refund` |
-| **Pre-condition** | Member authenticated; Booking eligible for refund. |
-| **Post-condition** | Booking status `CANCELLED`; Refund record created with status `PENDING`. |
+| **Pre-condition** | Customer or staff has access to the booking context; showtime, seat, payment, and refund prerequisites are valid for the requested action. |
+| **Post-condition** | State change is persisted atomically or the request fails without partial data inconsistency. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor Member
+actor "Customer" as Actor
 boundary "API Gateway" as GW
-control "Booking Service" as BS
-entity "Database (Booking)" as DB
+control "Booking Service" as SVC
+database "Booking Database" as DB
+control "Cinema/User/Notification Services" as EXT
 
-Member -> GW: POST /v1/bookings/:id/cancel-with-refund
-GW -> BS: Cancel & Refund Request
-BS -> BS: Validate Eligibility (Time/Status)
-alt Eligible
-    BS -> DB: Update Booking Status = 'CANCELLED'
-    BS -> DB: Create Refund Record (Status: PENDING)
-    DB --> BS: Success
-    BS --> GW: 200 OK
-else Not Eligible
-    BS --> GW: 400 Bad Request
-end
+Actor -> GW: POST /v1/bookings/:id/cancel-with-refund
+GW -> GW: Validate auth/role/permission
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `booking.cancelWithRefund`
+SVC -> DB: Read/write required records
+SVC -> EXT: Fetch showtime/user/payment/ticket context when required
+EXT --> SVC: Context or downstream failure
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -40,26 +39,55 @@ end
 
 ```plantuml
 @startuml
-|Member|
+|Customer|
 start
-:(1) Request Cancellation + Refund;
+:Send request/event;
 |API Gateway|
-:(2) Forward Request;
-|Booking Service|
-:(3) Check Eligibility Rules;
-if (Eligible?) then (Yes)
-    |Database|
-    :(4) Mark Booking as CANCELLED;
-    :(5) Create Refund Request Record;
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
     |Booking Service|
-    :(6) Trigger Payment Provider Refund (optional/async);
-    |API Gateway|
-    :(7) Return Confirmation;
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Customer|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
+    endif
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
     stop
-else (No)
-    |API Gateway|
-    :(8) Return Error (e.g., Too late for refund);
-    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
 @enduml
 ```
@@ -68,11 +96,14 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (2) | BR154 | Member must own the booking and pass refund eligibility checks before refund cancellation is processed. |
-| (3) | BR155 | Current legacy flow requires cancellation at least 2 hours before showtime; voucher refund flow is handled by the refund module. |
-| (3) | BR156 | Current legacy refund amount is 70% of ticket price only; concessions remain non-refundable. |
-| (4) | BR157 | Booking cancellation and refund request creation must not leave payment, ticket, or booking states inconsistent. |
-| (5) | BR158 | The system must return refund calculation details even when the user is not eligible, including the reason. |
-| (6) | BR159 | Refund processing must be retryable and auditable because payment gateway or voucher generation can fail independently. |
-
-
+| Gateway guard | BR-BK-09-01 | Customer request must pass ClerkAuthGuard; own-scope permissions and ownership checks prevent access to another user's booking, payment, ticket, loyalty, or refund data. |
+| Input validation | BR-BK-09-02 | Path and query IDs must identify existing bookings/showtimes; status filters use BookingStatus and PaymentStatus enums, and pagination/date query values must be parseable before service dispatch. |
+| Route/message boundary | BR-BK-09-03 | Implemented trigger is `POST /v1/bookings/:id/cancel-with-refund` and service boundary uses `booking.cancelWithRefund`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-BK-09-04 | Booking ownership is enforced for customer endpoints; admin endpoints are scoped by cinema context when the authenticated staff account has a cinema assignment. |
+| Business/state rule | BR-BK-09-05 | Booking state transitions are limited to `PENDING -> CONFIRMED/CANCELLED/EXPIRED`, `CONFIRMED -> COMPLETED/CANCELLED/REFUNDED`; terminal states do not regress. |
+| Business/state rule | BR-BK-09-06 | Seat availability is derived from held Redis seats and persisted seat reservations; duplicate or expired holds must fail without creating inconsistent tickets. |
+| Business/state rule | BR-BK-09-07 | Refund/cancellation functions must use the configured cancellation policy, showtime timing, payment status, and refund percentage before changing booking state. |
+| Business/state rule | BR-BK-09-08 | Delete/cancel actions must be blocked when dependent records or invalid terminal states would cause data inconsistency. |
+| Integration constraint | BR-BK-09-09 | Integration may call Cinema Service for showtime/seat context, User Service for customer data, payment/ticket/refund modules for state consistency, and uses microservice pattern `booking.cancelWithRefund`. |
+| Success response | BR-BK-09-10 | Successful write/validation/state-changing operations return service data with `ResponseMessage.MSG_7` where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
+| Failure response | BR-BK-09-11 | Expected failures include `Booking not found`, `Cannot cancel this booking`, `Can only update pending bookings`, `Cannot reschedule cancelled booking`, `Cannot reschedule completed booking`, invalid/expired promotion, loyalty balance errors, and downstream cinema lookup failures. |

@@ -1,4 +1,4 @@
-﻿# [BK-A07] Expire Booking
+# [BK-A07] Expire Booking
 
 ## 1. Description
 
@@ -7,35 +7,31 @@
 | **Name** | Expire Booking |
 | **Functional ID** | BK-A07 |
 | **Description** | Manually expires a PENDING booking that has exceeded its allowed payment time window. |
-| **Actor** | Admin |
+| **Actor** | Cinema Manager / Staff |
 | **Trigger** | `POST /v1/bookings/admin/:id/expire` |
-| **Pre-condition** | Admin authenticated; Booking status is PENDING. |
-| **Post-condition** | Booking status set to EXPIRED; Seats released. |
+| **Pre-condition** | Customer or staff has access to the booking context; showtime, seat, payment, and refund prerequisites are valid for the requested action. |
+| **Post-condition** | Booking status/payment/ticket/refund data remains consistent with the performed operation. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor Admin
+actor "Cinema Manager / Staff" as Actor
 boundary "API Gateway" as GW
-control "Booking Service" as BS
-control "Cinema Service" as CS
-entity "Database (Booking)" as DB_B
-entity "Database (Cinema)" as DB_C
+control "Booking Service" as SVC
+database "Booking Database" as DB
+control "Cinema/User/Notification Services" as EXT
 
-Admin -> GW: POST /v1/bookings/admin/:id/expire
-GW -> BS: Expire Booking Request
-BS -> DB_B: Verify status is PENDING
-alt PENDING
-    BS -> DB_B: Update status = 'EXPIRED'
-    BS -> CS: Release Reserved Seats
-    CS -> DB_C: DELETE Seat Reservations
-    DB_C --> CS: Success
-    BS --> GW: 200 OK
-else Not PENDING
-    BS --> GW: 400 Bad Request
-end
+Actor -> GW: POST /v1/bookings/admin/:id/expire
+GW -> GW: Validate auth/role/permission
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `booking.expire`
+SVC -> DB: Read/write required records
+SVC -> EXT: Fetch showtime/user/payment/ticket context when required
+EXT --> SVC: Context or downstream failure
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -43,25 +39,55 @@ end
 
 ```plantuml
 @startuml
-|Admin|
+|Cinema Manager / Staff|
 start
-:(1) Manually Expire Booking;
+:Send request/event;
 |API Gateway|
-:(2) Verify Permissions;
-|Booking Service|
-:(3) Check if status is PENDING;
-if (Is PENDING?) then (Yes)
-    |Database|
-    :(4) Mark as EXPIRED;
-    |Cinema Service|
-    :(5) Release Seat Reservations;
-    |API Gateway|
-    :(6) Return Success;
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
+    |Booking Service|
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Cinema Manager / Staff|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
+    endif
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
     stop
-else (No)
-    |API Gateway|
-    :(7) Return Error;
-    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
 @enduml
 ```
@@ -70,7 +96,13 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR134 | Bookings usually expire automatically after 15 minutes, but Admin can trigger this manually for cleanup. |
-| (5) | BR135 | Seats must be released immediately to make them available for others. |
-
-
+| Gateway guard | BR-BK-A07-01 | Request must pass ClerkAuthGuard, RoleGuard where configured, and permission decorators for cinema/global scope before service dispatch. |
+| Input validation | BR-BK-A07-02 | Path and query IDs must identify existing bookings/showtimes; status filters use BookingStatus and PaymentStatus enums, and pagination/date query values must be parseable before service dispatch. |
+| Route/message boundary | BR-BK-A07-03 | Implemented trigger is `POST /v1/bookings/admin/:id/expire` and service boundary uses `booking.expire`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-BK-A07-04 | Booking ownership is enforced for customer endpoints; admin endpoints are scoped by cinema context when the authenticated staff account has a cinema assignment. |
+| Business/state rule | BR-BK-A07-05 | Booking state transitions are limited to `PENDING -> CONFIRMED/CANCELLED/EXPIRED`, `CONFIRMED -> COMPLETED/CANCELLED/REFUNDED`; terminal states do not regress. |
+| Business/state rule | BR-BK-A07-06 | Seat availability is derived from held Redis seats and persisted seat reservations; duplicate or expired holds must fail without creating inconsistent tickets. |
+| Business/state rule | BR-BK-A07-07 | Refund/cancellation functions must use the configured cancellation policy, showtime timing, payment status, and refund percentage before changing booking state. |
+| Integration constraint | BR-BK-A07-08 | Integration may call Cinema Service for showtime/seat context, User Service for customer data, payment/ticket/refund modules for state consistency, and uses microservice pattern `booking.expire`. |
+| Success response | BR-BK-A07-09 | Successful write/validation/state-changing operations return service data with `ResponseMessage.MSG_7` where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
+| Failure response | BR-BK-A07-10 | Expected failures include `Booking not found`, `Cannot cancel this booking`, `Can only update pending bookings`, `Cannot reschedule cancelled booking`, `Cannot reschedule completed booking`, invalid/expired promotion, loyalty balance errors, and downstream cinema lookup failures. |

@@ -1,4 +1,4 @@
-﻿# [RT-01] Hold Seat
+# [RT-01] Hold Seat
 
 ## 1. Description
 
@@ -7,43 +7,30 @@
 | **Name** | Hold Seat |
 | **Functional ID** | RT-01 |
 | **Description** | Allows a member to temporarily lock a seat for 10 minutes while they complete their booking. This is a real-time operation using WebSockets and Redis. |
-| **Actor** | Member |
-| **Trigger** | WebSocket Event `gateway.hold_seat` |
-| **Pre-condition** | Member authenticated; Showtime session active; Seat is currently 'Available'. |
-| **Post-condition** | Seat status updated to 'Held' in Redis; Event broadcasted to other users. |
+| **Actor** | Authenticated Socket Client |
+| **Trigger** | `Socket.IO event hold_seat` |
+| **Pre-condition** | Socket is authenticated with Clerk and joined to the target showtime room when applicable. |
+| **Post-condition** | Redis hold state and broadcast events reflect the seat action. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor Member
-participant "Frontend" as FE
-boundary "API Gateway (WS)" as WS
-control "Cinema Service" as CS
-entity "Redis" as R
+actor "Authenticated Socket Client" as Actor
+boundary "API Gateway Socket.IO" as GW
+queue "Redis Pub/Sub" as Redis
+control "Cinema Realtime Service" as CRS
+database "Redis Hold Keys" as Hold
 
-Member -> FE: Click Seat
-FE -> WS: Emit "gateway.hold_seat" (showtimeId, seatId)
-WS -> R: Publish to "hold_seat" channel
-R -> CS: Subscribe Event
-CS -> R: Check "hold:showtime:{id}:{seatId}" exists?
-alt Seat Available
-    CS -> R: Check user hold count < 8 (SISMEMBER)
-    alt Under Limit
-        CS -> R: SET "hold:showtime:{id}:{seatId}" (User ID) EX 600
-        CS -> R: SADD "hold:user:{userId}:showtime:{id}" (seatId) EX 600
-        CS -> R: Publish "cinema.seat_held"
-        R -> WS: Broadcast to Room
-        WS -> FE: Update UI (Seat Highlighted)
-    else Limit Reached
-        CS -> R: Publish "cinema.seat_limit_reached"
-        WS -> FE: Show Error (Max 8 seats)
-    end
-else Seat Taken
-    CS -> R: Publish "cinema.seat_already_held"
-    WS -> FE: Show Error (Already taken)
-end
+Actor -> GW: Socket.IO event hold_seat
+GW -> GW: Clerk WS middleware and room context
+GW -> Redis: Publish gateway/booking event
+Redis -> CRS: Consume event
+CRS -> Hold: Read/write hold keys and TTL
+CRS -> Redis: Publish cinema seat event
+Redis -> GW: Deliver cinema event
+GW --> Actor: Broadcast seat update
 @enduml
 ```
 
@@ -51,39 +38,28 @@ end
 
 ```plantuml
 @startuml
-|Member|
-|API Gateway|
-|Cinema Service|
-|Redis|
-
-|Member|
+|Authenticated Socket Client|
 start
-:(1) Select Seat on Layout;
-|API Gateway|
-:(2) Forward WS Message;
-|Cinema Service|
-:(3) Verify BR-SEAT-04: Seat not held;
-if (Already Held?) then (Yes)
-    |API Gateway|
-    :(4) Notify Member: Seat Taken;
+:Emit seat event with showtimeId and seatId;
+|API Gateway Socket.IO|
+:Verify Clerk socket user;
+if (Authenticated?) then (yes)
+  :Inject userId and publish gateway Redis event;
+  |Cinema Realtime Service|
+  :Validate hold/release request;
+  if (Seat action allowed?) then (yes)
+    :Update Redis hold keys and TTL;
+    :Publish cinema seat event;
+    |API Gateway Socket.IO|
+    :Broadcast event to showtime room;
     stop
-else (No)
-    |Cinema Service|
-    :(5) Verify BR-SEAT-01: Max 8 seats;
-    if (Limit Reached?) then (Yes)
-        |API Gateway|
-        :(6) Notify Member: Limit Reached;
-        stop
-    else (No)
-        |Redis|
-        :(7) Set Hold Key with TTL 600s;
-        :(8) Add Seat to User Set;
-        |Cinema Service|
-        :(9) Broadcast 'cinema.seat_held';
-        |API Gateway|
-        :(10) Update all users in room;
-        stop
-    endif
+  else (no)
+    :Publish limit/error event or ignore duplicate hold;
+    stop
+  endif
+else (no)
+  :Disconnect socket;
+  stop
 endif
 @enduml
 ```
@@ -92,8 +68,13 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (5) | BR139 | Maximum seats per user per showtime: 8 seats. |
-| (7) | BR140 | Seat hold duration (TTL): 10 minutes (600 seconds). |
-| (3) | BR141 | A seat cannot be held if it is already held by another user. |
-
-
+| Gateway guard | BR-RT-01-01 | Socket connection must pass Clerk WebSocket middleware; unauthenticated clients are disconnected before room join or seat events. |
+| Input validation | BR-RT-01-02 | SeatActionDto must include `showtimeId` and `seatId`; `userId` is injected from the authenticated socket, not accepted as authoritative client input. |
+| Route/message boundary | BR-RT-01-03 | Implemented trigger is `Socket.IO event hold_seat` and service boundary uses `gateway.hold_seat -> cinema.seat_held`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-RT-01-04 | A user may hold at most 8 seats per showtime; exceeding the limit publishes `cinema.seat_limit_reached` without creating a new hold. |
+| Business/state rule | BR-RT-01-05 | Seat holds use Redis keys `hold:showtime:{showtimeId}:{seatId}` and `hold:user:{userId}:showtime:{showtimeId}` with a 600-second TTL. |
+| Business/state rule | BR-RT-01-06 | If the same user switches showtimes, old held seats are cleared before new holds are accepted. |
+| Business/state rule | BR-RT-01-07 | Booking confirmation consumes held seats, removes Redis hold keys, creates seat reservations, and publishes `cinema.seat_booked` to connected clients. |
+| Integration constraint | BR-RT-01-08 | Integration uses Socket.IO plus Redis pub/sub channels `gateway.hold_seat`, `gateway.release_seat`, `booking.confirmed`, `cinema.seat_held`, `cinema.seat_released`, `cinema.seat_expired`, `cinema.seat_booked`, and `cinema.seat_limit_reached`. |
+| Success response | BR-RT-01-09 | Successful realtime actions publish the matching Redis/socket event; no REST `ResponseMessage` is produced. |
+| Failure response | BR-RT-01-10 | Expected failures include unauthorized socket disconnect, silently ignored already-held seats, limit reached event, Redis failures, and showtime not found during booking resolution. |

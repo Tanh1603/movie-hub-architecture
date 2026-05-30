@@ -1,4 +1,4 @@
-﻿# [TK-02] Find Ticket by Code
+# [TK-02] Find Ticket by Code
 
 ## 1. Description
 
@@ -7,31 +7,31 @@
 | **Name** | Find Ticket by Code |
 | **Functional ID** | TK-02 |
 | **Description** | Allows a Member or Staff to retrieve ticket information using the unique alphanumeric ticket code (e.g., from a search or manual entry). |
-| **Actor** | Member, Staff |
+| **Actor** | Customer |
 | **Trigger** | `GET /v1/tickets/code/:ticketCode` |
-| **Pre-condition** | User authenticated; Ticket code exists. |
-| **Post-condition** | Ticket information returned. |
+| **Pre-condition** | Ticket exists and caller has owner or cinema validation permission. |
+| **Post-condition** | Ticket details/QR are returned or ticket state is updated consistently. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor "Member/Staff" as User
+actor "Customer" as Actor
 boundary "API Gateway" as GW
-control "Booking Service" as BS
-entity "Database (Booking)" as DB
+control "Booking Service" as SVC
+database "Booking Database" as DB
+control "QR/Notification Components" as EXT
 
-User -> GW: GET /v1/tickets/code/:ticketCode
-GW -> BS: Find Ticket by Code Request
-BS -> DB: SELECT * FROM Tickets WHERE ticketCode = :code
-DB --> BS: Ticket Record
-alt Found
-    BS --> GW: Ticket Info DTO
-    GW --> User: 200 OK
-else Not Found
-    BS --> GW: 404 Not Found
-end
+Actor -> GW: GET /v1/tickets/code/:ticketCode
+GW -> GW: Validate auth/role/permission
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `ticket.findByCode`
+SVC -> DB: Read/write required records
+SVC -> EXT: Generate QR or coordinate delivery when required
+EXT --> SVC: Generated artifact/status
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -39,23 +39,55 @@ end
 
 ```plantuml
 @startuml
-|User|
+|Customer|
 start
-:(1) Input Ticket Code;
+:Send request/event;
 |API Gateway|
-:(2) Forward Request;
-|Booking Service|
-:(3) Query DB for Code;
-|Database|
-:(4) Return Data;
-if (Found?) then (Yes)
-    |API Gateway|
-    :(5) Return Ticket Information;
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
+    |Booking Service|
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Customer|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
+    endif
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
     stop
-else (No)
-    |API Gateway|
-    :(6) Return 404 Not Found;
-    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
 @enduml
 ```
@@ -64,7 +96,13 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR164 | Codes are unique across the entire system. |
-| (3) | BR165 | Staff can see any ticket, while Members can only see their own tickets. |
-
-
+| Gateway guard | BR-TK-02-01 | Customer request must pass ClerkAuthGuard; own-scope permissions and ownership checks prevent access to another user's booking, payment, ticket, loyalty, or refund data. |
+| Input validation | BR-TK-02-02 | Ticket IDs or ticket codes are required; validation may include `validationCode` and `cinemaId`; bulk validation requires a ticket list payload matching BulkValidateTicketsDto. |
+| Route/message boundary | BR-TK-02-03 | Implemented trigger is `GET /v1/tickets/code/:ticketCode` and service boundary uses `ticket.findByCode`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-TK-02-04 | Customer ticket reads and QR generation require ownership through the ticket's booking; staff validation endpoints require cinema-scope permissions. |
+| Business/state rule | BR-TK-02-05 | Ticket states are `VALID`, `USED`, `CANCELLED`, and `EXPIRED`; used tickets cannot be cancelled and invalid tickets cannot be used for entry. |
+| Business/state rule | BR-TK-02-06 | QR payloads are generated from persisted ticket identity/code and must remain unique and tamper-resistant; duplicate code reuse must be rejected during validation. |
+| Business/state rule | BR-TK-02-07 | Ticket delivery depends on confirmed payment/booking flow and notification/outbox delivery where enabled; lookup must still work from persisted ticket data. |
+| Integration constraint | BR-TK-02-08 | Integration uses Booking Service ticket module and, for QR or delivery, notification/outbox/digital delivery components where enabled; microservice pattern `ticket.findByCode`. |
+| Success response | BR-TK-02-09 | Successful write/validation/state-changing operations return service data with `ResponseMessage.MSG_7` where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
+| Failure response | BR-TK-02-10 | Expected failures include `Ticket not found`, invalid ticket status during validation/use, and `Cannot cancel a used ticket` for cancellation. |

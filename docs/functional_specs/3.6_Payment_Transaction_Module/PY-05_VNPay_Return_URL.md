@@ -1,4 +1,4 @@
-﻿# [PY-05] VNPay Return URL
+# [PY-05] VNPay Return URL
 
 ## 1. Description
 
@@ -7,32 +7,31 @@
 | **Name** | VNPay Return URL |
 | **Functional ID** | PY-05 |
 | **Description** | The browser redirect endpoint where users are sent after completing payment on the VNPay UI. It provides immediate feedback to the user. |
-| **Actor** | Member |
-| **Trigger** | `GET /v1/payments/vnpay/return` |
-| **Pre-condition** | User redirected from VNPay. |
-| **Post-condition** | User redirected to Frontend success or failure page. |
+| **Actor** | Payment Provider |
+| **Trigger** | `GET /v1/payments/:provider/return` |
+| **Pre-condition** | Provider payload includes the required signed parameters and maps to an existing payment. |
+| **Post-condition** | Provider result is acknowledged and payment/booking/ticket state is advanced only when the transition is valid. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor Member
-participant "VNPay UI" as VNPay
+actor "Payment Provider" as Actor
 boundary "API Gateway" as GW
-control "Booking Service" as BS
+control "Booking Service" as SVC
+database "Booking Database" as DB
+participant "Payment Provider Adapter" as Provider
 
-Member -> VNPay: Complete Payment
-VNPay -> Member: Redirect to /v1/payments/vnpay/return
-Member -> GW: GET /v1/payments/vnpay/return
-GW -> BS: Handle Return Request
-BS -> BS: Verify Signature
-alt Success (vnp_ResponseCode == "00")
-    BS --> GW: Redirect to FE /success?bookingId=...
-else Failure
-    BS --> GW: Redirect to FE /failure?bookingId=...
-end
-GW --> Member: Redirect to Frontend UI
+Actor -> GW: GET /v1/payments/:provider/return
+GW -> GW: Validate public request constraints
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `payment.provider.return`
+SVC -> DB: Read/write required records
+SVC -> Provider: Generate/verify signed provider request
+Provider --> SVC: Provider result or callback status
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -40,31 +39,56 @@ GW --> Member: Redirect to Frontend UI
 
 ```plantuml
 @startuml
-|Member|
-|VNPay Gateway|
-|API Gateway|
-|Booking Service|
-
-|VNPay Gateway|
+|Payment Provider|
 start
-:(1) Process Transaction;
-:(2) Redirect User to Return URL;
-|Member|
-:(3) Request Return URL;
+:Send request/event;
 |API Gateway|
-:(4) Forward to Booking Service;
-|Booking Service|
-:(5) Verify Data Integrity;
-if (Transaction Successful?) then (Yes)
-    |API Gateway|
-    :(6) Redirect to Success Page;
-else (No)
-    |API Gateway|
-    :(7) Redirect to Failure Page;
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
+    |Booking Service|
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Payment Provider|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
+    endif
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
+    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
-|Member|
-:(8) View Result on Frontend;
-stop
 @enduml
 ```
 
@@ -72,11 +96,13 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR197 | Return URL validation must verify the provider signature before showing transaction status. |
-| (5) | BR198 | Return URL gives immediate user feedback only; authoritative booking/payment consistency is handled by IPN/webhook processing. |
-| (5) | BR199 | A successful return should guide the user to booking details/e-ticket access, but must not assume tickets are valid until backend confirmation is complete. |
-| (5) | BR200 | A failed or cancelled return should let the user retry payment or choose another available payment method if the booking is still active. |
-| (6) | BR201 | The checkout UI must support resuming an existing `PENDING` payment URL when the user navigates back before provider completion. |
-| (6) | BR202 | User-facing status pages must avoid exposing provider secrets, secure hashes, or raw callback payloads. |
-
-
+| Gateway guard | BR-PY-05-01 | Public integration endpoint; provider/webhook authenticity is verified by signature, IP whitelist, or Clerk webhook envelope instead of a user session. |
+| Input validation | BR-PY-05-02 | Provider names are normalized to PaymentMethod enum values; unknown providers fail with `Unsupported payment provider: {provider}` and malformed provider payloads are rejected before state mutation. |
+| Route/message boundary | BR-PY-05-03 | Implemented trigger is `GET /v1/payments/:provider/return` and service boundary uses `payment.provider.return`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-PY-05-04 | Payment ownership is checked through the related booking before exposing or mutating payment data for customer routes. |
+| Business/state rule | BR-PY-05-05 | Payment state transitions are `PROCESSING -> PENDING -> COMPLETED/FAILED`; `COMPLETED`, `FAILED`, and `REFUNDED` are terminal for normal provider callbacks. |
+| Business/state rule | BR-PY-05-06 | Provider callbacks must verify signature and provider reference before applying completion/failure status. |
+| Business/state rule | BR-PY-05-07 | A callback for a non-pending or stale payment must not regress terminal payment, booking, or ticket state. |
+| Integration constraint | BR-PY-05-08 | Integration includes signed provider calls/callbacks and Booking Service updates; gateway route uses the microservice pattern `payment.provider.return`. |
+| Success response | BR-PY-05-09 | Successful provider return resolves the payment status and returns the payment result/redirect data expected by the client. |
+| Failure response | BR-PY-05-10 | Expected failures include `Payment not found`, `Booking not found`, `You do not have access to this booking payments`, `Booking is not pending payment`, `Booking payment window has expired`, `Payment method {method} is not supported`, `Can only cancel pending payments`, and `Unable to initiate payment. Please retry later.` |

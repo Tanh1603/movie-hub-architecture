@@ -1,4 +1,4 @@
-﻿# [PM-02] Get Promotion Details
+# [PM-02] Get Promotion Details
 
 ## 1. Description
 
@@ -7,31 +7,28 @@
 | **Name** | Get Promotion Details |
 | **Functional ID** | PM-02 |
 | **Description** | Retrieves full information about a specific promotion, including its terms and conditions. |
-| **Actor** | Guest, Member |
+| **Actor** | Guest / Authenticated User |
 | **Trigger** | `GET /v1/promotions/:id` |
-| **Pre-condition** | Promotion ID exists. |
-| **Post-condition** | Detailed promotion information returned. |
+| **Pre-condition** | Required path/query parameters are provided; no customer session is required for this read. |
+| **Post-condition** | Requested data is returned or the targeted state change is persisted consistently. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor User
+actor "Guest / Authenticated User" as Actor
 boundary "API Gateway" as GW
-control "Booking Service" as BS
-entity "Database (Booking)" as DB
+control "Booking Service" as SVC
+database "Booking Database" as DB
 
-User -> GW: GET /v1/promotions/:id
-GW -> BS: Get Promotion Detail Request
-BS -> DB: Find Unique Promotion
-alt Found
-    DB --> BS: Promotion Record
-    BS --> GW: Promotion Detail DTO
-    GW --> User: 200 OK
-else Not Found
-    BS --> GW: 404 Not Found
-end
+Actor -> GW: GET /v1/promotions/:id
+GW -> GW: Validate public request constraints
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `promotion.findOne`
+SVC -> DB: Read/write required records
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -39,23 +36,55 @@ end
 
 ```plantuml
 @startuml
-|User|
+|Guest / Authenticated User|
 start
-:(1) Select Promotion;
+:Send request/event;
 |API Gateway|
-:(2) Request Details;
-|Booking Service|
-:(3) Query DB for ID;
-|Database|
-:(4) Return Data;
-if (Found?) then (Yes)
-    |API Gateway|
-    :(5) Return JSON;
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
+    |Booking Service|
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Guest / Authenticated User|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
+    endif
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
     stop
-else (No)
-    |API Gateway|
-    :(6) Return 404;
-    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
 @enduml
 ```
@@ -64,6 +93,13 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | BR16 | Retrieving promotion details returns the full promotion record (including terms and conditions) when the ID exists; requests for missing IDs must return HTTP 404. |
-
-
+| Gateway guard | BR-PM-02-01 | Read operation is public unless the gateway method explicitly applies ClerkAuthGuard; staff cinema context may still restrict scoped results when present. |
+| Input validation | BR-PM-02-02 | Promotion create requires `code`, `name`, `type`, `value`, `validFrom`, and `validTo`; type must be PromotionType and validation requires code plus booking amount/context. |
+| Route/message boundary | BR-PM-02-03 | Implemented trigger is `GET /v1/promotions/:id` and service boundary uses `promotion.findOne`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-PM-02-04 | Promotion code uniqueness is enforced; duplicate code creation/update fails with `Promotion code already exists`. |
+| Business/state rule | BR-PM-02-05 | Promotion validation checks active flag, validity window, min purchase, usage limits, per-user limits, and applicable conditions. |
+| Business/state rule | BR-PM-02-06 | Percentage discounts are capped by configured max discount; fixed amount discounts cannot exceed the eligible purchase amount. |
+| Business/state rule | BR-PM-02-07 | Public list defaults to active promotions unless `active=false`, `null`, or `undefined` is explicitly passed. |
+| Integration constraint | BR-PM-02-08 | Gateway forwards the request to the target service through microservice pattern `promotion.findOne` and propagates service errors through the common exception layer. |
+| Success response | BR-PM-02-09 | Successful read operations return the requested DTO/list using the gateway's normal response wrapper; no artificial success text is invented by the spec. |
+| Failure response | BR-PM-02-10 | Expected failures include `Promotion not found`, `Promotion code already exists`, inactive/expired promotion, min-purchase failure, and usage-limit failures. |

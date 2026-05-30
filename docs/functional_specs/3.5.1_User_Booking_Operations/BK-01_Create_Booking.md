@@ -1,4 +1,4 @@
-﻿# [BK-01] Create Booking
+# [BK-01] Create Booking
 
 ## 1. Description
 
@@ -7,34 +7,31 @@
 | **Name** | Create Booking |
 | **Functional ID** | BK-01 |
 | **Description** | Initiates a new booking for a specific showtime and set of held seats. |
-| **Actor** | Member |
+| **Actor** | Customer |
 | **Trigger** | `POST /v1/bookings` |
-| **Pre-condition** | Member authenticated; Seats held in Redis; Showtime is active. |
-| **Post-condition** | Booking created with status `PENDING`; Expiry timer started. |
+| **Pre-condition** | Customer or staff has access to the booking context; showtime, seat, payment, and refund prerequisites are valid for the requested action. |
+| **Post-condition** | State change is persisted atomically or the request fails without partial data inconsistency. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor Member
+actor "Customer" as Actor
 boundary "API Gateway" as GW
-control "Booking Service" as BS
-control "Cinema Service" as CS
-entity "Database (Booking)" as DB_B
-entity "Database (Cinema)" as DB_C
+control "Booking Service" as SVC
+database "Booking Database" as DB
+control "Cinema/User/Notification Services" as EXT
 
-Member -> GW: POST /v1/bookings (showtimeId, seats, concessions)
-GW -> GW: Validate Auth
-GW -> BS: Create Booking Request
-BS -> CS: Verify & Convert Held Seats
-CS -> DB_C: Create Seat Reservations (Status: CONFIRMED)
-DB_C --> CS: Success
-CS --> BS: Seat Details & Pricing
-BS -> DB_B: Insert Booking (Status: PENDING)
-DB_B --> BS: New Booking ID
-BS --> GW: Booking DTO
-GW --> Member: 201 Created
+Actor -> GW: POST /v1/bookings
+GW -> GW: Validate auth/role/permission
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `booking.create`
+SVC -> DB: Read/write required records
+SVC -> EXT: Fetch showtime/user/payment/ticket context when required
+EXT --> SVC: Context or downstream failure
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -42,30 +39,55 @@ GW --> Member: 201 Created
 
 ```plantuml
 @startuml
-|Member|
+|Customer|
 start
-:(1) Request Booking;
+:Send request/event;
 |API Gateway|
-:(2) Validate Authorization;
-|Booking Service|
-:(3) Verify Seat Hold Status;
-:(4) Calculate Total Price;
-|Cinema Service|
-:(5) Create Seat Reservations;
-|Booking Service|
-:(6) Check BR-BOOK-02: One pending per showtime;
-if (Allowed?) then (Yes)
-    |Database|
-    :(7) Save Booking (Status: PENDING);
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
     |Booking Service|
-    :(8) Set Expiry Timer (15m);
-    |API Gateway|
-    :(9) Return Booking ID;
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Customer|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
+    endif
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
     stop
-else (No)
-    |API Gateway|
-    :(10) Return Error;
-    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
 @enduml
 ```
@@ -74,12 +96,14 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR104 | Member must have an authenticated session before a booking session is created. |
-| (3) | BR105 | Seats must be held by the same user in Redis before tickets can be attached to the booking. |
-| (6) | BR106 | Only one active `PENDING` booking per user per showtime is allowed; existing pending bookings are reused. |
-| (7) | BR107 | New bookings start with `PENDING` booking status and `PENDING` payment status. |
-| (8) | BR108 | Booking payment window expires after 15 minutes or when the seat hold TTL expires, whichever is earlier. |
-| (4) | BR109 | Amounts are calculated from current seat prices, concessions, promotions, loyalty discounts, and 10% VAT policy. |
-| (9) | BR110 | Booking creation must return enough summary data for checkout without exposing internal database fields. |
-
-
+| Gateway guard | BR-BK-01-01 | Customer request must pass ClerkAuthGuard; own-scope permissions and ownership checks prevent access to another user's booking, payment, ticket, loyalty, or refund data. |
+| Input validation | BR-BK-01-02 | CreateBookingDto requires `showtimeId`; `seats` is optional ticket-type metadata because actual held seats are read from Redis; concessions require `concessionId` and positive `quantity`; loyalty points and promotion code are optional. |
+| Route/message boundary | BR-BK-01-03 | Implemented trigger is `POST /v1/bookings` and service boundary uses `booking.create`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-BK-01-04 | Booking ownership is enforced for customer endpoints; admin endpoints are scoped by cinema context when the authenticated staff account has a cinema assignment. |
+| Business/state rule | BR-BK-01-05 | Booking state transitions are limited to `PENDING -> CONFIRMED/CANCELLED/EXPIRED`, `CONFIRMED -> COMPLETED/CANCELLED/REFUNDED`; terminal states do not regress. |
+| Business/state rule | BR-BK-01-06 | Seat availability is derived from held Redis seats and persisted seat reservations; duplicate or expired holds must fail without creating inconsistent tickets. |
+| Business/state rule | BR-BK-01-07 | Refund/cancellation functions must use the configured cancellation policy, showtime timing, payment status, and refund percentage before changing booking state. |
+| Business/state rule | BR-BK-01-08 | Create actions must reject duplicate/conflicting records before persistence and return the created DTO after persistence. |
+| Integration constraint | BR-BK-01-09 | Integration may call Cinema Service for showtime/seat context, User Service for customer data, payment/ticket/refund modules for state consistency, and uses microservice pattern `booking.create`. |
+| Success response | BR-BK-01-10 | Successful write/validation/state-changing operations return service data with `ResponseMessage.MSG_7` where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
+| Failure response | BR-BK-01-11 | Expected failures include `Booking not found`, `Cannot cancel this booking`, `Can only update pending bookings`, `Cannot reschedule cancelled booking`, `Cannot reschedule completed booking`, invalid/expired promotion, loyalty balance errors, and downstream cinema lookup failures. |

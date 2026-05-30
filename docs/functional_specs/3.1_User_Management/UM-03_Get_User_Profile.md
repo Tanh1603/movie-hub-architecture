@@ -1,40 +1,34 @@
-﻿# [UM-03] Get User Profile (Sync)
+# [UM-03] Get User Profile (Sync)
 
 ## 1. Description
 
 | Field | Details |
 | :--- | :--- |
-| **Name** | Get User Profile (Clerk Webhook Sync) |
+| **Name** | Get User Profile (Sync) |
 | **Functional ID** | UM-03 |
 | **Description** | Synchronizes user data from Clerk to the local User Service database via Webhook when a user registers or updates their profile in Clerk. |
-| **Actor** | Member (via Clerk System) |
-| **Trigger** | Clerk Webhook Event (`user.created`, `user.updated`) |
-| **Pre-condition** | Valid Webhook Signature from Clerk. |
-| **Post-condition** | User record created or updated in `postgres-user`. |
+| **Actor** | Authenticated User |
+| **Trigger** | `GET /v1/users/me` |
+| **Pre-condition** | Caller satisfies gateway auth/permission requirements and request data matches shared DTO/query schema. |
+| **Post-condition** | Requested data is returned or the targeted state change is persisted consistently. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor User
-participant "Clerk System" as Clerk
+actor "Authenticated User" as Actor
 boundary "API Gateway" as GW
-control "User Service" as US
-entity "Database (User)" as DB
+control "User Service" as SVC
+database "User Database" as DB
 
-User -> Clerk: Update Profile / Register
-Clerk -> GW: POST /webhooks/clerk (Event Payload)
-GW -> GW: Validate Svix Signature
-alt Signature Valid
-    GW -> US: Sync User Data (Event)
-    US -> DB: Upsert User Record
-    DB --> US: Success
-    US --> GW: Ack
-    GW --> Clerk: 200 OK
-else Invalid Signature
-    GW --> Clerk: 400 Bad Request
-end
+Actor -> GW: GET /v1/users/me
+GW -> GW: Validate auth/role/permission
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `user.getDetail`
+SVC -> DB: Read/write required records
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -42,31 +36,55 @@ end
 
 ```plantuml
 @startuml
-|Clerk System|
+|Authenticated User|
 start
-:(1) Detect User Change;
-:(2) Send Webhook Request;
+:Send request/event;
 |API Gateway|
-:(3) Verify Webhook Signature;
-if (Valid?) then (Yes)
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
     |User Service|
-    :(4) Extract User Details;
-    :(5) Check if User Exists;
-    if (Exists?) then (Yes)
-        |Database|
-        :(6) Update User Record;
-    else (No)
-        |Database|
-        :(7) Create New User;
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Authenticated User|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
     endif
-    |API Gateway|
-    :(8) Return 200 OK;
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
     stop
-else (No)
-    |API Gateway|
-    :(9) Log Security Warning;
-    :(10) Return 400 Error;
-    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
 @enduml
 ```
@@ -75,7 +93,13 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR04 | All incoming Clerk webhook requests must be verified using the configured Svix secret; requests with invalid signatures must be rejected with HTTP 400 and not processed. |
-| (7) | BR05 | When creating a new user record, the system must initialize a Loyalty Account (default Bronze tier, 0 points) and persist the association. |
-
-
+| Gateway guard | BR-UM-03-01 | Request must pass ClerkAuthGuard and the configured Permission decorator before the gateway forwards the command. |
+| Input validation | BR-UM-03-02 | User/staff IDs and RBAC payloads must be present; DTO/Zod validation maps missing fields to `ResponseMessage.MSG_1` and bad format to `ResponseMessage.MSG_4` when the gateway validation layer catches them. |
+| Route/message boundary | BR-UM-03-03 | Implemented trigger is `GET /v1/users/me` and service boundary uses `user.getDetail`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-UM-03-04 | User data is sourced from Clerk-synchronized records and staff context; Clerk webhook payloads must be verified before processing. |
+| Business/state rule | BR-UM-03-05 | Staff managers are limited to their assigned cinema for create, view, update, and delete operations where staffContext.cinemaId is present. |
+| Business/state rule | BR-UM-03-06 | RBAC and user operations require configured Permission decorators; unknown permissions, unknown roles, and removing the last ADMIN fail with explicit RBAC errors. |
+| Business/state rule | BR-UM-03-07 | Staff create/update synchronizes with Clerk where configured and returns propagated errors for duplicate identity or external sync failure. |
+| Integration constraint | BR-UM-03-08 | Gateway forwards the request to the target service through microservice pattern `user.getDetail` and propagates service errors through the common exception layer. |
+| Success response | BR-UM-03-09 | Successful read operations return the requested DTO/list using the gateway's normal response wrapper; no artificial success text is invented by the spec. |
+| Failure response | BR-UM-03-10 | Expected failures include staff cinema-scope ForbiddenException messages, invalid Clerk webhook envelope, unknown permissions/roles, duplicate staff identity, and `Cannot remove the last ADMIN`. |

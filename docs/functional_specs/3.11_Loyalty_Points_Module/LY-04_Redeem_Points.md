@@ -1,4 +1,4 @@
-﻿# [LY-04] Redeem Points
+# [LY-04] Redeem Points
 
 ## 1. Description
 
@@ -7,34 +7,28 @@
 | **Name** | Redeem Points |
 | **Functional ID** | LY-04 |
 | **Description** | Allows a member to use their accumulated loyalty points to pay for part or all of a booking. |
-| **Actor** | Member |
+| **Actor** | Customer |
 | **Trigger** | `POST /v1/loyalty/redeem` |
-| **Pre-condition** | Member has sufficient points; Booking is in PENDING status. |
-| **Post-condition** | Points deducted; Booking total reduced; Transaction record created. |
+| **Pre-condition** | Caller satisfies gateway auth/permission requirements and request data matches shared DTO/query schema. |
+| **Post-condition** | State change is persisted atomically or the request fails without partial data inconsistency. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor Member
+actor "Customer" as Actor
 boundary "API Gateway" as GW
-control "Booking Service" as BS
-entity "Database (Booking)" as DB
+control "Booking Service" as SVC
+database "Booking Database" as DB
 
-Member -> GW: POST /v1/loyalty/redeem (bookingId, pointsToRedeem)
-GW -> BS: Redeem Request
-BS -> DB: Verify current balance >= pointsToRedeem
-alt Sufficient Points
-    BS -> BS: Calculate Discount (BR-LOYALTY-01)
-    BS -> DB: Update LoyaltyAccount SET points = points - redeem
-    BS -> DB: Update Booking SET discount = discount + redeemVal
-    BS -> DB: Insert LoyaltyTransaction (Type: REDEEM)
-    DB --> BS: Success
-    BS --> GW: 200 OK
-else Insufficient
-    BS --> GW: 400 Bad Request
-end
+Actor -> GW: POST /v1/loyalty/redeem
+GW -> GW: Validate auth/role/permission
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `loyalty.redeemPoints`
+SVC -> DB: Read/write required records
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -42,27 +36,55 @@ end
 
 ```plantuml
 @startuml
-|Member|
+|Customer|
 start
-:(1) Select 'Use Points' in Checkout;
-:(2) Input Points to Redeem;
+:Send request/event;
 |API Gateway|
-:(3) Forward Request;
-|Booking Service|
-:(4) Check BR-LOYALTY-03: Points balance;
-if (Balance >= Redeem?) then (Yes)
-    :(5) Calculate Discount (1 point = 1,000 VND);
-    |Database|
-    :(6) Deduct Points from Account;
-    :(7) Apply Discount to Booking;
-    :(8) Save REDEEM Transaction;
-    |API Gateway|
-    :(9) Return New Total;
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
+    |Booking Service|
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Customer|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
+    endif
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
     stop
-else (No)
-    |API Gateway|
-    :(10) Return Error: Insufficient Points;
-    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
 @enduml
 ```
@@ -71,9 +93,13 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (5) | BR35 | Redemption rate: 1 point = 1,000 VND; conversion must be used to compute monetary discount. |
-| (4) | BR36 | A user may not redeem more points than their current balance; attempts to do so must return HTTP 400. |
-| (7) | BR37 | The total discount resulting from point redemption must not exceed the booking subtotal; if it would, cap the discount to the subtotal and adjust points deducted accordingly. |
-@enduml
-
-
+| Gateway guard | BR-LY-04-01 | Customer request must pass ClerkAuthGuard; own-scope permissions and ownership checks prevent access to another user's booking, payment, ticket, loyalty, or refund data. |
+| Input validation | BR-LY-04-02 | `points` must be numeric and positive for earn/redeem; `type` filter must be LoyaltyTransactionType and pagination uses numeric `page` and `limit` defaults. |
+| Route/message boundary | BR-LY-04-03 | Implemented trigger is `POST /v1/loyalty/redeem` and service boundary uses `loyalty.redeemPoints`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-LY-04-04 | Loyalty account is scoped to the authenticated user; users cannot read or mutate another user's balance. |
+| Business/state rule | BR-LY-04-05 | Redeem must fail with explicit `Insufficient points` when requested points exceed available balance. |
+| Business/state rule | BR-LY-04-06 | Earn/redeem operations create auditable loyalty transactions with transactionId/description when supplied. |
+| Business/state rule | BR-LY-04-07 | Transaction history supports type filtering and pagination while preserving chronological ordering from the service. |
+| Integration constraint | BR-LY-04-08 | Gateway forwards the request to the target service through microservice pattern `loyalty.redeemPoints` and propagates service errors through the common exception layer. |
+| Success response | BR-LY-04-09 | Successful write/validation/state-changing operations return service data with `ResponseMessage.MSG_7` where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
+| Failure response | BR-LY-04-10 | Expected failures include missing loyalty account and explicit `Insufficient points` for redemption beyond the current balance. |

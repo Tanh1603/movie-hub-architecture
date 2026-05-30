@@ -1,4 +1,4 @@
-﻿# [PY-04] VNPay IPN Webhook
+# [PY-04] VNPay IPN Webhook
 
 ## 1. Description
 
@@ -7,41 +7,31 @@
 | **Name** | VNPay IPN Webhook |
 | **Functional ID** | PY-04 |
 | **Description** | An asynchronous callback from VNPay to update the payment and booking status after a transaction is completed by the user. |
-| **Actor** | System (VNPay) |
-| **Trigger** | `GET /v1/payments/vnpay/ipn` |
-| **Pre-condition** | Request includes valid VNPay parameters and signature. |
-| **Post-condition** | Payment status updated; Booking status confirmed if successful; Tickets generated. |
+| **Actor** | Payment Provider |
+| **Trigger** | `GET|POST /v1/payments/:provider/ipn` |
+| **Pre-condition** | Provider payload includes the required signed parameters and maps to an existing payment. |
+| **Post-condition** | Provider result is acknowledged and payment/booking/ticket state is advanced only when the transition is valid. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-participant "VNPay Gateway" as VNPay
+actor "Payment Provider" as Actor
 boundary "API Gateway" as GW
-control "Booking Service" as BS
-entity "Database (Booking)" as DB
-participant "Redis (Pub/Sub)" as R
+control "Booking Service" as SVC
+database "Booking Database" as DB
+participant "Payment Provider Adapter" as Provider
 
-VNPay -> GW: GET /v1/payments/vnpay/ipn (Data + Hash)
-GW -> BS: Handle IPN Request
-BS -> BS: Verify BR-PAY-02: Signature & Params
-alt Signature Valid
-    BS -> DB: Find Payment & Booking
-    alt Payment Success (vnp_ResponseCode == "00")
-        BS -> DB: Update Payment (COMPLETED)
-        BS -> DB: Update Booking (CONFIRMED)
-        BS -> BS: Generate Tickets
-        BS -> R: Publish "booking.confirmed"
-        BS --> GW: { RspCode: "00", Message: "Confirm Success" }
-    else Payment Failed
-        BS -> DB: Update Payment (FAILED)
-        BS --> GW: { RspCode: "00", Message: "Confirm Success" }
-    end
-else Invalid Signature
-    BS --> GW: { RspCode: "97", Message: "Checksum failed" }
-end
-GW --> VNPay: HTTP 200 (JSON Response)
+Actor -> GW: GET|POST /v1/payments/:provider/ipn
+GW -> GW: Validate public request constraints
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `payment.provider.ipn`
+SVC -> DB: Read/write required records
+SVC -> Provider: Generate/verify signed provider request
+Provider --> SVC: Provider result or callback status
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -49,33 +39,56 @@ GW --> VNPay: HTTP 200 (JSON Response)
 
 ```plantuml
 @startuml
-|VNPay Gateway|
+|Payment Provider|
 start
-:(1) Send IPN Notification;
+:Send request/event;
 |API Gateway|
-:(2) Forward to Booking Service;
-|Booking Service|
-:(3) Verify Secure Hash;
-if (Hash Valid?) then (Yes)
-    :(4) Fetch Payment Record;
-    if (vnp_ResponseCode == "00"?) then (Yes)
-        |Database|
-        :(5) Update Payment to COMPLETED;
-        :(6) Update Booking to CONFIRMED;
-        |Booking Service|
-        :(7) Generate Digital Tickets;
-        :(8) Publish 'booking.confirmed';
-    else (No)
-        |Database|
-        :(9) Update Payment to FAILED;
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
+    |Booking Service|
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Payment Provider|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
     endif
-    |Booking Service|
-    :(10) Return RspCode "00" (Success);
-else (No)
-    |Booking Service|
-    :(11) Return RspCode "97" (Checksum Error);
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
+    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
-stop
 @enduml
 ```
 
@@ -83,13 +96,13 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | BR189 | Gateway webhook endpoints are public but must be protected by provider signature validation and configured IP allowlist where available. |
-| (3) | BR190 | VNPay callbacks must validate HMAC-SHA512 before any database mutation. |
-| (3) | BR191 | Stale, duplicate, missing-identity, or invalid-signature callbacks must be acknowledged safely without mutating payment state. |
-| (4) | BR192 | IPN must verify payment existence, booking existence, amount equality, booking expiry, and valid state before applying changes. |
-| (5) | BR193 | Successful IPN transitions payment `PENDING -> COMPLETED`, booking `PENDING -> CONFIRMED`, and tickets to `VALID` in one atomic transaction. |
-| (9) | BR194 | Failed provider status transitions payment `PENDING -> FAILED` and must not create valid tickets. |
-| (8) | BR195 | Confirmation notification, QR generation, and Redis seat confirmation event must be triggered asynchronously and must not block the IPN response. |
-| (10) | BR196 | VNPay IPN must return the exact provider response shape `{ RspCode: string, Message: string }`. |
-
-
+| Gateway guard | BR-PY-04-01 | Public integration endpoint; provider/webhook authenticity is verified by signature, IP whitelist, or Clerk webhook envelope instead of a user session. |
+| Input validation | BR-PY-04-02 | Provider names are normalized to PaymentMethod enum values; unknown providers fail with `Unsupported payment provider: {provider}` and malformed provider payloads are rejected before state mutation. |
+| Route/message boundary | BR-PY-04-03 | Implemented trigger is `GET\|POST /v1/payments/:provider/ipn` and service boundary uses `payment.provider.ipn`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-PY-04-04 | Payment ownership is checked through the related booking before exposing or mutating payment data for customer routes. |
+| Business/state rule | BR-PY-04-05 | Payment state transitions are `PROCESSING -> PENDING -> COMPLETED/FAILED`; `COMPLETED`, `FAILED`, and `REFUNDED` are terminal for normal provider callbacks. |
+| Business/state rule | BR-PY-04-06 | Provider callbacks must verify signature and provider reference before applying completion/failure status. |
+| Business/state rule | BR-PY-04-07 | A callback for a non-pending or stale payment must not regress terminal payment, booking, or ticket state. |
+| Integration constraint | BR-PY-04-08 | Integration includes signed provider calls/callbacks and Booking Service updates; gateway route uses the microservice pattern `payment.provider.ipn`. |
+| Success response | BR-PY-04-09 | Successful provider IPN returns the raw provider-compatible acknowledgement payload, e.g. VNPay `{ RspCode, Message }`, instead of the normal API wrapper. |
+| Failure response | BR-PY-04-10 | Expected failures include `Payment not found`, `Booking not found`, `You do not have access to this booking payments`, `Booking is not pending payment`, `Booking payment window has expired`, `Payment method {method} is not supported`, `Can only cancel pending payments`, and `Unable to initiate payment. Please retry later.` |

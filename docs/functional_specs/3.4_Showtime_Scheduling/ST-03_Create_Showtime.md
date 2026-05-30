@@ -1,4 +1,4 @@
-﻿# [ST-03] Create Showtime
+# [ST-03] Create Showtime
 
 ## 1. Description
 
@@ -7,32 +7,28 @@
 | **Name** | Create Showtime |
 | **Functional ID** | ST-03 |
 | **Description** | Allows an Admin to schedule a single movie screening in a specific hall at a specific time. |
-| **Actor** | Admin |
+| **Actor** | Authorized Staff |
 | **Trigger** | `POST /v1/showtimes/showtime` |
-| **Pre-condition** | Admin authenticated; Movie, Hall, and Release IDs exist; No time overlap in the same hall. |
-| **Post-condition** | New Showtime created. |
+| **Pre-condition** | Caller satisfies gateway auth/permission requirements and request data matches shared DTO/query schema. |
+| **Post-condition** | State change is persisted atomically or the request fails without partial data inconsistency. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor Admin
+actor "Authorized Staff" as Actor
 boundary "API Gateway" as GW
-control "Cinema Service" as CS
-entity "Database (Cinema)" as DB
+control "Cinema Service" as SVC
+database "Cinema Database" as DB
 
-Admin -> GW: POST /v1/showtimes/showtime
-GW -> GW: Validate Admin Role
-GW -> CS: Create Showtime DTO
-CS -> DB: Check Hall Availability (Overlap check)
-alt No Overlap
-    CS -> DB: Insert Showtime
-    DB --> CS: Success
-    CS --> GW: 201 Created
-else Overlap Detected
-    CS --> GW: 409 Conflict (Hall Busy)
-end
+Actor -> GW: POST /v1/showtimes/showtime
+GW -> GW: Validate auth/role/permission
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `showtime.create_showtime`
+SVC -> DB: Read/write required records
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -40,25 +36,55 @@ end
 
 ```plantuml
 @startuml
-|Admin|
+|Authorized Staff|
 start
-:(1) Select Movie, Hall, Start Time;
-:(2) Submit Showtime;
+:Send request/event;
 |API Gateway|
-:(3) Validate Authorization;
-|Cinema Service|
-:(4) Verify Hall Status (ACTIVE);
-:(5) Check for Overlapping Schedules;
-if (No Overlap?) then (Yes)
-    |Database|
-    :(6) Insert Showtime Record;
-    |API Gateway|
-    :(7) Return Success;
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
+    |Cinema Service|
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Authorized Staff|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
+    endif
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
     stop
-else (No)
-    |API Gateway|
-    :(8) Return 409 Conflict;
-    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
 @enduml
 ```
@@ -67,7 +93,14 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (5) | BR90 | A hall cannot have two showtimes that overlap in time (including a buffer for cleaning). |
-| (4) | BR91 | Showtime status defaults to `SCHEDULED` or `SELLING`. |
-
-
+| Gateway guard | BR-ST-03-01 | Request must pass ClerkAuthGuard and the configured Permission decorator before the gateway forwards the command. |
+| Input validation | BR-ST-03-02 | CreateShowtimeRequest requires `movieId`, `movieReleaseId`, `cinemaId`, `hallId`, `startTime` in `yyyy-MM-dd HH:mm:ss`, `language`, and enum `format`/`status` values. |
+| Route/message boundary | BR-ST-03-03 | Implemented trigger is `POST /v1/showtimes/showtime` and service boundary uses `showtime.create_showtime`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-ST-03-04 | Showtime create/update must verify referenced movie release, cinema, and hall and reject overlapping hall schedules with the explicit conflict error returned by Showtime Service. |
+| Business/state rule | BR-ST-03-05 | Managers are limited to their own cinema; gateway overwrites or checks cinemaId from staff context before dispatch. |
+| Business/state rule | BR-ST-03-06 | Deleting or cancelling showtimes must respect existing bookings/reservations and service constraints. |
+| Business/state rule | BR-ST-03-07 | Seat map/TTL reads combine persisted showtime/seat data with Redis held-seat state for the requesting user. |
+| Business/state rule | BR-ST-03-08 | Create actions must reject duplicate/conflicting records before persistence and return the created DTO after persistence. |
+| Integration constraint | BR-ST-03-09 | Gateway forwards the request to the target service through microservice pattern `showtime.create_showtime` and propagates service errors through the common exception layer. |
+| Success response | BR-ST-03-10 | Successful write/validation/state-changing operations return service data with `ResponseMessage.MSG_7` where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
+| Failure response | BR-ST-03-11 | Expected failures include `Showtime not found`, conflict errors such as `Conflict with showtime existing in hall`, invalid showtime references, and wrong-cinema forbidden messages. |

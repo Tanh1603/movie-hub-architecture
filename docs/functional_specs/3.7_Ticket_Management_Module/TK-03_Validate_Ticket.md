@@ -1,4 +1,4 @@
-﻿# [TK-03] Validate Ticket
+# [TK-03] Validate Ticket
 
 ## 1. Description
 
@@ -7,35 +7,31 @@
 | **Name** | Validate Ticket |
 | **Functional ID** | TK-03 |
 | **Description** | Allows Staff to check the validity of a ticket (e.g., upon scanning QR code) without marking it as used. |
-| **Actor** | Staff |
+| **Actor** | Customer |
 | **Trigger** | `POST /v1/tickets/:id/validate` |
-| **Pre-condition** | Staff authenticated; Ticket ID exists. |
-| **Post-condition** | Validation result (Valid/Invalid/Expired) returned. |
+| **Pre-condition** | Ticket exists and caller has owner or cinema validation permission. |
+| **Post-condition** | Ticket details/QR are returned or ticket state is updated consistently. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor Staff
+actor "Customer" as Actor
 boundary "API Gateway" as GW
-control "Booking Service" as BS
-entity "Database (Booking)" as DB
+control "Booking Service" as SVC
+database "Booking Database" as DB
+control "QR/Notification Components" as EXT
 
-Staff -> GW: POST /v1/tickets/:id/validate
-GW -> BS: Validate Ticket Request
-BS -> DB: Find Ticket & Showtime Info
-alt Found
-    BS -> BS: Check Status == VALID
-    BS -> BS: Check Current Time < Showtime End
-    alt Valid & On Time
-        BS --> GW: 200 OK (Status: SUCCESS)
-    else Expired / Cancelled
-        BS --> GW: 200 OK (Status: FAILED, Reason: ...)
-    end
-else Not Found
-    BS --> GW: 404 Not Found
-end
+Actor -> GW: POST /v1/tickets/:id/validate
+GW -> GW: Validate auth/role/permission
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `ticket.validate`
+SVC -> DB: Read/write required records
+SVC -> EXT: Generate QR or coordinate delivery when required
+EXT --> SVC: Generated artifact/status
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -43,26 +39,56 @@ end
 
 ```plantuml
 @startuml
-|Staff|
+|Customer|
 start
-:(1) Scan QR Code / Input ID;
+:Send request/event;
 |API Gateway|
-:(2) Forward Validation Request;
-|Booking Service|
-:(3) Fetch Ticket & Showtime;
-if (Status == VALID?) then (Yes)
-    if (Current Time < Showtime End?) then (Yes)
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
+    |Booking Service|
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
         |API Gateway|
-        :(4) Return Success (Ticket is Valid);
-    else (No)
+        :Wrap/forward response;
+        |Customer|
+        :Receive result;
+        stop
+      else (no)
         |API Gateway|
-        :(5) Return Failure (Ticket Expired);
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
     endif
-else (No)
-    |API Gateway|
-    :(6) Return Failure (Status: Cancelled/Used);
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
+    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
-stop
 @enduml
 ```
 
@@ -70,7 +96,13 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR166 | Valid states for validation: `VALID`. |
-| (3) | BR167 | Tickets cannot be validated after the movie showtime has ended. |
-
-
+| Gateway guard | BR-TK-03-01 | Customer request must pass ClerkAuthGuard; own-scope permissions and ownership checks prevent access to another user's booking, payment, ticket, loyalty, or refund data. |
+| Input validation | BR-TK-03-02 | Ticket IDs or ticket codes are required; validation may include `validationCode` and `cinemaId`; bulk validation requires a ticket list payload matching BulkValidateTicketsDto. |
+| Route/message boundary | BR-TK-03-03 | Implemented trigger is `POST /v1/tickets/:id/validate` and service boundary uses `ticket.validate`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-TK-03-04 | Customer ticket reads and QR generation require ownership through the ticket's booking; staff validation endpoints require cinema-scope permissions. |
+| Business/state rule | BR-TK-03-05 | Ticket states are `VALID`, `USED`, `CANCELLED`, and `EXPIRED`; used tickets cannot be cancelled and invalid tickets cannot be used for entry. |
+| Business/state rule | BR-TK-03-06 | QR payloads are generated from persisted ticket identity/code and must remain unique and tamper-resistant; duplicate code reuse must be rejected during validation. |
+| Business/state rule | BR-TK-03-07 | Ticket delivery depends on confirmed payment/booking flow and notification/outbox delivery where enabled; lookup must still work from persisted ticket data. |
+| Integration constraint | BR-TK-03-08 | Integration uses Booking Service ticket module and, for QR or delivery, notification/outbox/digital delivery components where enabled; microservice pattern `ticket.validate`. |
+| Success response | BR-TK-03-09 | Successful write/validation/state-changing operations return service data with `ResponseMessage.MSG_7` where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
+| Failure response | BR-TK-03-10 | Expected failures include `Ticket not found`, invalid ticket status during validation/use, and `Cannot cancel a used ticket` for cancellation. |

@@ -1,4 +1,4 @@
-﻿# [ST-05] Update Showtime
+# [ST-05] Update Showtime
 
 ## 1. Description
 
@@ -7,36 +7,28 @@
 | **Name** | Update Showtime |
 | **Functional ID** | ST-05 |
 | **Description** | Modifies an existing showtime's details (e.g., changing the hall, start time, or status). |
-| **Actor** | Admin |
+| **Actor** | Authorized Staff |
 | **Trigger** | `PATCH /v1/showtimes/showtime/:id` |
-| **Pre-condition** | Admin authenticated; Showtime exists; No bookings yet if changing time/hall. |
-| **Post-condition** | Showtime record updated. |
+| **Pre-condition** | Caller satisfies gateway auth/permission requirements and request data matches shared DTO/query schema. |
+| **Post-condition** | State change is persisted atomically or the request fails without partial data inconsistency. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor Admin
+actor "Authorized Staff" as Actor
 boundary "API Gateway" as GW
-control "Cinema Service" as CS
-entity "Database (Cinema)" as DB
+control "Cinema Service" as SVC
+database "Cinema Database" as DB
 
-Admin -> GW: PATCH /v1/showtimes/showtime/:id
-GW -> CS: Update Showtime Request
-CS -> DB: Check for Bookings
-alt No Bookings
-    CS -> DB: Check new time conflict
-    alt Safe
-        CS -> DB: Update Fields
-        DB --> CS: Success
-        CS --> GW: 200 OK
-    else Conflict
-        CS --> GW: 409 Conflict
-    end
-else Has Bookings
-    CS --> GW: 400 Bad Request (Cannot change hall/time with active bookings)
-end
+Actor -> GW: PATCH /v1/showtimes/showtime/:id
+GW -> GW: Validate auth/role/permission
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `showtime.update_showtime`
+SVC -> DB: Read/write required records
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -44,31 +36,56 @@ end
 
 ```plantuml
 @startuml
-|Admin|
+|Authorized Staff|
 start
-:(1) Request Showtime Update;
+:Send request/event;
 |API Gateway|
-:(2) Validate Auth;
-|Cinema Service|
-:(3) Check for Active Bookings;
-if (Has Bookings?) then (Yes)
-    :(4) Restrict updates to Status only;
-    if (Update Status?) then (Yes)
-        |Database|
-        :(5) Update Status;
-    else (No)
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
+    |Cinema Service|
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
         |API Gateway|
-        :(6) Return Error;
+        :Wrap/forward response;
+        |Authorized Staff|
+        :Receive result;
         stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
     endif
-else (No)
-    :(7) Allow Hall/Time changes;
-    |Database|
-    :(8) Update Full Record;
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
+    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
-|API Gateway|
-:(9) Return Success;
-stop
 @enduml
 ```
 
@@ -76,7 +93,14 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR94 | Changing Hall or Start Time is strictly prohibited if users have already booked tickets for that showtime. |
-| (5) | BR95 | Valid statuses: `SCHEDULED`, `SELLING`, `SOLD_OUT`, `CANCELLED`, `COMPLETED`. |
-
-
+| Gateway guard | BR-ST-05-01 | Request must pass ClerkAuthGuard and the configured Permission decorator before the gateway forwards the command. |
+| Input validation | BR-ST-05-02 | Showtime IDs and filter dates must be parseable; enum fields use FormatEnum and ShowtimeStatusEnum and pagination values are numeric where accepted. |
+| Route/message boundary | BR-ST-05-03 | Implemented trigger is `PATCH /v1/showtimes/showtime/:id` and service boundary uses `showtime.update_showtime`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-ST-05-04 | Showtime create/update must verify referenced movie release, cinema, and hall and reject overlapping hall schedules with the explicit conflict error returned by Showtime Service. |
+| Business/state rule | BR-ST-05-05 | Managers are limited to their own cinema; gateway overwrites or checks cinemaId from staff context before dispatch. |
+| Business/state rule | BR-ST-05-06 | Deleting or cancelling showtimes must respect existing bookings/reservations and service constraints. |
+| Business/state rule | BR-ST-05-07 | Seat map/TTL reads combine persisted showtime/seat data with Redis held-seat state for the requesting user. |
+| Business/state rule | BR-ST-05-08 | Update actions must merge only allowed DTO fields and leave omitted fields unchanged. |
+| Integration constraint | BR-ST-05-09 | Gateway forwards the request to the target service through microservice pattern `showtime.update_showtime` and propagates service errors through the common exception layer. |
+| Success response | BR-ST-05-10 | Successful write/validation/state-changing operations return service data with `ResponseMessage.MSG_7` where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
+| Failure response | BR-ST-05-11 | Expected failures include `Showtime not found`, conflict errors such as `Conflict with showtime existing in hall`, invalid showtime references, and wrong-cinema forbidden messages. |

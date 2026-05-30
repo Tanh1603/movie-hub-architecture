@@ -1,4 +1,4 @@
-﻿# [CM-05] Get Cinema Detail
+# [CM-05] Get Cinema Detail
 
 ## 1. Description
 
@@ -7,30 +7,28 @@
 | **Name** | Get Cinema Detail |
 | **Functional ID** | CM-05 |
 | **Description** | Retrieves full details of a specific cinema, including amenities, address, and description. |
-| **Actor** | Guest, Member |
+| **Actor** | Guest / Authenticated User |
 | **Trigger** | `GET /v1/cinemas/:id` |
-| **Pre-condition** | None. |
-| **Post-condition** | Detailed cinema object returned. |
+| **Pre-condition** | Required path/query parameters are provided; no customer session is required for this read. |
+| **Post-condition** | Requested data is returned or the targeted state change is persisted consistently. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor User
+actor "Guest / Authenticated User" as Actor
 boundary "API Gateway" as GW
-control "Cinema Service" as CS
-entity "Database (Cinema)" as DB
+control "Cinema Service" as SVC
+database "Cinema Database" as DB
 
-User -> GW: GET /v1/cinemas/:id
-GW -> CS: Get Cinema By ID
-CS -> DB: Find Unique
-alt Found
-    DB --> CS: Cinema Record
-    CS --> GW: Cinema Details
-else Not Found
-    CS --> GW: 404 Not Found
-end
+Actor -> GW: GET /v1/cinemas/:id
+GW -> GW: Validate public request constraints
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `CINEMA.GET_CINEMA_DETAIL`
+SVC -> DB: Read/write required records
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -38,22 +36,55 @@ end
 
 ```plantuml
 @startuml
-|User|
+|Guest / Authenticated User|
 start
-:(1) Select Cinema;
+:Send request/event;
 |API Gateway|
-:(2) Request Details;
-|Cinema Service|
-:(3) Query DB;
-|Database|
-:(4) Return Data;
-if (Found?) then (Yes)
-    |API Gateway|
-    :(5) Return JSON;
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
+    |Cinema Service|
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Guest / Authenticated User|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
+    endif
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
     stop
-else (No)
-    :(6) Return 404;
-    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
 @enduml
 ```
@@ -62,6 +93,13 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | BR46 | Standard Read Operation. |
-
-
+| Gateway guard | BR-CM-05-01 | Read operation is public unless the gateway method explicitly applies ClerkAuthGuard; staff cinema context may still restrict scoped results when present. |
+| Input validation | BR-CM-05-02 | Cinema IDs and status filters must be valid; status defaults to `ACTIVE` where the controller applies CinemaStatusEnum defaults. |
+| Route/message boundary | BR-CM-05-03 | Implemented trigger is `GET /v1/cinemas/:id` and service boundary uses `CINEMA.GET_CINEMA_DETAIL`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-CM-05-04 | Cinema-scoped staff can only mutate resources in their own cinema; global create/delete operations reject cinema managers where the gateway checks staff context. |
+| Business/state rule | BR-CM-05-05 | Deletes must fail when dependent halls, seats, showtimes, or reservations would violate service constraints. |
+| Business/state rule | BR-CM-05-06 | Status filters use the relevant enum and default active status when controller code applies a default. |
+| Business/state rule | BR-CM-05-07 | Cinema/Hall/Ticket pricing responses are returned from Cinema Service without exposing internal persistence-only fields. |
+| Integration constraint | BR-CM-05-08 | Gateway forwards the request to the target service through microservice pattern `CINEMA.GET_CINEMA_DETAIL` and propagates service errors through the common exception layer. |
+| Success response | BR-CM-05-09 | Successful read operations return the requested DTO/list using the gateway's normal response wrapper; no artificial success text is invented by the spec. |
+| Failure response | BR-CM-05-10 | Expected failures include resource not found, explicit gateway forbidden messages for wrong cinema scope, `Cannot delete cinema with dependent data`, `Cannot delete hall with dependent data`, and `Seat not found`. |

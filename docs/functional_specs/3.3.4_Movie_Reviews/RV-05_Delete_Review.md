@@ -1,4 +1,4 @@
-﻿# [RV-05] Delete Review
+# [RV-05] Delete Review
 
 ## 1. Description
 
@@ -7,31 +7,28 @@
 | **Name** | Delete Review |
 | **Functional ID** | RV-05 |
 | **Description** | Allows an Administrator to delete a review (e.g., for moderation). Note: SRS also allows Members to delete their own, but trigger is usually Admin-focused in list. |
-| **Actor** | Admin |
+| **Actor** | Authorized Staff |
 | **Trigger** | `DELETE /v1/reviews/:id` |
-| **Pre-condition** | Admin authenticated; Review ID exists. |
-| **Post-condition** | Review record removed. |
+| **Pre-condition** | Caller satisfies gateway auth/permission requirements and request data matches shared DTO/query schema. |
+| **Post-condition** | State change is persisted atomically or the request fails without partial data inconsistency. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor Admin
+actor "Authorized Staff" as Actor
 boundary "API Gateway" as GW
-control "Movie Service" as MS
-entity "Database (Movie)" as DB
+control "Movie Service" as SVC
+database "Movie Database" as DB
 
-Admin -> GW: DELETE /v1/reviews/:id
-GW -> GW: Validate Admin Role
-GW -> MS: Delete Review Request
-MS -> DB: Find & Delete Review
-alt Found
-    DB --> MS: Success
-    MS --> GW: 200 OK
-else Not Found
-    MS --> GW: 404 Not Found
-end
+Actor -> GW: DELETE /v1/reviews/:id
+GW -> GW: Validate auth/role/permission
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `review.deleted`
+SVC -> DB: Read/write required records
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -39,24 +36,55 @@ end
 
 ```plantuml
 @startuml
-|Admin|
+|Authorized Staff|
 start
-:(1) Select Review for Moderation;
-:(2) Request Deletion;
+:Send request/event;
 |API Gateway|
-:(3) Validate Admin Auth;
-|Movie Service|
-:(4) Locate Review;
-if (Found?) then (Yes)
-    |Database|
-    :(5) Delete Record;
-    |API Gateway|
-    :(6) Return Success;
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
+    |Movie Service|
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Authorized Staff|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
+    endif
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
     stop
-else (No)
-    |API Gateway|
-    :(7) Return 404;
-    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
 @enduml
 ```
@@ -65,6 +93,14 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (5) | BR86 | Deleted reviews should also trigger a recalculation of the movie's aggregate rating. |
-
-
+| Gateway guard | BR-RV-05-01 | Request must pass ClerkAuthGuard and the configured Permission decorator before the gateway forwards the command. |
+| Input validation | BR-RV-05-02 | Review create requires UUID `movieId`, `userId`, integer `rating` from 1 to 5, and `content`; update follows the review update DTO. |
+| Route/message boundary | BR-RV-05-03 | Implemented trigger is `DELETE /v1/reviews/:id` and service boundary uses `review.deleted`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-RV-05-04 | Movie catalog writes require authenticated staff/global permission; public reads only expose catalog/review data intended for clients. |
+| Business/state rule | BR-RV-05-05 | Referenced movies, releases, genres, and reviews must exist before update/delete/detail actions; not found paths use ResourceNotFoundException or service errors. |
+| Business/state rule | BR-RV-05-06 | Movie release dates, runtime, age rating, language options, and genre references must remain consistent with shared enum/DTO contracts. |
+| Business/state rule | BR-RV-05-07 | Review creation/update keeps rating in the allowed range and associates the review with the authenticated/user payload and target movie. |
+| Business/state rule | BR-RV-05-08 | Delete/cancel actions must be blocked when dependent records or invalid terminal states would cause data inconsistency. |
+| Integration constraint | BR-RV-05-09 | Gateway forwards the request to the target service through microservice pattern `review.deleted` and propagates service errors through the common exception layer. |
+| Success response | BR-RV-05-10 | Successful write/validation/state-changing operations return service data with `ResponseMessage.MSG_7` where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
+| Failure response | BR-RV-05-11 | Expected failures include ResourceNotFoundException for missing movie/genre/release/review, validation failures from strict Zod DTOs, and database constraint errors. |

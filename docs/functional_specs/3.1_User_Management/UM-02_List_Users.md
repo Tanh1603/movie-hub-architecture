@@ -1,4 +1,4 @@
-﻿# [UM-02] List Users
+# [UM-02] List Users
 
 ## 1. Description
 
@@ -7,32 +7,28 @@
 | **Name** | List Users |
 | **Functional ID** | UM-02 |
 | **Description** | Allows Administrators to view a list of all registered users in the system. |
-| **Actor** | Admin |
-| **Trigger** | `GET /users` |
-| **Pre-condition** | Actor is authenticated and has `ADMIN` role. |
-| **Post-condition** | List of users is returned. |
+| **Actor** | Authenticated User |
+| **Trigger** | `GET /v1/users` |
+| **Pre-condition** | Caller satisfies gateway auth/permission requirements and request data matches shared DTO/query schema. |
+| **Post-condition** | Requested data is returned or the targeted state change is persisted consistently. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor Admin
+actor "Authenticated User" as Actor
 boundary "API Gateway" as GW
-control "User Service" as US
-entity "Database (User)" as DB
+control "User Service" as SVC
+database "User Database" as DB
 
-Admin -> GW: GET /users
-GW -> GW: Verify Admin Role
-alt Authorized
-    GW -> US: Get All Users
-    US -> DB: Select * FROM users
-    DB --> US: User List
-    US --> GW: User List DTO
-    GW --> Admin: 200 OK (JSON)
-else Unauthorized
-    GW --> Admin: 403 Forbidden
-end
+Actor -> GW: GET /v1/users
+GW -> GW: Validate auth/role/permission
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `user.getAll`
+SVC -> DB: Read/write required records
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -40,27 +36,55 @@ end
 
 ```plantuml
 @startuml
-|Admin|
+|Authenticated User|
 start
-:(1) Request User List;
+:Send request/event;
 |API Gateway|
-:(2) Validate Permissions (Admin);
-if (Is Admin?) then (Yes)
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
     |User Service|
-    :(3) Query User Database;
-    |Database|
-    :(4) Return User Records;
-    |User Service|
-    :(5) Map to DTO;
-    |API Gateway|
-    :(6) Return Response;
-    |Admin|
-    :(7) View Users;
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Authenticated User|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
+    endif
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
     stop
-else (No)
-    |API Gateway|
-    :(8) Return 403 Forbidden;
-    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
 endif
 @enduml
 ```
@@ -69,6 +93,14 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (2) | BR03 | Only users with the `ADMIN` role may access the user list; unauthorized requests must return HTTP 403 and must not expose any user data. |
-
-
+| Gateway guard | BR-UM-02-01 | Request must pass ClerkAuthGuard and the configured Permission decorator before the gateway forwards the command. |
+| Input validation | BR-UM-02-02 | User/staff IDs and RBAC payloads must be present; DTO/Zod validation maps missing fields to `ResponseMessage.MSG_1` and bad format to `ResponseMessage.MSG_4` when the gateway validation layer catches them. |
+| Route/message boundary | BR-UM-02-03 | Implemented trigger is `GET /v1/users` and service boundary uses `user.getAll`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-UM-02-04 | User data is sourced from Clerk-synchronized records and staff context; Clerk webhook payloads must be verified before processing. |
+| Business/state rule | BR-UM-02-05 | Staff managers are limited to their assigned cinema for create, view, update, and delete operations where staffContext.cinemaId is present. |
+| Business/state rule | BR-UM-02-06 | RBAC and user operations require configured Permission decorators; unknown permissions, unknown roles, and removing the last ADMIN fail with explicit RBAC errors. |
+| Business/state rule | BR-UM-02-07 | Staff create/update synchronizes with Clerk where configured and returns propagated errors for duplicate identity or external sync failure. |
+| Business/state rule | BR-UM-02-08 | List responses must honor supported filters, pagination defaults, and cinema/user scoping before returning data. |
+| Integration constraint | BR-UM-02-09 | Gateway forwards the request to the target service through microservice pattern `user.getAll` and propagates service errors through the common exception layer. |
+| Success response | BR-UM-02-10 | Successful read operations return the requested DTO/list using the gateway's normal response wrapper; no artificial success text is invented by the spec. |
+| Failure response | BR-UM-02-11 | Expected failures include staff cinema-scope ForbiddenException messages, invalid Clerk webhook envelope, unknown permissions/roles, duplicate staff identity, and `Cannot remove the last ADMIN`. |

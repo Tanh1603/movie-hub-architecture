@@ -1,4 +1,4 @@
-﻿# [RV-02] Get Movie Reviews
+# [RV-02] Get Movie Reviews
 
 ## 1. Description
 
@@ -7,27 +7,28 @@
 | **Name** | Get Movie Reviews |
 | **Functional ID** | RV-02 |
 | **Description** | Retrieves all reviews and ratings for a specific movie. |
-| **Actor** | Guest, Member |
+| **Actor** | Authenticated User |
 | **Trigger** | `GET /v1/movies/:id/reviews` |
-| **Pre-condition** | Movie ID exists. |
-| **Post-condition** | List of reviews for the movie returned. |
+| **Pre-condition** | Caller satisfies gateway auth/permission requirements and request data matches shared DTO/query schema. |
+| **Post-condition** | Requested data is returned or the targeted state change is persisted consistently. |
 
 ## 2. Sequence Flow
 
 ```plantuml
 @startuml
 autonumber
-actor User
+actor "Authenticated User" as Actor
 boundary "API Gateway" as GW
-control "Movie Service" as MS
-entity "Database (Movie)" as DB
+control "Movie Service" as SVC
+database "Movie Database" as DB
 
-User -> GW: GET /v1/movies/:id/reviews
-GW -> MS: Get Movie Reviews Request
-MS -> DB: SELECT * FROM Review WHERE movieId = :id
-DB --> MS: List of Movie Reviews
-MS --> GW: Review List DTO
-GW --> User: 200 OK
+Actor -> GW: GET /v1/movies/:id/reviews
+GW -> GW: Validate auth/role/permission
+GW -> GW: Validate path/query/body DTO
+GW -> SVC: Send `movie.review.list`
+SVC -> DB: Read/write required records
+SVC --> GW: ServiceResult or DTO
+GW --> Actor: API response or mapped error
 @enduml
 ```
 
@@ -35,18 +36,56 @@ GW --> User: 200 OK
 
 ```plantuml
 @startuml
-|User|
+|Authenticated User|
 start
-:(1) View Movie Reviews;
+:Send request/event;
 |API Gateway|
-:(2) Request Reviews;
-|Movie Service|
-:(3) Query Database for Movie ID;
-|Database|
-:(4) Return Data;
-|API Gateway|
-:(5) Return Response;
-stop
+:Authenticate/authorize when configured;
+if (Auth allowed?) then (yes)
+  :Validate params/query/body;
+  if (Validation passed?) then (yes)
+    |Movie Service|
+    :Load required records and scope context;
+    if (Resource exists and scope is valid?) then (yes)
+      :Apply business rules and state checks;
+      if (Rules pass?) then (yes)
+        :Persist change or build read result;
+        if (Downstream integration needed?) then (yes)
+          :Call provider/Redis/other service;
+          if (Integration succeeds?) then (yes)
+            :Return success result;
+          else (no)
+            :Rollback/mark failed when required;
+            |API Gateway|
+            :Return mapped downstream failure;
+            stop
+          endif
+        else (no)
+          :Return success result;
+        endif
+        |API Gateway|
+        :Wrap/forward response;
+        |Authenticated User|
+        :Receive result;
+        stop
+      else (no)
+        |API Gateway|
+        :Return conflict or invalid-state error;
+        stop
+      endif
+    else (no)
+      |API Gateway|
+      :Return not-found or forbidden error;
+      stop
+    endif
+  else (no)
+    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
+    stop
+  endif
+else (no)
+  :Return unauthorized/forbidden error;
+  stop
+endif
 @enduml
 ```
 
@@ -54,6 +93,13 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR81 | Reviews should include user names (or obfuscated IDs) and rating values. |
-
-
+| Gateway guard | BR-RV-02-01 | Request must pass ClerkAuthGuard and the configured Permission decorator before the gateway forwards the command. |
+| Input validation | BR-RV-02-02 | Review create requires UUID `movieId`, `userId`, integer `rating` from 1 to 5, and `content`; update follows the review update DTO. |
+| Route/message boundary | BR-RV-02-03 | Implemented trigger is `GET /v1/movies/:id/reviews` and service boundary uses `movie.review.list`; the gateway must not call stale or pluralized paths that differ from the controller. |
+| Business/state rule | BR-RV-02-04 | Movie catalog writes require authenticated staff/global permission; public reads only expose catalog/review data intended for clients. |
+| Business/state rule | BR-RV-02-05 | Referenced movies, releases, genres, and reviews must exist before update/delete/detail actions; not found paths use ResourceNotFoundException or service errors. |
+| Business/state rule | BR-RV-02-06 | Movie release dates, runtime, age rating, language options, and genre references must remain consistent with shared enum/DTO contracts. |
+| Business/state rule | BR-RV-02-07 | Review creation/update keeps rating in the allowed range and associates the review with the authenticated/user payload and target movie. |
+| Integration constraint | BR-RV-02-08 | Gateway forwards the request to the target service through microservice pattern `movie.review.list` and propagates service errors through the common exception layer. |
+| Success response | BR-RV-02-09 | Successful read operations return the requested DTO/list using the gateway's normal response wrapper; no artificial success text is invented by the spec. |
+| Failure response | BR-RV-02-10 | Expected failures include ResourceNotFoundException for missing movie/genre/release/review, validation failures from strict Zod DTOs, and database constraint errors. |
