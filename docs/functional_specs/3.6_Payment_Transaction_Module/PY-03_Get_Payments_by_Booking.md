@@ -54,7 +54,10 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR150 | Useful for tracking failed attempts and final successful payment. |
-| (3) | BR151 | Only accessible to the booking owner. |
+| (2) | BR184 | Member must own the booking before payment history for that booking is returned. |
+| (3) | BR185 | Payment history must include all attempts for the booking, including `PROCESSING`, `PENDING`, `COMPLETED`, `FAILED`, and `REFUNDED` records. |
+| (3) | BR186 | Results must be sorted by newest attempt first so the latest pending payment can be resumed. |
+| (5) | BR187 | The response must support failure diagnosis without exposing gateway secrets or raw webhook payloads. |
+| (5) | BR188 | If a pending payment exists, consumers may use its stored `paymentUrl` to continue payment instead of creating a duplicate attempt. |
 
 

@@ -64,6 +64,10 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR149 | Only the member who initiated the payment can view its details. |
+| (2) | BR179 | Member must be authenticated before payment details are returned. |
+| (3) | BR180 | Only the owner of the related booking can view the payment details. |
+| (3) | BR181 | Response must include payment method, amount, status, transaction id, provider transaction id, payment URL when pending, and paid timestamp when completed. |
+| (3) | BR182 | Sensitive provider secrets, secure hashes, OTP values, and raw PII must never be exposed in the response. |
+| (5) | BR183 | Missing or unauthorized payments must not disclose another user's payment existence. |
 
 

@@ -154,7 +154,9 @@ const SeatBookingContent = ({ showtimeId }: { showtimeId: string }) => {
       <div className="flex-1 w-full p-4">
         {currentStep === 0 && <SeatMap data={data} />}
         {currentStep === 1 && <FoodSelector cinemaId={data?.cinemaId} />}
-        {currentStep === 2 && <BookingCheckout data={data} />}
+        {currentStep === 2 && (
+          <BookingCheckout data={data} existingBooking={checking} />
+        )}
       </div>
     </div>
   );

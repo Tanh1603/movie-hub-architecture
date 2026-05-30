@@ -74,8 +74,12 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (8) | BR104 | Booking expiry time: 15 minutes from creation. |
-| (6) | BR105 | Only one pending booking per user per showtime is allowed. |
-| (4) | BR106 | VAT rate: 10% on all transactions. |
+| (3) | BR104 | Member must have an authenticated session before a booking session is created. |
+| (3) | BR105 | Seats must be held by the same user in Redis before tickets can be attached to the booking. |
+| (6) | BR106 | Only one active `PENDING` booking per user per showtime is allowed; existing pending bookings are reused. |
+| (7) | BR107 | New bookings start with `PENDING` booking status and `PENDING` payment status. |
+| (8) | BR108 | Booking payment window expires after 15 minutes or when the seat hold TTL expires, whichever is earlier. |
+| (4) | BR109 | Amounts are calculated from current seat prices, concessions, promotions, loyalty discounts, and 10% VAT policy. |
+| (9) | BR110 | Booking creation must return enough summary data for checkout without exposing internal database fields. |
 
 

@@ -697,7 +697,7 @@ export const clientPaymentsApi = {
     ),
   getByBooking: (token: string, bookingId: string) =>
     api.get<PaymentDetailDto[]>(
-      `/payments/bookings/${bookingId}`
+      `/payments/booking/${bookingId}`
     ),
   getDetails: (token: string, paymentId: string) =>
     api.get<PaymentDetailDto>(`/payments/${paymentId}`, {

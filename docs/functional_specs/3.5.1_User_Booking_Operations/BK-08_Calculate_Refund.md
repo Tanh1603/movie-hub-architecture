@@ -54,7 +54,11 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | BR118 | Refund percentage on ticket cancellation: 70%. |
-| (3) | BR119 | Refund eligibility requires cancellation at least 2 hours before showtime. |
+| (2) | BR148 | Member must own the booking before refund calculation is returned. |
+| (3) | BR149 | Refund eligibility must check booking status, showtime start time, and whether the booking was already cancelled/refunded. |
+| (3) | BR150 | Current legacy refund calculation requires cancellation at least 2 hours before showtime. |
+| (4) | BR151 | Current legacy refund amount is 70% of ticket price only; concessions and service fees are non-refundable. |
+| (4) | BR152 | The calculation response must include refund amount, refund percentage, ticket amount, concessions amount, eligibility reason, and deadline when available. |
+| (5) | BR153 | Refund policy values must be configurable or isolated so future 24-hour voucher policy changes do not require broad code changes. |
 
 

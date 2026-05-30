@@ -70,7 +70,11 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR111 | Bookings can only be cancelled when status is PENDING or CONFIRMED. |
-| (5) | BR112 | Seats are made available for other users immediately after cancellation. |
+| (2) | BR128 | The requester must be authenticated and must own the booking before cancellation is allowed. |
+| (3) | BR129 | Bookings can only be cancelled when status is `PENDING` or `CONFIRMED`; terminal bookings cannot be cancelled again. |
+| (4) | BR130 | Cancellation must be atomic with booking status, ticket status, cancellation reason, and cancellation timestamp updates. |
+| (5) | BR131 | Seats from a cancelled pending booking must be released for other users as soon as the cancellation succeeds. |
+| (5) | BR132 | Confirmed booking cancellation that requires refund handling must follow refund policy in BK-09/RF module. |
+| (6) | BR133 | Cancellation should return clear user-facing status and must not leave booking, ticket, and payment states inconsistent. |
 
 

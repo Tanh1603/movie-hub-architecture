@@ -50,7 +50,10 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR123 | Must mention the 2-hour deadline. |
-| (3) | BR124 | Must mention the 70% refund rate. |
+| (3) | BR166 | Policy response must expose the current cancellation deadline used by booking-service. |
+| (3) | BR167 | Policy response must expose the current refund percentage and whether concessions/service fees are refundable. |
+| (3) | BR168 | Policy response must expose the maximum reschedule count. |
+| (3) | BR169 | Policy text must be understandable to members before they confirm cancellation or exchange. |
+| (3) | BR170 | Policy constants must be easy to update when business rules change. |
 
 

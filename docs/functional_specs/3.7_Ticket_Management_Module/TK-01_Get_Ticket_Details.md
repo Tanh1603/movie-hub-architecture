@@ -64,7 +64,11 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR162 | Ticket status must be one of the `TicketStatus` enum values. |
-| (3) | BR163 | Only the member who bought the ticket can view its detailed information. |
+| (2) | BR203 | Only the member who bought the ticket or authorized staff can view detailed ticket information. |
+| (3) | BR204 | Ticket status must be one of the `TicketStatus` enum values and must reflect the related booking/payment state. |
+| (3) | BR205 | Confirmed tickets must include QR-ready data for e-ticket display and download. |
+| (3) | BR206 | QR data must identify a unique ticket and must not expose mutable payment data, OTP values, or customer PII. |
+| (5) | BR207 | Ticket details must remain accessible after payment confirmation for download, resend, and offline save workflows. |
+| (5) | BR208 | Ticket layout data must include essential movie, cinema, hall, showtime, seat, and booking code information. |
 
 

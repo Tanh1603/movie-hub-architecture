@@ -72,7 +72,11 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (5) | BR155 | Immediate feedback only. Data consistency is guaranteed by PY-04 (IPN). |
-| (6) | BR156 | Success page should display booking summary and link to tickets. |
+| (3) | BR197 | Return URL validation must verify the provider signature before showing transaction status. |
+| (5) | BR198 | Return URL gives immediate user feedback only; authoritative booking/payment consistency is handled by IPN/webhook processing. |
+| (5) | BR199 | A successful return should guide the user to booking details/e-ticket access, but must not assume tickets are valid until backend confirmation is complete. |
+| (5) | BR200 | A failed or cancelled return should let the user retry payment or choose another available payment method if the booking is still active. |
+| (6) | BR201 | The checkout UI must support resuming an existing `PENDING` payment URL when the user navigates back before provider completion. |
+| (6) | BR202 | User-facing status pages must avoid exposing provider secrets, secure hashes, or raw callback payloads. |
 
 

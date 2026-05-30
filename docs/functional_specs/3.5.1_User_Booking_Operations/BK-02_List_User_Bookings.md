@@ -56,6 +56,11 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR107 | Only returns bookings belonging to the requesting user. |
+| (2) | BR111 | Member must be authenticated before booking history is queried. |
+| (3) | BR112 | The query must only return bookings owned by the requesting user. |
+| (3) | BR113 | Booking history must support status categorization for upcoming, past, cancelled, refunded, and expired bookings. |
+| (3) | BR114 | Results must be paginated and sorted by newest booking first by default. |
+| (5) | BR115 | Summary DTOs must include movie, cinema, hall, showtime, seat count, total amount, and booking status for fast list rendering. |
+| (6) | BR116 | Booking history retrieval should complete in under 2 seconds under normal load. |
 
 

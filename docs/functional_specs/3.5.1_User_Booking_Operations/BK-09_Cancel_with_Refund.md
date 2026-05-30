@@ -68,7 +68,11 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR120 | Cancellation must be made at least 2 hours before showtime. |
-| (3) | BR121 | Refund amount = 70% of ticket price. |
+| (2) | BR154 | Member must own the booking and pass refund eligibility checks before refund cancellation is processed. |
+| (3) | BR155 | Current legacy flow requires cancellation at least 2 hours before showtime; voucher refund flow is handled by the refund module. |
+| (3) | BR156 | Current legacy refund amount is 70% of ticket price only; concessions remain non-refundable. |
+| (4) | BR157 | Booking cancellation and refund request creation must not leave payment, ticket, or booking states inconsistent. |
+| (5) | BR158 | The system must return refund calculation details even when the user is not eligible, including the reason. |
+| (6) | BR159 | Refund processing must be retryable and auditable because payment gateway or voucher generation can fail independently. |
 
 

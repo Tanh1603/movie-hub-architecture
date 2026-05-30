@@ -735,6 +735,10 @@ export class PaymentService implements OnModuleInit {
       throw new Error('Booking payment window has expired');
     }
 
+    if (new Date() > booking.expires_at) {
+      throw new Error('Booking payment window has expired');
+    }
+
     return booking as typeof booking & { expires_at: Date };
   }
 

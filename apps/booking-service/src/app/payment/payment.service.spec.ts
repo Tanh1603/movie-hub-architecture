@@ -44,7 +44,9 @@ describe('PaymentService phase04 initiation', () => {
     webhookGuard = {
       markIfFirstSeen: jest.fn(),
       auditSuspiciousCallback: jest.fn(),
+      assertTimestampFresh: jest.fn(() => ({ fresh: true })),
     };
+    const metricCounter = { inc: jest.fn() } as any;
 
     service = new PaymentService(
       prisma,
@@ -55,11 +57,14 @@ describe('PaymentService phase04 initiation', () => {
       { send: jest.fn() } as any,
       { sendBookingConfirmation: jest.fn(), sendBookingConfirmationSMS: jest.fn() } as any,
       { generateQRCode: jest.fn() } as any,
-      [adapter]
+      [adapter],
+      metricCounter,
+      metricCounter,
+      metricCounter
     );
   });
 
-  it('returns existing canonical payment for duplicate initiation context', async () => {
+  it('reuses an existing pending payment URL for duplicate initiation context', async () => {
     prisma.bookings.findUnique.mockResolvedValue({
       id: 'b1',
       user_id: 'u1',
@@ -85,10 +90,13 @@ describe('PaymentService phase04 initiation', () => {
       updated_at: new Date(),
     });
 
-    const result = await service.createPayment('b1', { paymentMethod: PaymentMethod.VNPAY }, '127.0.0.1');
+    const result = await service.createPayment('b1', { paymentMethod: PaymentMethod.VNPAY }, '127.0.0.1', 'u1');
 
     expect(result.data.id).toBe('p-existing');
+    expect(result.data.status).toBe(PaymentStatus.PENDING);
+    expect(result.data.paymentUrl).toBe('https://example.test/pay');
     expect(prisma.payments.create).not.toHaveBeenCalled();
+    expect(prisma.payments.update).not.toHaveBeenCalled();
     expect(adapter.initiatePayment).not.toHaveBeenCalled();
   });
 
@@ -125,7 +133,7 @@ describe('PaymentService phase04 initiation', () => {
       .mockRejectedValue(new Error('PAYMENT_PROVIDER_TIMEOUT'));
 
     await expect(
-      service.createPayment('b2', { paymentMethod: PaymentMethod.VNPAY }, '127.0.0.1')
+      service.createPayment('b2', { paymentMethod: PaymentMethod.VNPAY }, '127.0.0.1', 'u2')
     ).rejects.toThrow('Unable to initiate payment. Please retry later.');
 
     expect(prisma.payments.update).toHaveBeenCalledWith(
@@ -174,7 +182,8 @@ describe('PaymentService phase04 initiation', () => {
     const result = await service.createPayment(
       'b3',
       { paymentMethod: PaymentMethod.VNPAY },
-      '127.0.0.1'
+      '127.0.0.1',
+      'u3'
     );
 
     expect(result.data.id).toBe('p-raced');

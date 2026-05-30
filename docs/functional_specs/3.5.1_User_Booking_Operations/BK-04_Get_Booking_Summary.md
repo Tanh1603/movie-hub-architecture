@@ -54,6 +54,10 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR110 | Excludes internal technical fields and full QR data. |
+| (3) | BR123 | Summary must include checkout-ready movie, cinema, showtime, ticket group, concession, tax, discount, loyalty, and final amount data. |
+| (3) | BR124 | If a `PENDING` payment exists for the booking, summary must include its payment method, status, amount, and reusable `paymentUrl`. |
+| (3) | BR125 | Summary must exclude internal technical fields, raw webhook metadata, full QR payloads, and sensitive customer data. |
+| (3) | BR126 | Pricing in the summary must reflect the latest persisted booking values, not client-side totals. |
+| (5) | BR127 | Summary retrieval should be fast enough for checkout resume and should avoid blocking on optional enrichment failures. |
 
 

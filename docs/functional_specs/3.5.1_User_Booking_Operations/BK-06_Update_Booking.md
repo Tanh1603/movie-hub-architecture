@@ -67,7 +67,12 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR113 | Bookings cannot be modified once they are CONFIRMED or PAID. |
-| (5) | BR114 | VAT (10%) must be recalculated based on new items. |
+| (2) | BR134 | Member must own the booking before update is allowed. |
+| (3) | BR135 | Only `PENDING` bookings inside the active seat/payment window can be updated. |
+| (3) | BR136 | Update must validate that the selected seats are still held by the same user and have not been sold. |
+| (4) | BR137 | Concession updates must validate item existence, availability, and requested quantity. |
+| (5) | BR138 | Promotions and loyalty points must be recalculated server-side; client totals are not authoritative. |
+| (5) | BR139 | VAT and final amount must be recalculated after every seat, concession, promotion, or loyalty change. |
+| (6) | BR140 | Existing ticket/concession rows must be replaced consistently so duplicate line items are not created. |
 
 

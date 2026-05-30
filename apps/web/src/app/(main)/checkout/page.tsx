@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@movie-hub/shacdn-ui/button';
+import { PaymentSuccessCleanup } from './payment-success-cleanup';
 
 export default async function CheckoutPage({
   searchParams,
@@ -53,6 +54,7 @@ export default async function CheckoutPage({
     // Default to success if not explicitly failed (backward compatibility or assume success flow)
     return (
       <div className="flex flex-col gap-8 w-full items-center text-center">
+        <PaymentSuccessCleanup />
         <h1 className="text-3xl font-bold text-green-500">
           Thanh toán thành công
         </h1>

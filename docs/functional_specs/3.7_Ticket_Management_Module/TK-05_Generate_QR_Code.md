@@ -58,7 +58,11 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (4) | BR170 | QR code typically contains the ticket's internal UUID or a specialized validation token. |
-| (4) | BR171 | QR Code Generation technology: `qrcode` v1.5.4. |
+| (3) | BR209 | QR code generation is allowed only for tickets that exist and belong to a valid booking context. |
+| (4) | BR210 | QR code payload must be unique per ticket and should use an internal ticket id or validation token rather than customer PII. |
+| (4) | BR211 | QR code must be tamper-resistant by relying on server-side validation of ticket id/token and ticket status. |
+| (4) | BR212 | QR generation should complete within a few seconds after payment confirmation and must be retryable for email resend/download flows. |
+| (4) | BR213 | QR Code Generation technology: `qrcode` v1.5.4. |
+| (5) | BR214 | Duplicate or reused QR scans must be rejected by ticket validation/use-ticket rules. |
 
 

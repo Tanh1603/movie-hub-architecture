@@ -83,8 +83,13 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (1) | BR152 | VNPay IPN webhook is unauthenticated (public endpoint) but verified by hash. |
-| (3) | BR153 | VNPay IPN must return exact format: `{ RspCode: string, Message: string }`. |
-| (6) | BR154 | Booking status transition: PENDING -> CONFIRMED. |
+| (1) | BR189 | Gateway webhook endpoints are public but must be protected by provider signature validation and configured IP allowlist where available. |
+| (3) | BR190 | VNPay callbacks must validate HMAC-SHA512 before any database mutation. |
+| (3) | BR191 | Stale, duplicate, missing-identity, or invalid-signature callbacks must be acknowledged safely without mutating payment state. |
+| (4) | BR192 | IPN must verify payment existence, booking existence, amount equality, booking expiry, and valid state before applying changes. |
+| (5) | BR193 | Successful IPN transitions payment `PENDING -> COMPLETED`, booking `PENDING -> CONFIRMED`, and tickets to `VALID` in one atomic transaction. |
+| (9) | BR194 | Failed provider status transitions payment `PENDING -> FAILED` and must not create valid tickets. |
+| (8) | BR195 | Confirmation notification, QR generation, and Redis seat confirmation event must be triggered asynchronously and must not block the IPN response. |
+| (10) | BR196 | VNPay IPN must return the exact provider response shape `{ RspCode: string, Message: string }`. |
 
 

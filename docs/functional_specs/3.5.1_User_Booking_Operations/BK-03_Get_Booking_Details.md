@@ -64,7 +64,11 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR108 | Includes QR code data for tickets if status is CONFIRMED. |
-| (3) | BR109 | Hydrates data for Bookings, Tickets, Payments, and BookingConcessions. |
+| (2) | BR117 | Member must be authenticated and can only access bookings they own. |
+| (3) | BR118 | Details must hydrate booking, tickets, concessions, payment status, promotion, refund voucher, and showtime context where available. |
+| (3) | BR119 | Confirmed bookings must expose enough ticket data for QR display or QR regeneration. |
+| (3) | BR120 | QR references must be unique per ticket and must not expose mutable payment or user PII. |
+| (5) | BR121 | The response must use stable DTO fields so tickets remain downloadable and viewable after payment confirmation. |
+| (6) | BR122 | Unauthorized or missing bookings must return not found/forbidden without disclosing another user's booking existence. |
 
 

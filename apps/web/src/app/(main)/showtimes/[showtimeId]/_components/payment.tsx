@@ -3,6 +3,7 @@
 import { Button } from '@movie-hub/shacdn-ui/button';
 import { Input } from '@movie-hub/shacdn-ui/input';
 import { cn } from '@movie-hub/shacdn-utils';
+import { BookingCalculationDto } from '@movie-hub/shared-types';
 import { AlertTriangle } from 'lucide-react';
 import Loading from '@/components/loading';
 import { useUpdateBooking } from '@/features/client/booking/hooks';
@@ -15,10 +16,14 @@ import {
 } from '@/types/payment.type';
 import { useBookingStore } from '@/stores/booking-store';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-export const PaymentSection = () => {
+export const PaymentSection = ({
+  existingBooking,
+}: {
+  existingBooking?: BookingCalculationDto | null;
+}) => {
   const {
     getTotalFinal,
     buildBookingPayload,
@@ -30,11 +35,34 @@ export const PaymentSection = () => {
   );
   const [voucher, setVoucher] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [storedPendingPaymentUrl, setStoredPendingPaymentUrl] = useState<
+    string | undefined
+  >();
 
   const { mutateAsync, isPending } = useValidationPromotion();
   const voucherExcess = getVoucherExcessAmount();
   const totalFinal = getTotalFinal();
   const isZeroCostOrder = totalFinal === 0;
+  const canUseStoredPendingPaymentUrl =
+    !existingBooking || existingBooking.paymentStatus === 'PENDING';
+  const pendingPaymentUrl =
+    existingBooking?.payment?.status === 'PENDING'
+      ? existingBooking.payment.paymentUrl || storedPendingPaymentUrl
+      : canUseStoredPendingPaymentUrl
+      ? storedPendingPaymentUrl
+      : undefined;
+
+  useEffect(() => {
+    if (!bookingId) {
+      setStoredPendingPaymentUrl(undefined);
+      return;
+    }
+
+    setStoredPendingPaymentUrl(
+      window.sessionStorage.getItem(`pendingPaymentUrl:${bookingId}`) ||
+        undefined
+    );
+  }, [bookingId]);
 
   const handleValidatePromotion = async (code: string) => {
     await mutateAsync({
@@ -57,6 +85,11 @@ export const PaymentSection = () => {
   const createPayment = useCreatePayment();
 
   const handlePay = async () => {
+    if (pendingPaymentUrl) {
+      window.location.href = pendingPaymentUrl;
+      return;
+    }
+
     // For zero-cost orders, payment method selection is optional
     if (!isZeroCostOrder && !selectedMethod) {
       toast.error('Vui lòng chọn phương thức thanh toán.');
@@ -88,6 +121,10 @@ export const PaymentSection = () => {
       });
 
       if (payment && payment.data && payment.data.paymentUrl) {
+        window.sessionStorage.setItem(
+          `pendingPaymentUrl:${bookingId}`,
+          payment.data.paymentUrl
+        );
         window.location.href = payment.data.paymentUrl;
       } else {
         toast.error('Không thể tạo thanh toán. Vui lòng thử lại.');
@@ -102,6 +139,20 @@ export const PaymentSection = () => {
 
   if (isLoading) {
     return <Loading />;
+  }
+
+  if (pendingPaymentUrl) {
+    return (
+      <div className="space-y-4 max-w-2xl">
+        <div className="bg-slate-500/10 border border-slate-500/20 rounded-lg p-4 text-neutral-300">
+          Giao dich thanh toan dang cho xu ly. Ban co the tiep tuc cong thanh
+          toan hien co.
+        </div>
+        <Button onClick={handlePay} className="w-full">
+          Tiep tuc thanh toan
+        </Button>
+      </div>
+    );
   }
 
   return (
@@ -188,7 +239,7 @@ export const PaymentSection = () => {
       {/* Payment button */}
       <Button
         onClick={handlePay}
-        disabled={!isZeroCostOrder && !selectedMethod}
+        disabled={!pendingPaymentUrl && !isZeroCostOrder && !selectedMethod}
         className="w-full"
       >
         {isZeroCostOrder ? 'Xác nhận đặt vé' : 'Thanh toán'}

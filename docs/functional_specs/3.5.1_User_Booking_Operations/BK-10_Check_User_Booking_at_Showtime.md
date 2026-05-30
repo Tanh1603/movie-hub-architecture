@@ -59,6 +59,11 @@ stop
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR122 | Prevents users from creating multiple active bookings for the same showtime. |
+| (2) | BR160 | Member must be authenticated before checking active booking state. |
+| (3) | BR161 | The lookup must return the latest matching booking for the user and showtime. |
+| (3) | BR162 | By default, only active `PENDING` bookings are checked unless caller explicitly includes additional statuses. |
+| (3) | BR163 | If the booking has a pending payment, the response should include the payment resume information from booking summary. |
+| (4) | BR164 | This check prevents duplicate active bookings for the same user and showtime. |
+| (4) | BR165 | The response must return `null` when no matching booking exists rather than creating a new booking implicitly. |
 
 

@@ -74,8 +74,12 @@ endif
 
 | Activity Step | Rule ID | Description |
 | :--- | :--- | :--- |
-| (3) | BR115 | Maximum reschedules per booking: 1. |
-| (4) | BR116 | Rescheduling must be made at least 2 hours before showtime. |
-| (7) | BR117 | Total price may need adjustment if new showtime has different pricing. |
+| (2) | BR141 | Member must own the booking before reschedule is allowed. |
+| (3) | BR142 | Maximum reschedules per booking is 1 unless policy configuration is changed. |
+| (4) | BR143 | Rescheduling must be requested at least 2 hours before the original showtime in the current implementation. |
+| (5) | BR144 | New showtime must exist, be active, and have seats that can be reserved according to cinema-service rules. |
+| (7) | BR145 | Price difference may apply when the new showtime, seat type, or format has different pricing. |
+| (7) | BR146 | Reschedule must preserve data consistency across booking, ticket, seat reservation, and notification state. |
+| (9) | BR147 | Policy values such as time limit and maximum reschedules must remain easy to update. |
 
 
