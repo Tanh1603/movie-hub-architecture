@@ -1,18 +1,65 @@
 # [CM-03] Update Cinema
 
-## 1. Description
+## Use Case Description
 
 | Field | Details |
 | :--- | :--- |
 | **Name** | Update Cinema |
-| **Functional ID** | CM-03 |
 | **Description** | Modifies the details of an existing cinema (e.g., name, address, status). |
 | **Actor** | Authorized Staff |
 | **Trigger** | `PATCH /v1/cinemas/cinema/:cinemaId` |
 | **Pre-condition** | Caller satisfies gateway auth/permission requirements and request data matches shared DTO/query schema. |
 | **Post-condition** | State change is persisted atomically or the request fails without partial data inconsistency. |
 
-## 2. Sequence Flow
+## Activities Flow
+
+```plantuml
+@startuml
+|Authorized Staff|
+start
+:(1) Send request/event [BR1];
+|API Gateway|
+:(3) Validate authentication, params, query, and body [BR2];
+if (Authorized?) then (yes)
+  :(3) Validate required input and format [BR2];
+  if (Validation passed?) then (yes)
+    |Cinema Service|
+    :(5) Check records, ownership, and state [BR3];
+    if (Checks pass?) then (yes)
+      :(5) Execute business action or prepare read result [BR3];
+      if (Downstream integration needed?) then (yes)
+        :(5) Call provider/Redis/related service [BR3];
+        if (Integration succeeds?) then (yes)
+          :(7) Return success result [BR4];
+        else (no)
+          :(8) Return integration failure [BR5];
+          stop
+        endif
+      else (no)
+        :(7) Return success result [BR4];
+      endif
+      |API Gateway|
+      :(7) Wrap/forward success response [BR4];
+      |Authorized Staff|
+      :Receive result;
+      stop
+    else (no)
+      |API Gateway|
+      :(8) Return not-found, forbidden, conflict, or invalid-state error [BR5];
+      stop
+    endif
+  else (no)
+    :(8) Return MSG 1 or MSG 4 [BR2];
+    stop
+  endif
+else (no)
+  :(8) Return MSG 2 or MSG 9 [BR5];
+  stop
+endif
+@enduml
+```
+
+## Sequence Flow
 
 ```plantuml
 @startuml
@@ -21,86 +68,26 @@ actor "Authorized Staff" as Actor
 boundary "API Gateway" as GW
 control "Cinema Service" as SVC
 database "Cinema Database" as DB
+control "External Provider / Redis / Related Services" as EXT
 
-Actor -> GW: PATCH /v1/cinemas/cinema/:cinemaId
-GW -> GW: Validate auth/role/permission
-GW -> GW: Validate path/query/body DTO
-GW -> SVC: Send `cinema.update`
-SVC -> DB: Read/write required records
-SVC --> GW: ServiceResult or DTO
-GW --> Actor: API response or mapped error
+Actor -> GW: (1) PATCH /v1/cinemas/cinema/:cinemaId [BR1]
+GW -> GW: (3) Validate authentication, params, query, and body [BR2]
+GW -> SVC: (5) Send `cinema.update` [BR3]
+SVC -> DB: (5) Load records, ownership, and current state [BR3]
+SVC -> SVC: (5) Apply business rules and build result [BR3]
+SVC -> EXT: (5) Call downstream integration when required [BR3]
+EXT --> SVC: Integration result or failure
+SVC --> GW: (7)/(8) ServiceResult, DTO, or mapped error [BR4/BR5]
+GW --> Actor: API response
 @enduml
 ```
 
-## 3. Activity Flow
+## Business Rules
 
-```plantuml
-@startuml
-|Authorized Staff|
-start
-:Send request/event;
-|API Gateway|
-:Authenticate/authorize when configured;
-if (Auth allowed?) then (yes)
-  :Validate params/query/body;
-  if (Validation passed?) then (yes)
-    |Cinema Service|
-    :Load required records and scope context;
-    if (Resource exists and scope is valid?) then (yes)
-      :Apply business rules and state checks;
-      if (Rules pass?) then (yes)
-        :Persist change or build read result;
-        if (Downstream integration needed?) then (yes)
-          :Call provider/Redis/other service;
-          if (Integration succeeds?) then (yes)
-            :Return success result;
-          else (no)
-            :Rollback/mark failed when required;
-            |API Gateway|
-            :Return mapped downstream failure;
-            stop
-          endif
-        else (no)
-          :Return success result;
-        endif
-        |API Gateway|
-        :Wrap/forward response;
-        |Authorized Staff|
-        :Receive result;
-        stop
-      else (no)
-        |API Gateway|
-        :Return conflict or invalid-state error;
-        stop
-      endif
-    else (no)
-      |API Gateway|
-      :Return not-found or forbidden error;
-      stop
-    endif
-  else (no)
-    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
-    stop
-  endif
-else (no)
-  :Return unauthorized/forbidden error;
-  stop
-endif
-@enduml
-```
-
-## 4. Business Rules
-
-| Activity Step | Rule ID | Description |
+| Activity | BR Code | Description |
 | :--- | :--- | :--- |
-| Gateway guard | BR-CM-03-01 | Request must pass ClerkAuthGuard and the configured Permission decorator before the gateway forwards the command. |
-| Input validation | BR-CM-03-02 | Cinema IDs and status filters must be valid; status defaults to `ACTIVE` where the controller applies CinemaStatusEnum defaults. |
-| Route/message boundary | BR-CM-03-03 | Implemented trigger is `PATCH /v1/cinemas/cinema/:cinemaId` and service boundary uses `cinema.update`; the gateway must not call stale or pluralized paths that differ from the controller. |
-| Business/state rule | BR-CM-03-04 | Cinema-scoped staff can only mutate resources in their own cinema; global create/delete operations reject cinema managers where the gateway checks staff context. |
-| Business/state rule | BR-CM-03-05 | Deletes must fail when dependent halls, seats, showtimes, or reservations would violate service constraints. |
-| Business/state rule | BR-CM-03-06 | Status filters use the relevant enum and default active status when controller code applies a default. |
-| Business/state rule | BR-CM-03-07 | Cinema/Hall/Ticket pricing responses are returned from Cinema Service without exposing internal persistence-only fields. |
-| Business/state rule | BR-CM-03-08 | Update actions must merge only allowed DTO fields and leave omitted fields unchanged. |
-| Integration constraint | BR-CM-03-09 | Gateway forwards the request to the target service through microservice pattern `cinema.update` and propagates service errors through the common exception layer. |
-| Success response | BR-CM-03-10 | Successful write/validation/state-changing operations return service data with `ResponseMessage.MSG_7` where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
-| Failure response | BR-CM-03-11 | Expected failures include resource not found, explicit gateway forbidden messages for wrong cinema scope, `Cannot delete cinema with dependent data`, `Cannot delete hall with dependent data`, and `Seat not found`. |
+| (1) | BR1 | Loading Screen Rules:<br>❖ The system loads the "Update Cinema" function and receives the request/event.<br>❖ The system uses trigger [PATCH /v1/cinemas/cinema/:cinemaId]. |
+| (3) | BR2 | Validate Rules:<br>❖ The system checks the items [cinemaId], [name], [address], [city], [district], [phone], [email], [website], [latitude], [longitude], [description], [amenities], [facilities], [images], [virtualTour360Url], [operatingHours], [socialMedia], [timezone].<br>❖ The system validates data according to DTO/schema UpdateCinemaRequest.<br>❖ Required fields: [cinemaId].<br>❖ If any required entries are empty, the system shows error message MSG 1.<br>❖ Optional fields: [name], [address], [city], [district], [phone], [email], [website], [latitude], [longitude], [description], [amenities], [facilities], [images], [virtualTour360Url], [operatingHours], [socialMedia], [timezone].<br>❖ Default values: [amenities] = [], [images] = [], [timezone] = 'Asia/Ho_Chi_Minh'.<br>❖ Field constraint: [cinemaId] is required, type string, path parameter.<br>❖ Field constraint: [name] is optional, type string, minimum 1; maximum 255.<br>❖ Field constraint: [address] is optional, type string, minimum 1.<br>❖ Field constraint: [city] is optional, type string, minimum 1; maximum 100.<br>❖ Field constraint: [district] is optional, type string, maximum 100.<br>❖ Field constraint: [phone] is optional, type string, maximum 20.<br>❖ Field constraint: [email] is optional, type string, maximum 255; must be an email format.<br>❖ Field constraint: [website] is optional, type string.<br>❖ Field constraint: [latitude] is optional, type number, is coerced from request input.<br>❖ Field constraint: [longitude] is optional, type number, is coerced from request input.<br>❖ Field constraint: [description] is optional, type string.<br>❖ Field constraint: [amenities] is optional, type array<string>, default [].<br>❖ Field constraint: [images] is optional, type array<string>, default [].<br>❖ Field constraint: [virtualTour360Url] is optional, type string.<br>❖ Field constraint: [timezone] is optional, type string, default 'Asia/Ho_Chi_Minh'.<br>❖ If any type, format, enum, range, date, UUID, or email constraint is invalid, the system shows error message MSG 4. |
+| (5) | BR3 | Updating Rules:<br>❖ The system executes the main business operation and returns the requested data or persists the state change consistently.<br>❖ Update actions must merge only allowed DTO fields and leave omitted fields unchanged. |
+| (7) | BR4 | Message Rules:<br>❖ Successful write/validation/state-changing operations return service data with MSG 7 where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
+| (8) | BR5 | Error Handling Rules:<br>❖ Gateway forwards the request to the target service through microservice pattern cinema.update and propagates service errors through the common exception layer.<br>❖ If a constraint, conflict, or unexpected failure occurs, the system shows error message MSG 9. |

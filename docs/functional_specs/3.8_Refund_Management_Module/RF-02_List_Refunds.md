@@ -1,18 +1,65 @@
 # [RF-02] List Refunds
 
-## 1. Description
+## Use Case Description
 
 | Field | Details |
 | :--- | :--- |
 | **Name** | List Refunds |
-| **Functional ID** | RF-02 |
 | **Description** | Allows Administrators to view a list of all refund requests in the system. |
 | **Actor** | Cinema Manager / Staff |
 | **Trigger** | `GET /v1/refunds` |
 | **Pre-condition** | Caller satisfies gateway auth/permission requirements and request data matches shared DTO/query schema. |
 | **Post-condition** | Requested data is returned or the targeted state change is persisted consistently. |
 
-## 2. Sequence Flow
+## Activities Flow
+
+```plantuml
+@startuml
+|Cinema Manager / Staff|
+start
+:(1) Send request/event [BR1];
+|API Gateway|
+:(3) Validate authentication, params, query, and body [BR2];
+if (Authorized?) then (yes)
+  :(3) Validate required input and format [BR2];
+  if (Validation passed?) then (yes)
+    |Booking Service|
+    :(5) Check records, ownership, and state [BR3];
+    if (Checks pass?) then (yes)
+      :(5) Execute business action or prepare read result [BR3];
+      if (Downstream integration needed?) then (yes)
+        :(5) Call provider/Redis/related service [BR3];
+        if (Integration succeeds?) then (yes)
+          :(7) Return success result [BR4];
+        else (no)
+          :(8) Return integration failure [BR5];
+          stop
+        endif
+      else (no)
+        :(7) Return success result [BR4];
+      endif
+      |API Gateway|
+      :(7) Wrap/forward success response [BR4];
+      |Cinema Manager / Staff|
+      :Receive result;
+      stop
+    else (no)
+      |API Gateway|
+      :(8) Return not-found, forbidden, conflict, or invalid-state error [BR5];
+      stop
+    endif
+  else (no)
+    :(8) Return MSG 1 or MSG 4 [BR2];
+    stop
+  endif
+else (no)
+  :(8) Return MSG 2 or MSG 9 [BR5];
+  stop
+endif
+@enduml
+```
+
+## Sequence Flow
 
 ```plantuml
 @startuml
@@ -21,89 +68,26 @@ actor "Cinema Manager / Staff" as Actor
 boundary "API Gateway" as GW
 control "Booking Service" as SVC
 database "Booking Database" as DB
-control "Cinema/User/Notification Services" as EXT
+control "External Provider / Redis / Related Services" as EXT
 
-Actor -> GW: GET /v1/refunds
-GW -> GW: Validate auth/role/permission
-GW -> GW: Validate path/query/body DTO
-GW -> SVC: Send `refund.findAll`
-SVC -> DB: Read/write required records
-SVC -> EXT: Fetch showtime/user/payment/ticket context when required
-EXT --> SVC: Context or downstream failure
-SVC --> GW: ServiceResult or DTO
-GW --> Actor: API response or mapped error
+Actor -> GW: (1) GET /v1/refunds [BR1]
+GW -> GW: (3) Validate authentication, params, query, and body [BR2]
+GW -> SVC: (5) Send `refund.findAll` [BR3]
+SVC -> DB: (5) Load records, ownership, and current state [BR3]
+SVC -> SVC: (5) Apply business rules and build result [BR3]
+SVC -> EXT: (5) Call downstream integration when required [BR3]
+EXT --> SVC: Integration result or failure
+SVC --> GW: (7)/(8) ServiceResult, DTO, or mapped error [BR4/BR5]
+GW --> Actor: API response
 @enduml
 ```
 
-## 3. Activity Flow
+## Business Rules
 
-```plantuml
-@startuml
-|Cinema Manager / Staff|
-start
-:Send request/event;
-|API Gateway|
-:Authenticate/authorize when configured;
-if (Auth allowed?) then (yes)
-  :Validate params/query/body;
-  if (Validation passed?) then (yes)
-    |Booking Service|
-    :Load required records and scope context;
-    if (Resource exists and scope is valid?) then (yes)
-      :Apply business rules and state checks;
-      if (Rules pass?) then (yes)
-        :Persist change or build read result;
-        if (Downstream integration needed?) then (yes)
-          :Call provider/Redis/other service;
-          if (Integration succeeds?) then (yes)
-            :Return success result;
-          else (no)
-            :Rollback/mark failed when required;
-            |API Gateway|
-            :Return mapped downstream failure;
-            stop
-          endif
-        else (no)
-          :Return success result;
-        endif
-        |API Gateway|
-        :Wrap/forward response;
-        |Cinema Manager / Staff|
-        :Receive result;
-        stop
-      else (no)
-        |API Gateway|
-        :Return conflict or invalid-state error;
-        stop
-      endif
-    else (no)
-      |API Gateway|
-      :Return not-found or forbidden error;
-      stop
-    endif
-  else (no)
-    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
-    stop
-  endif
-else (no)
-  :Return unauthorized/forbidden error;
-  stop
-endif
-@enduml
-```
-
-## 4. Business Rules
-
-| Activity Step | Rule ID | Description |
+| Activity | BR Code | Description |
 | :--- | :--- | :--- |
-| Gateway guard | BR-RF-02-01 | Request must pass ClerkAuthGuard, RoleGuard where configured, and permission decorators for cinema/global scope before service dispatch. |
-| Input validation | BR-RF-02-02 | Refund DTOs require the referenced payment/refund/booking IDs and action-specific reason/provider fields; status filters use RefundStatus values. |
-| Route/message boundary | BR-RF-02-03 | Implemented trigger is `GET /v1/refunds` and service boundary uses `refund.findAll`; the gateway must not call stale or pluralized paths that differ from the controller. |
-| Business/state rule | BR-RF-02-04 | Refunds can only be created for existing completed payments or confirmed bookings that satisfy refund policy constraints. |
-| Business/state rule | BR-RF-02-05 | Refund status transitions are `PENDING -> PROCESSING -> COMPLETED` or `PENDING -> FAILED/REJECTED`; completed/rejected states must not be overwritten by stale actions. |
-| Business/state rule | BR-RF-02-06 | Voucher refunds create a fixed-amount promotion voucher for eligible bookings and then update booking/payment/ticket state consistently. |
-| Business/state rule | BR-RF-02-07 | Seat release for refunded bookings is delegated to Cinema Service/Redis release flow after refund state is persisted. |
-| Business/state rule | BR-RF-02-08 | List responses must honor supported filters, pagination defaults, and cinema/user scoping before returning data. |
-| Integration constraint | BR-RF-02-09 | Integration coordinates Booking, Payment, Ticket, Promotion voucher, Cinema seat release, and uses microservice pattern `refund.findAll`. |
-| Success response | BR-RF-02-10 | Successful write/validation/state-changing operations return service data with `ResponseMessage.MSG_7` where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
-| Failure response | BR-RF-02-11 | Expected failures include `Payment not found`, `Can only refund completed payments`, `Refund not found`, `Can only process pending refunds`, `Can only reject pending refunds`, `Booking not found`, `Cannot fetch showtime information`, `Showtime information not available`, and `No ticket amount to refund`. |
+| (1) | BR1 | Loading Screen Rules:<br>❖ The system loads the "List Refunds" function and receives the request/event.<br>❖ The system uses trigger [GET /v1/refunds]. |
+| (3) | BR2 | Validate Rules:<br>❖ The system checks the items [page], [limit], [paymentId], [status], [startDate], [endDate].<br>❖ The system validates data according to DTO/schema FindAllRefundsDto.<br>❖ Optional fields: [page], [limit], [paymentId], [status], [startDate], [endDate].<br>❖ Field constraint: [page] is optional, type number.<br>❖ Field constraint: [limit] is optional, type number.<br>❖ Field constraint: [paymentId] is optional, type string.<br>❖ Field constraint: [status] is optional, type RefundStatus.<br>❖ Field constraint: [startDate] is optional, type Date.<br>❖ Field constraint: [endDate] is optional, type Date.<br>❖ If any type, format, enum, range, date, UUID, or email constraint is invalid, the system shows error message MSG 4. |
+| (5) | BR3 | Retrieval Rules:<br>❖ Refunds can only be created for existing completed payments or confirmed bookings that satisfy refund policy constraints.<br>❖ Refund status transitions are PENDING -> PROCESSING -> COMPLETED or PENDING -> FAILED/REJECTED; completed/rejected states must not be overwritten by stale actions.<br>❖ Voucher refunds create a fixed-amount promotion voucher for eligible bookings and then update booking/payment/ticket state consistently.<br>❖ Seat release for refunded bookings is delegated to Cinema Service/Redis release flow after refund state is persisted.<br>❖ List responses must honor supported filters, pagination defaults, and cinema/user scoping before returning data.<br>❖ Integration coordinates Booking, Payment, Ticket, Promotion voucher, Cinema seat release, and uses microservice pattern refund.findAll. |
+| (7) | BR4 | Message Rules:<br>❖ Successful write/validation/state-changing operations return service data with MSG 7 where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
+| (8) | BR5 | Error Handling Rules:<br>❖ Expected failures include Payment not found, Can only refund completed payments, Refund not found, Can only process pending refunds, Can only reject pending refunds, Booking not found, Cannot fetch showtime information, Showtime information not available, and No ticket amount to refund.<br>❖ If a constraint, conflict, or unexpected failure occurs, the system shows error message MSG 9. |

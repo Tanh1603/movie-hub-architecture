@@ -1,18 +1,65 @@
 # [MV-03] Get Movie Releases
 
-## 1. Description
+## Use Case Description
 
 | Field | Details |
 | :--- | :--- |
 | **Name** | Get Movie Releases |
-| **Functional ID** | MV-03 |
 | **Description** | Retrieves the release dates and statuses for a specific movie in different regions or formats. |
 | **Actor** | Guest / Authenticated User |
 | **Trigger** | `GET /v1/movies/:id/releases` |
 | **Pre-condition** | Required path/query parameters are provided; no customer session is required for this read. |
 | **Post-condition** | Requested data is returned or the targeted state change is persisted consistently. |
 
-## 2. Sequence Flow
+## Activities Flow
+
+```plantuml
+@startuml
+|Guest / Authenticated User|
+start
+:(1) Send request/event [BR1];
+|API Gateway|
+:(3) Validate authentication, params, query, and body [BR2];
+if (Authorized?) then (yes)
+  :(3) Validate required input and format [BR2];
+  if (Validation passed?) then (yes)
+    |Movie Service|
+    :(5) Check records, ownership, and state [BR3];
+    if (Checks pass?) then (yes)
+      :(5) Execute business action or prepare read result [BR3];
+      if (Downstream integration needed?) then (yes)
+        :(5) Call provider/Redis/related service [BR3];
+        if (Integration succeeds?) then (yes)
+          :(7) Return success result [BR4];
+        else (no)
+          :(8) Return integration failure [BR5];
+          stop
+        endif
+      else (no)
+        :(7) Return success result [BR4];
+      endif
+      |API Gateway|
+      :(7) Wrap/forward success response [BR4];
+      |Guest / Authenticated User|
+      :Receive result;
+      stop
+    else (no)
+      |API Gateway|
+      :(8) Return not-found, forbidden, conflict, or invalid-state error [BR5];
+      stop
+    endif
+  else (no)
+    :(8) Return MSG 1 or MSG 4 [BR2];
+    stop
+  endif
+else (no)
+  :(8) Return MSG 2 or MSG 9 [BR5];
+  stop
+endif
+@enduml
+```
+
+## Sequence Flow
 
 ```plantuml
 @startuml
@@ -21,85 +68,26 @@ actor "Guest / Authenticated User" as Actor
 boundary "API Gateway" as GW
 control "Movie Service" as SVC
 database "Movie Database" as DB
+control "External Provider / Redis / Related Services" as EXT
 
-Actor -> GW: GET /v1/movies/:id/releases
-GW -> GW: Validate public request constraints
-GW -> GW: Validate path/query/body DTO
-GW -> SVC: Send `movie.release.list`
-SVC -> DB: Read/write required records
-SVC --> GW: ServiceResult or DTO
-GW --> Actor: API response or mapped error
+Actor -> GW: (1) GET /v1/movies/:id/releases [BR1]
+GW -> GW: (3) Validate authentication, params, query, and body [BR2]
+GW -> SVC: (5) Send `movie.release.list` [BR3]
+SVC -> DB: (5) Load records, ownership, and current state [BR3]
+SVC -> SVC: (5) Apply business rules and build result [BR3]
+SVC -> EXT: (5) Call downstream integration when required [BR3]
+EXT --> SVC: Integration result or failure
+SVC --> GW: (7)/(8) ServiceResult, DTO, or mapped error [BR4/BR5]
+GW --> Actor: API response
 @enduml
 ```
 
-## 3. Activity Flow
+## Business Rules
 
-```plantuml
-@startuml
-|Guest / Authenticated User|
-start
-:Send request/event;
-|API Gateway|
-:Authenticate/authorize when configured;
-if (Auth allowed?) then (yes)
-  :Validate params/query/body;
-  if (Validation passed?) then (yes)
-    |Movie Service|
-    :Load required records and scope context;
-    if (Resource exists and scope is valid?) then (yes)
-      :Apply business rules and state checks;
-      if (Rules pass?) then (yes)
-        :Persist change or build read result;
-        if (Downstream integration needed?) then (yes)
-          :Call provider/Redis/other service;
-          if (Integration succeeds?) then (yes)
-            :Return success result;
-          else (no)
-            :Rollback/mark failed when required;
-            |API Gateway|
-            :Return mapped downstream failure;
-            stop
-          endif
-        else (no)
-          :Return success result;
-        endif
-        |API Gateway|
-        :Wrap/forward response;
-        |Guest / Authenticated User|
-        :Receive result;
-        stop
-      else (no)
-        |API Gateway|
-        :Return conflict or invalid-state error;
-        stop
-      endif
-    else (no)
-      |API Gateway|
-      :Return not-found or forbidden error;
-      stop
-    endif
-  else (no)
-    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
-    stop
-  endif
-else (no)
-  :Return unauthorized/forbidden error;
-  stop
-endif
-@enduml
-```
-
-## 4. Business Rules
-
-| Activity Step | Rule ID | Description |
+| Activity | BR Code | Description |
 | :--- | :--- | :--- |
-| Gateway guard | BR-MV-03-01 | Read operation is public unless the gateway method explicitly applies ClerkAuthGuard; staff cinema context may still restrict scoped results when present. |
-| Input validation | BR-MV-03-02 | Movie query/path IDs must be valid; update payload follows UpdateMovieSchema and list filters/pagination are forwarded to Movie Service. |
-| Route/message boundary | BR-MV-03-03 | Implemented trigger is `GET /v1/movies/:id/releases` and service boundary uses `movie.release.list`; the gateway must not call stale or pluralized paths that differ from the controller. |
-| Business/state rule | BR-MV-03-04 | Movie catalog writes require authenticated staff/global permission; public reads only expose catalog/review data intended for clients. |
-| Business/state rule | BR-MV-03-05 | Referenced movies, releases, genres, and reviews must exist before update/delete/detail actions; not found paths use ResourceNotFoundException or service errors. |
-| Business/state rule | BR-MV-03-06 | Movie release dates, runtime, age rating, language options, and genre references must remain consistent with shared enum/DTO contracts. |
-| Business/state rule | BR-MV-03-07 | Review creation/update keeps rating in the allowed range and associates the review with the authenticated/user payload and target movie. |
-| Integration constraint | BR-MV-03-08 | Gateway forwards the request to the target service through microservice pattern `movie.release.list` and propagates service errors through the common exception layer. |
-| Success response | BR-MV-03-09 | Successful read operations return the requested DTO/list using the gateway's normal response wrapper; no artificial success text is invented by the spec. |
-| Failure response | BR-MV-03-10 | Expected failures include ResourceNotFoundException for missing movie/genre/release/review, validation failures from strict Zod DTOs, and database constraint errors. |
+| (1) | BR1 | Loading Screen Rules:<br>❖ The system loads the "Get Movie Releases" function and receives the request/event.<br>❖ The system uses trigger [GET /v1/movies/:id/releases]. |
+| (3) | BR2 | Validate Rules:<br>❖ The system checks the items [id].<br>❖ Required fields: [id].<br>❖ If any required entries are empty, the system shows error message MSG 1.<br>❖ Field constraint: [id] is required, type string, path parameter.<br>❖ If any type, format, enum, range, date, UUID, or email constraint is invalid, the system shows error message MSG 4. |
+| (5) | BR3 | Retrieval Rules:<br>❖ The system executes the main business operation and returns the requested data or persists the state change consistently. |
+| (7) | BR4 | Message Rules:<br>❖ Successful read operations return the requested DTO/list using the gateway's normal response wrapper; no artificial success text is invented by the spec. |
+| (8) | BR5 | Error Handling Rules:<br>❖ Referenced movies, releases, genres, and reviews must exist before update/delete/detail actions; not found paths use ResourceNotFoundException or service errors.<br>❖ Gateway forwards the request to the target service through microservice pattern movie.release.list and propagates service errors through the common exception layer.<br>❖ Expected failures include ResourceNotFoundException for missing movie/genre/release/review, validation failures from strict Zod DTOs, and database constraint errors.<br>❖ If a constraint, conflict, or unexpected failure occurs, the system shows error message MSG 9. |

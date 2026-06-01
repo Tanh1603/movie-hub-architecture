@@ -1,80 +1,93 @@
 # [RT-02] Release Seat
 
-## 1. Description
+## Use Case Description
 
 | Field | Details |
 | :--- | :--- |
 | **Name** | Release Seat |
-| **Functional ID** | RT-02 |
 | **Description** | Allows a member to manually release a seat they previously held. |
 | **Actor** | Authenticated Socket Client |
 | **Trigger** | `Socket.IO event release_seat` |
 | **Pre-condition** | Socket is authenticated with Clerk and joined to the target showtime room when applicable. |
 | **Post-condition** | Redis hold state and broadcast events reflect the seat action. |
 
-## 2. Sequence Flow
-
-```plantuml
-@startuml
-autonumber
-actor "Authenticated Socket Client" as Actor
-boundary "API Gateway Socket.IO" as GW
-queue "Redis Pub/Sub" as Redis
-control "Cinema Realtime Service" as CRS
-database "Redis Hold Keys" as Hold
-
-Actor -> GW: Socket.IO event release_seat
-GW -> GW: Clerk WS middleware and room context
-GW -> Redis: Publish gateway/booking event
-Redis -> CRS: Consume event
-CRS -> Hold: Read/write hold keys and TTL
-CRS -> Redis: Publish cinema seat event
-Redis -> GW: Deliver cinema event
-GW --> Actor: Broadcast seat update
-@enduml
-```
-
-## 3. Activity Flow
+## Activities Flow
 
 ```plantuml
 @startuml
 |Authenticated Socket Client|
 start
-:Emit seat event with showtimeId and seatId;
-|API Gateway Socket.IO|
-:Verify Clerk socket user;
-if (Authenticated?) then (yes)
-  :Inject userId and publish gateway Redis event;
-  |Cinema Realtime Service|
-  :Validate hold/release request;
-  if (Seat action allowed?) then (yes)
-    :Update Redis hold keys and TTL;
-    :Publish cinema seat event;
-    |API Gateway Socket.IO|
-    :Broadcast event to showtime room;
-    stop
+:(1) Send request/event [BR1];
+|API Gateway|
+:(3) Validate authentication, params, query, and body [BR2];
+if (Authorized?) then (yes)
+  :(3) Validate required input and format [BR2];
+  if (Validation passed?) then (yes)
+    |Booking Service|
+    :(5) Check records, ownership, and state [BR3];
+    if (Checks pass?) then (yes)
+      :(5) Execute business action or prepare read result [BR3];
+      if (Downstream integration needed?) then (yes)
+        :(5) Call provider/Redis/related service [BR3];
+        if (Integration succeeds?) then (yes)
+          :(7) Return success result [BR4];
+        else (no)
+          :(8) Return integration failure [BR5];
+          stop
+        endif
+      else (no)
+        :(7) Return success result [BR4];
+      endif
+      |API Gateway|
+      :(7) Wrap/forward success response [BR4];
+      |Authenticated Socket Client|
+      :Receive result;
+      stop
+    else (no)
+      |API Gateway|
+      :(8) Return not-found, forbidden, conflict, or invalid-state error [BR5];
+      stop
+    endif
   else (no)
-    :Publish limit/error event or ignore duplicate hold;
+    :(8) Return MSG 1 or MSG 4 [BR2];
     stop
   endif
 else (no)
-  :Disconnect socket;
+  :(8) Return MSG 2 or MSG 9 [BR5];
   stop
 endif
 @enduml
 ```
 
-## 4. Business Rules
+## Sequence Flow
 
-| Activity Step | Rule ID | Description |
+```plantuml
+@startuml
+autonumber
+actor "Authenticated Socket Client" as Actor
+boundary "API Gateway" as GW
+control "Booking Service" as SVC
+database "Booking Database" as DB
+control "External Provider / Redis / Related Services" as EXT
+
+Actor -> GW: (1) Socket.IO event release_seat [BR1]
+GW -> GW: (3) Validate authentication, params, query, and body [BR2]
+GW -> SVC: (5) Send `Socket.IO event release_seat` [BR3]
+SVC -> DB: (5) Load records, ownership, and current state [BR3]
+SVC -> SVC: (5) Apply business rules and build result [BR3]
+SVC -> EXT: (5) Call downstream integration when required [BR3]
+EXT --> SVC: Integration result or failure
+SVC --> GW: (7)/(8) ServiceResult, DTO, or mapped error [BR4/BR5]
+GW --> Actor: API response
+@enduml
+```
+
+## Business Rules
+
+| Activity | BR Code | Description |
 | :--- | :--- | :--- |
-| Gateway guard | BR-RT-02-01 | Socket connection must pass Clerk WebSocket middleware; unauthenticated clients are disconnected before room join or seat events. |
-| Input validation | BR-RT-02-02 | SeatActionDto must include `showtimeId` and `seatId`; `userId` is injected from the authenticated socket, not accepted as authoritative client input. |
-| Route/message boundary | BR-RT-02-03 | Implemented trigger is `Socket.IO event release_seat` and service boundary uses `gateway.release_seat -> cinema.seat_released`; the gateway must not call stale or pluralized paths that differ from the controller. |
-| Business/state rule | BR-RT-02-04 | A user may hold at most 8 seats per showtime; exceeding the limit publishes `cinema.seat_limit_reached` without creating a new hold. |
-| Business/state rule | BR-RT-02-05 | Seat holds use Redis keys `hold:showtime:{showtimeId}:{seatId}` and `hold:user:{userId}:showtime:{showtimeId}` with a 600-second TTL. |
-| Business/state rule | BR-RT-02-06 | If the same user switches showtimes, old held seats are cleared before new holds are accepted. |
-| Business/state rule | BR-RT-02-07 | Booking confirmation consumes held seats, removes Redis hold keys, creates seat reservations, and publishes `cinema.seat_booked` to connected clients. |
-| Integration constraint | BR-RT-02-08 | Integration uses Socket.IO plus Redis pub/sub channels `gateway.hold_seat`, `gateway.release_seat`, `booking.confirmed`, `cinema.seat_held`, `cinema.seat_released`, `cinema.seat_expired`, `cinema.seat_booked`, and `cinema.seat_limit_reached`. |
-| Success response | BR-RT-02-09 | Successful realtime actions publish the matching Redis/socket event; no REST `ResponseMessage` is produced. |
-| Failure response | BR-RT-02-10 | Expected failures include unauthorized socket disconnect, silently ignored already-held seats, limit reached event, Redis failures, and showtime not found during booking resolution. |
+| (1) | BR1 | Loading Screen Rules:<br>❖ The system loads the "Release Seat" function and receives the request/event.<br>❖ The system uses trigger [Socket.IO event release_seat]. |
+| (3) | BR2 | Validate Rules:<br>❖ The system checks actor permission, path parameters, query values, and request body before processing.<br>❖ Socket connection must pass Clerk WebSocket middleware; unauthenticated clients are disconnected before room join or seat events.<br>❖ SeatActionDto must include showtimeId and seatId; userId is injected from the authenticated socket, not accepted as authoritative client input.<br>❖ Implemented trigger is Socket.IO event release_seat and service boundary uses gateway.release_seat -> cinema.seat_released; the gateway must not call stale or pluralized paths that differ from the controller.<br>❖ If any mandatory entries are empty, the system shows error message MSG 1.<br>❖ If request information is not in the correct format, the system shows error message MSG 4. |
+| (5) | BR3 | Processing Rules:<br>❖ A user may hold at most 8 seats per showtime; exceeding the limit publishes cinema.seat_limit_reached without creating a new hold.<br>❖ Seat holds use Redis keys hold:showtime:{showtimeId}:{seatId} and hold:user:{userId}:showtime:{showtimeId} with a 600-second TTL.<br>❖ If the same user switches showtimes, old held seats are cleared before new holds are accepted.<br>❖ Booking confirmation consumes held seats, removes Redis hold keys, creates seat reservations, and publishes cinema.seat_booked to connected clients.<br>❖ Integration uses Socket.IO plus Redis pub/sub channels gateway.hold_seat, gateway.release_seat, booking.confirmed, cinema.seat_held, cinema.seat_released, cinema.seat_expired, cinema.seat_booked, and cinema.seat_limit_reached. |
+| (7) | BR4 | Message Rules:<br>❖ Successful realtime actions publish the matching Redis/socket event; no REST ResponseMessage is produced. |
+| (8) | BR5 | Error Handling Rules:<br>❖ Expected failures include unauthorized socket disconnect, silently ignored already-held seats, limit reached event, Redis failures, and showtime not found during booking resolution.<br>❖ If a constraint, conflict, or unexpected failure occurs, the system shows error message MSG 9. |

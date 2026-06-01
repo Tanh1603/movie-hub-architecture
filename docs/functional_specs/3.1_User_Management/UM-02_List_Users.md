@@ -1,18 +1,65 @@
 # [UM-02] List Users
 
-## 1. Description
+## Use Case Description
 
 | Field | Details |
 | :--- | :--- |
 | **Name** | List Users |
-| **Functional ID** | UM-02 |
 | **Description** | Allows Administrators to view a list of all registered users in the system. |
 | **Actor** | Authenticated User |
 | **Trigger** | `GET /v1/users` |
 | **Pre-condition** | Caller satisfies gateway auth/permission requirements and request data matches shared DTO/query schema. |
 | **Post-condition** | Requested data is returned or the targeted state change is persisted consistently. |
 
-## 2. Sequence Flow
+## Activities Flow
+
+```plantuml
+@startuml
+|Authenticated User|
+start
+:(1) Send request/event [BR1];
+|API Gateway|
+:(3) Validate authentication, params, query, and body [BR2];
+if (Authorized?) then (yes)
+  :(3) Validate required input and format [BR2];
+  if (Validation passed?) then (yes)
+    |User Service|
+    :(5) Check records, ownership, and state [BR3];
+    if (Checks pass?) then (yes)
+      :(5) Execute business action or prepare read result [BR3];
+      if (Downstream integration needed?) then (yes)
+        :(5) Call provider/Redis/related service [BR3];
+        if (Integration succeeds?) then (yes)
+          :(7) Return success result [BR4];
+        else (no)
+          :(8) Return integration failure [BR5];
+          stop
+        endif
+      else (no)
+        :(7) Return success result [BR4];
+      endif
+      |API Gateway|
+      :(7) Wrap/forward success response [BR4];
+      |Authenticated User|
+      :Receive result;
+      stop
+    else (no)
+      |API Gateway|
+      :(8) Return not-found, forbidden, conflict, or invalid-state error [BR5];
+      stop
+    endif
+  else (no)
+    :(8) Return MSG 1 or MSG 4 [BR2];
+    stop
+  endif
+else (no)
+  :(8) Return MSG 2 or MSG 9 [BR5];
+  stop
+endif
+@enduml
+```
+
+## Sequence Flow
 
 ```plantuml
 @startuml
@@ -21,86 +68,26 @@ actor "Authenticated User" as Actor
 boundary "API Gateway" as GW
 control "User Service" as SVC
 database "User Database" as DB
+control "External Provider / Redis / Related Services" as EXT
 
-Actor -> GW: GET /v1/users
-GW -> GW: Validate auth/role/permission
-GW -> GW: Validate path/query/body DTO
-GW -> SVC: Send `user.getAll`
-SVC -> DB: Read/write required records
-SVC --> GW: ServiceResult or DTO
-GW --> Actor: API response or mapped error
+Actor -> GW: (1) GET /v1/users [BR1]
+GW -> GW: (3) Validate authentication, params, query, and body [BR2]
+GW -> SVC: (5) Send `user.getAll` [BR3]
+SVC -> DB: (5) Load records, ownership, and current state [BR3]
+SVC -> SVC: (5) Apply business rules and build result [BR3]
+SVC -> EXT: (5) Call downstream integration when required [BR3]
+EXT --> SVC: Integration result or failure
+SVC --> GW: (7)/(8) ServiceResult, DTO, or mapped error [BR4/BR5]
+GW --> Actor: API response
 @enduml
 ```
 
-## 3. Activity Flow
+## Business Rules
 
-```plantuml
-@startuml
-|Authenticated User|
-start
-:Send request/event;
-|API Gateway|
-:Authenticate/authorize when configured;
-if (Auth allowed?) then (yes)
-  :Validate params/query/body;
-  if (Validation passed?) then (yes)
-    |User Service|
-    :Load required records and scope context;
-    if (Resource exists and scope is valid?) then (yes)
-      :Apply business rules and state checks;
-      if (Rules pass?) then (yes)
-        :Persist change or build read result;
-        if (Downstream integration needed?) then (yes)
-          :Call provider/Redis/other service;
-          if (Integration succeeds?) then (yes)
-            :Return success result;
-          else (no)
-            :Rollback/mark failed when required;
-            |API Gateway|
-            :Return mapped downstream failure;
-            stop
-          endif
-        else (no)
-          :Return success result;
-        endif
-        |API Gateway|
-        :Wrap/forward response;
-        |Authenticated User|
-        :Receive result;
-        stop
-      else (no)
-        |API Gateway|
-        :Return conflict or invalid-state error;
-        stop
-      endif
-    else (no)
-      |API Gateway|
-      :Return not-found or forbidden error;
-      stop
-    endif
-  else (no)
-    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
-    stop
-  endif
-else (no)
-  :Return unauthorized/forbidden error;
-  stop
-endif
-@enduml
-```
-
-## 4. Business Rules
-
-| Activity Step | Rule ID | Description |
+| Activity | BR Code | Description |
 | :--- | :--- | :--- |
-| Gateway guard | BR-UM-02-01 | Request must pass ClerkAuthGuard and the configured Permission decorator before the gateway forwards the command. |
-| Input validation | BR-UM-02-02 | User/staff IDs and RBAC payloads must be present; DTO/Zod validation maps missing fields to `ResponseMessage.MSG_1` and bad format to `ResponseMessage.MSG_4` when the gateway validation layer catches them. |
-| Route/message boundary | BR-UM-02-03 | Implemented trigger is `GET /v1/users` and service boundary uses `user.getAll`; the gateway must not call stale or pluralized paths that differ from the controller. |
-| Business/state rule | BR-UM-02-04 | User data is sourced from Clerk-synchronized records and staff context; Clerk webhook payloads must be verified before processing. |
-| Business/state rule | BR-UM-02-05 | Staff managers are limited to their assigned cinema for create, view, update, and delete operations where staffContext.cinemaId is present. |
-| Business/state rule | BR-UM-02-06 | RBAC and user operations require configured Permission decorators; unknown permissions, unknown roles, and removing the last ADMIN fail with explicit RBAC errors. |
-| Business/state rule | BR-UM-02-07 | Staff create/update synchronizes with Clerk where configured and returns propagated errors for duplicate identity or external sync failure. |
-| Business/state rule | BR-UM-02-08 | List responses must honor supported filters, pagination defaults, and cinema/user scoping before returning data. |
-| Integration constraint | BR-UM-02-09 | Gateway forwards the request to the target service through microservice pattern `user.getAll` and propagates service errors through the common exception layer. |
-| Success response | BR-UM-02-10 | Successful read operations return the requested DTO/list using the gateway's normal response wrapper; no artificial success text is invented by the spec. |
-| Failure response | BR-UM-02-11 | Expected failures include staff cinema-scope ForbiddenException messages, invalid Clerk webhook envelope, unknown permissions/roles, duplicate staff identity, and `Cannot remove the last ADMIN`. |
+| (1) | BR1 | Loading Screen Rules:<br>❖ The system loads the "List Users" function and receives the request/event.<br>❖ The system uses trigger [GET /v1/users]. |
+| (3) | BR2 | Validate Rules:<br>❖ The system checks actor permission, path parameters, query values, and request body before processing.<br>❖ Request must pass ClerkAuthGuard and the configured Permission decorator before the gateway forwards the command.<br>❖ User/staff IDs and RBAC payloads must be present; DTO/Zod validation maps missing fields to MSG 1 and bad format to MSG 4 when the gateway validation layer catches them.<br>❖ Implemented trigger is GET /v1/users and service boundary uses user.getAll; the gateway must not call stale or pluralized paths that differ from the controller.<br>❖ If any mandatory entries are empty, the system shows error message MSG 1.<br>❖ If request information is not in the correct format, the system shows error message MSG 4. |
+| (5) | BR3 | Retrieval Rules:<br>❖ User data is sourced from Clerk-synchronized records and staff context; Clerk webhook payloads must be verified before processing.<br>❖ Staff managers are limited to their assigned cinema for create, view, update, and delete operations where staffContext.cinemaId is present.<br>❖ List responses must honor supported filters, pagination defaults, and cinema/user scoping before returning data. |
+| (7) | BR4 | Message Rules:<br>❖ Successful read operations return the requested DTO/list using the gateway's normal response wrapper; no artificial success text is invented by the spec. |
+| (8) | BR5 | Error Handling Rules:<br>❖ RBAC and user operations require configured Permission decorators; unknown permissions, unknown roles, and removing the last ADMIN fail with explicit RBAC errors.<br>❖ Gateway forwards the request to the target service through microservice pattern user.getAll and propagates service errors through the common exception layer.<br>❖ If a constraint, conflict, or unexpected failure occurs, the system shows error message MSG 9. |

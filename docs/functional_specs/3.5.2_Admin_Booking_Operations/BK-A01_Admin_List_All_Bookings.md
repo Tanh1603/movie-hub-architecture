@@ -1,18 +1,65 @@
 # [BK-A01] Admin List All Bookings
 
-## 1. Description
+## Use Case Description
 
 | Field | Details |
 | :--- | :--- |
 | **Name** | Admin List All Bookings |
-| **Functional ID** | BK-A01 |
 | **Description** | Allows Administrators to view a comprehensive list of all bookings across the platform with filtering and sorting capabilities. |
 | **Actor** | Cinema Manager / Staff |
 | **Trigger** | `GET /v1/bookings/admin/all` |
 | **Pre-condition** | Customer or staff has access to the booking context; showtime, seat, payment, and refund prerequisites are valid for the requested action. |
 | **Post-condition** | Booking status/payment/ticket/refund data remains consistent with the performed operation. |
 
-## 2. Sequence Flow
+## Activities Flow
+
+```plantuml
+@startuml
+|Cinema Manager / Staff|
+start
+:(1) Send request/event [BR1];
+|API Gateway|
+:(3) Validate authentication, params, query, and body [BR2];
+if (Authorized?) then (yes)
+  :(3) Validate required input and format [BR2];
+  if (Validation passed?) then (yes)
+    |Booking Service|
+    :(5) Check records, ownership, and state [BR3];
+    if (Checks pass?) then (yes)
+      :(5) Execute business action or prepare read result [BR3];
+      if (Downstream integration needed?) then (yes)
+        :(5) Call provider/Redis/related service [BR3];
+        if (Integration succeeds?) then (yes)
+          :(7) Return success result [BR4];
+        else (no)
+          :(8) Return integration failure [BR5];
+          stop
+        endif
+      else (no)
+        :(7) Return success result [BR4];
+      endif
+      |API Gateway|
+      :(7) Wrap/forward success response [BR4];
+      |Cinema Manager / Staff|
+      :Receive result;
+      stop
+    else (no)
+      |API Gateway|
+      :(8) Return not-found, forbidden, conflict, or invalid-state error [BR5];
+      stop
+    endif
+  else (no)
+    :(8) Return MSG 1 or MSG 4 [BR2];
+    stop
+  endif
+else (no)
+  :(8) Return MSG 2 or MSG 9 [BR5];
+  stop
+endif
+@enduml
+```
+
+## Sequence Flow
 
 ```plantuml
 @startuml
@@ -21,89 +68,26 @@ actor "Cinema Manager / Staff" as Actor
 boundary "API Gateway" as GW
 control "Booking Service" as SVC
 database "Booking Database" as DB
-control "Cinema/User/Notification Services" as EXT
+control "External Provider / Redis / Related Services" as EXT
 
-Actor -> GW: GET /v1/bookings/admin/all
-GW -> GW: Validate auth/role/permission
-GW -> GW: Validate path/query/body DTO
-GW -> SVC: Send `booking.admin.findAll`
-SVC -> DB: Read/write required records
-SVC -> EXT: Fetch showtime/user/payment/ticket context when required
-EXT --> SVC: Context or downstream failure
-SVC --> GW: ServiceResult or DTO
-GW --> Actor: API response or mapped error
+Actor -> GW: (1) GET /v1/bookings/admin/all [BR1]
+GW -> GW: (3) Validate authentication, params, query, and body [BR2]
+GW -> SVC: (5) Send `booking.admin.findAll` [BR3]
+SVC -> DB: (5) Load records, ownership, and current state [BR3]
+SVC -> SVC: (5) Apply business rules and build result [BR3]
+SVC -> EXT: (5) Call downstream integration when required [BR3]
+EXT --> SVC: Integration result or failure
+SVC --> GW: (7)/(8) ServiceResult, DTO, or mapped error [BR4/BR5]
+GW --> Actor: API response
 @enduml
 ```
 
-## 3. Activity Flow
+## Business Rules
 
-```plantuml
-@startuml
-|Cinema Manager / Staff|
-start
-:Send request/event;
-|API Gateway|
-:Authenticate/authorize when configured;
-if (Auth allowed?) then (yes)
-  :Validate params/query/body;
-  if (Validation passed?) then (yes)
-    |Booking Service|
-    :Load required records and scope context;
-    if (Resource exists and scope is valid?) then (yes)
-      :Apply business rules and state checks;
-      if (Rules pass?) then (yes)
-        :Persist change or build read result;
-        if (Downstream integration needed?) then (yes)
-          :Call provider/Redis/other service;
-          if (Integration succeeds?) then (yes)
-            :Return success result;
-          else (no)
-            :Rollback/mark failed when required;
-            |API Gateway|
-            :Return mapped downstream failure;
-            stop
-          endif
-        else (no)
-          :Return success result;
-        endif
-        |API Gateway|
-        :Wrap/forward response;
-        |Cinema Manager / Staff|
-        :Receive result;
-        stop
-      else (no)
-        |API Gateway|
-        :Return conflict or invalid-state error;
-        stop
-      endif
-    else (no)
-      |API Gateway|
-      :Return not-found or forbidden error;
-      stop
-    endif
-  else (no)
-    :Return `ResponseMessage.MSG_1` or `ResponseMessage.MSG_4`;
-    stop
-  endif
-else (no)
-  :Return unauthorized/forbidden error;
-  stop
-endif
-@enduml
-```
-
-## 4. Business Rules
-
-| Activity Step | Rule ID | Description |
+| Activity | BR Code | Description |
 | :--- | :--- | :--- |
-| Gateway guard | BR-BK-A01-01 | Request must pass ClerkAuthGuard, RoleGuard where configured, and permission decorators for cinema/global scope before service dispatch. |
-| Input validation | BR-BK-A01-02 | Path and query IDs must identify existing bookings/showtimes; status filters use BookingStatus and PaymentStatus enums, and pagination/date query values must be parseable before service dispatch. |
-| Route/message boundary | BR-BK-A01-03 | Implemented trigger is `GET /v1/bookings/admin/all` and service boundary uses `booking.admin.findAll`; the gateway must not call stale or pluralized paths that differ from the controller. |
-| Business/state rule | BR-BK-A01-04 | Booking ownership is enforced for customer endpoints; admin endpoints are scoped by cinema context when the authenticated staff account has a cinema assignment. |
-| Business/state rule | BR-BK-A01-05 | Booking state transitions are limited to `PENDING -> CONFIRMED/CANCELLED/EXPIRED`, `CONFIRMED -> COMPLETED/CANCELLED/REFUNDED`; terminal states do not regress. |
-| Business/state rule | BR-BK-A01-06 | Seat availability is derived from held Redis seats and persisted seat reservations; duplicate or expired holds must fail without creating inconsistent tickets. |
-| Business/state rule | BR-BK-A01-07 | Refund/cancellation functions must use the configured cancellation policy, showtime timing, payment status, and refund percentage before changing booking state. |
-| Business/state rule | BR-BK-A01-08 | List responses must honor supported filters, pagination defaults, and cinema/user scoping before returning data. |
-| Integration constraint | BR-BK-A01-09 | Integration may call Cinema Service for showtime/seat context, User Service for customer data, payment/ticket/refund modules for state consistency, and uses microservice pattern `booking.admin.findAll`. |
-| Success response | BR-BK-A01-10 | Successful write/validation/state-changing operations return service data with `ResponseMessage.MSG_7` where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
-| Failure response | BR-BK-A01-11 | Expected failures include `Booking not found`, `Cannot cancel this booking`, `Can only update pending bookings`, `Cannot reschedule cancelled booking`, `Cannot reschedule completed booking`, invalid/expired promotion, loyalty balance errors, and downstream cinema lookup failures. |
+| (1) | BR1 | Loading Screen Rules:<br>❖ The system loads the "Admin List All Bookings" function and receives the request/event.<br>❖ The system uses trigger [GET /v1/bookings/admin/all]. |
+| (3) | BR2 | Validate Rules:<br>❖ The system checks the items [page], [limit], [sortBy], [sortOrder], [userId], [showtimeId], [cinemaId], [status], [paymentStatus], [startDate], [endDate].<br>❖ The system validates data according to DTO/schema AdminFindAllBookingsDto.<br>❖ Optional fields: [page], [limit], [sortBy], [sortOrder], [userId], [showtimeId], [cinemaId], [status], [paymentStatus], [startDate], [endDate].<br>❖ Field constraint: [page] is optional, type number.<br>❖ Field constraint: [limit] is optional, type number.<br>❖ Field constraint: [sortBy] is optional, type string.<br>❖ Field constraint: [sortOrder] is optional, type SortOrder.<br>❖ Field constraint: [userId] is optional, type string.<br>❖ Field constraint: [showtimeId] is optional, type string.<br>❖ Field constraint: [cinemaId] is optional, type string.<br>❖ Field constraint: [status] is optional, type BookingStatus.<br>❖ Field constraint: [paymentStatus] is optional, type PaymentStatus.<br>❖ Field constraint: [startDate] is optional, type Date.<br>❖ Field constraint: [endDate] is optional, type Date.<br>❖ If any type, format, enum, range, date, UUID, or email constraint is invalid, the system shows error message MSG 4. |
+| (5) | BR3 | Retrieval Rules:<br>❖ Path and query IDs must identify existing bookings/showtimes; status filters use BookingStatus and PaymentStatus enums, and pagination/date query values must be parseable before service dispatch.<br>❖ Booking state transitions are limited to PENDING -> CONFIRMED/CANCELLED/EXPIRED, CONFIRMED -> COMPLETED/CANCELLED/REFUNDED; terminal states do not regress.<br>❖ Seat availability is derived from held Redis seats and persisted seat reservations; duplicate or expired holds must fail without creating inconsistent tickets.<br>❖ Refund/cancellation functions must use the configured cancellation policy, showtime timing, payment status, and refund percentage before changing booking state.<br>❖ List responses must honor supported filters, pagination defaults, and cinema/user scoping before returning data.<br>❖ Integration may call Cinema Service for showtime/seat context, User Service for customer data, payment/ticket/refund modules for state consistency, and uses microservice pattern booking.admin.findAll. |
+| (7) | BR4 | Message Rules:<br>❖ Successful write/validation/state-changing operations return service data with MSG 7 where the service wraps a ServiceResult; pure reads return the requested DTO/list. |
+| (8) | BR5 | Error Handling Rules:<br>❖ Expected failures include Booking not found, Cannot cancel this booking, Can only update pending bookings, Cannot reschedule cancelled booking, Cannot reschedule completed booking, invalid/expired promotion, loyalty balance errors, and downstream cinema lookup failures.<br>❖ If a constraint, conflict, or unexpected failure occurs, the system shows error message MSG 9. |
